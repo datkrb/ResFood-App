@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import com.muatrenthenang.resfood.ui.theme.LightRed
+import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -107,7 +109,7 @@ fun CartScreen(
                     Icon(
                         imageVector = Icons.Filled.DeleteSweep,
                         contentDescription = "Clear",
-                        tint = Color.Red
+                        tint = LightRed
                     )
                 }
             }
@@ -252,7 +254,7 @@ fun CartScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(28.dp)
-                                                .background(Color.LightGray, CircleShape),
+                                                .background(MaterialTheme.colorScheme.outline, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
@@ -311,8 +313,8 @@ fun CartScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFE5E7EB),
-                        unfocusedBorderColor = Color(0xFFE5E7EB),
+                        focusedBorderColor = MaterialTheme.colorScheme.outline,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface
                     )
@@ -341,7 +343,7 @@ fun CartScreen(
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text(text = "Khuyến mãi", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                         val discount = viewModel.discount()
-                        Text(text = if (discount > 0) "-" + viewModel.formatCurrency(discount) else viewModel.formatCurrency(0), fontWeight = FontWeight.Medium, color = if (discount>0) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurface)
+                        Text(text = if (discount > 0) "-" + viewModel.formatCurrency(discount) else viewModel.formatCurrency(0), fontWeight = FontWeight.Medium, color = if (discount>0) SuccessGreen else MaterialTheme.colorScheme.onSurface)
                     }
                     Divider()
                     Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -373,7 +375,7 @@ fun CartScreen(
                         showDeleteDialog = false
                         deletingItemId = null
                     }) {
-                        Text("Xóa", color = Color(0xFFEF4444))
+                        Text("Xóa", color = LightRed)
                     }
                 },
                 dismissButton = {
@@ -397,7 +399,7 @@ fun CartScreen(
                         viewModel.clearCart()
                         showClearAllDialog = false
                     }) {
-                        Text("Xóa", color = Color(0xFFEF4444))
+                        Text("Xóa", color = LightRed)
                     }
                 },
                 dismissButton = {
