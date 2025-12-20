@@ -50,7 +50,7 @@ class RegisterViewModel : ViewModel() {
             val result = repository.register(email, pass, fullName)
 
             if (result.isSuccess) {
-                _registerResult.value = "Success" // Báo thành công
+                _registerResult.value = "Đăng kí thành công, vui lòng kiểm tra email" // Báo thành công
             } else {
                 // Lấy thông báo lỗi từ Firebase (ví dụ: Email đã tồn tại)
                 _registerResult.value = result.exceptionOrNull()?.message ?: "Đăng ký thất bại"
@@ -63,5 +63,18 @@ class RegisterViewModel : ViewModel() {
     // Hàm reset trạng thái (để khi quay lại màn hình này không bị hiện lỗi cũ)
     fun resetState() {
         _registerResult.value = null
+    }
+
+    fun registerWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = repository.loginWithGoogle(idToken)
+            if (result.isSuccess) {
+                _registerResult.value = "Success"
+            } else {
+                _registerResult.value = "Lỗi Google: ${result.exceptionOrNull()?.message}"
+            }
+            _isLoading.value = false
+        }
     }
 }

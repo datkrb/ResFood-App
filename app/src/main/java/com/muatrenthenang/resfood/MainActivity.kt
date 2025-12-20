@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.muatrenthenang.resfood.ui.screens.auth.ForgotPasswordScreen
 import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
@@ -43,11 +44,14 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToRegister = {
                                 navController.navigate("register")
+                            },
+                            onNavigateToForgotPassword = {
+                                navController.navigate("forgot_password")
                             }
                         )
                     }
 
-                    // 2. Màn hình Trang Chủ (Tạm thời làm giả để test Login)
+                    // 2. Màn hình Trang Chủ
                     composable("home") {
                         HomeScreenPlaceholder()
                     }
@@ -63,6 +67,13 @@ class MainActivity : ComponentActivity() {
                                 // Bấm nút Back -> Quay lại màn hình Login
                                 navController.popBackStack()
                             }
+                        )
+                    }
+
+                    // 4. Quên mật khẩu
+                    composable("forgot_password") {
+                        ForgotPasswordScreen(
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }

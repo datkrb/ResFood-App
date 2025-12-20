@@ -41,4 +41,17 @@ class LoginViewModel : ViewModel() {
         _loginResult.value = null
     }
 
+    fun loginWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = repository.loginWithGoogle(idToken)
+            if (result.isSuccess) {
+                _loginResult.value = "Success"
+            } else {
+                _loginResult.value = "Lỗi Google: ${result.exceptionOrNull()?.message}"
+            }
+            _isLoading.value = false
+        }
+    }
+
 }

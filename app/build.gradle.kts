@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.animation.core.lint)
+    implementation(libs.androidx.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,5 +82,6 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")      // Thư viện Đăng nhập
     implementation("com.google.firebase:firebase-firestore") // Thư viện Database
     implementation("com.google.firebase:firebase-storage")   // Thư viện Ảnh
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
 }
