@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "42375461368",
+    "project_id": "resfood-app",
+    "storage_bucket": "resfood-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:42375461368:android:767068699fcae6a1fc3e0d",
+        "android_client_info": {
+          "package_name": "com.muatrenthenang.resfood"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNJNuZwioPbCBizyo7BMSrdq6rUsfQ87Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
