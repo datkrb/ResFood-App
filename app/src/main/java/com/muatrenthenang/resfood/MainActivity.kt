@@ -3,16 +3,8 @@ package com.muatrenthenang.resfood
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,12 +12,13 @@ import com.muatrenthenang.resfood.ui.screens.auth.ForgotPasswordScreen
 import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
+import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Áp dụng Theme (Màu sắc mặc định của Android Studio)
+            // Áp dụng Theme
             ResFoodTheme {
                 // Tạo bộ điều hướng
                 val navController = rememberNavController()
@@ -51,9 +44,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 2. Màn hình Trang Chủ
+                    // 2. Màn hình Trang Chủ (Đã thay bằng màn hình thật)
                     composable("home") {
-                        HomeScreenPlaceholder()
+                        // Gọi màn hình Home thật của nhóm bạn
+                        HomeScreen()
+
+                        // Nếu HomeScreen cần điều hướng (ví dụ bấm vào món ăn),
+                        // bạn sẽ truyền lambda vào đây sau này. Ví dụ:
+                        // HomeScreen(onFoodClick = { foodId -> navController.navigate("detail/$foodId") })
                     }
 
                     // 3. Màn hình Đăng Ký
@@ -79,22 +77,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-// --- CÁC MÀN HÌNH GIẢ LẬP (PLACEHOLDER) ---
-// Sau này code xong màn hình thật thì xóa mấy cái này đi
-
-@Composable
-fun HomeScreenPlaceholder() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "ĐÂY LÀ TRANG CHỦ\n(Đăng nhập thành công!)")
-    }
-}
-
-@Composable
-fun RegisterScreenPlaceholder() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Màn hình Đăng Ký\n(Sẽ làm sau)")
     }
 }
