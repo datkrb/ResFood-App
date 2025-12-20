@@ -1,6 +1,8 @@
 package com.muatrenthenang.resfood.ui.screens.auth
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,33 +11,30 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.ui.components.ResFoodButton
 import com.muatrenthenang.resfood.ui.components.ResFoodPasswordField
 import com.muatrenthenang.resfood.ui.components.ResFoodTextField
+import com.muatrenthenang.resfood.ui.components.SocialButton // <-- Import Component chung
 import com.muatrenthenang.resfood.ui.viewmodel.RegisterViewModel
-
-// Màu sắc (Sau này nên đưa vào ui/theme/Color.kt)
-val PrimaryColor = Color(0xFF339CFF)
-val BgLight = Color(0xFFF5F7F8)
-val TextDark = Color(0xFF0F1923)
 
 @Composable
 fun RegisterScreen(
@@ -71,8 +70,39 @@ fun RegisterScreen(
         }
     }
 
+    //xử lí google
+    val token = stringResource(R.string.default_web_client_id)
+
+    val gso = remember {
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(token) // Quan trọng: Yêu cầu trả về ID Token
+            .requestEmail()
+            .build()
+    }
+
+    val googleSignInClient = remember {
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    // Launcher để mở cửa sổ chọn tài khoản Google
+    val googleAuthLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            // Lấy được ID Token thì gửi sang ViewModel để đăng nhập Firebase
+            account.idToken?.let { idToken ->
+                viewModel.registerWithGoogle(idToken)
+            }
+        } catch (e: ApiException) {
+            Toast.makeText(context, "Google Sign-In thất bại: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold(
-        containerColor = BgLight,
+        // Dùng màu từ Theme chung (Theme.kt đã map BgLight vào background)
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Box(
                 modifier = Modifier
@@ -89,7 +119,8 @@ fun RegisterScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowBackIosNew,
                         contentDescription = "Back",
-                        tint = TextDark,
+                        // Dùng màu onBackground (TextDark) từ Theme
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -98,7 +129,8 @@ fun RegisterScreen(
                     text = "Đăng ký",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark,
+                    // Dùng màu onBackground (TextDark) từ Theme
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -119,7 +151,7 @@ fun RegisterScreen(
                 text = "Tạo tài khoản mới",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Start
             )
@@ -170,7 +202,8 @@ fun RegisterScreen(
             // Forgot Password Link
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 TextButton(onClick = { /* TODO: Navigate to ForgotPass */ }) {
-                    Text("Quên mật khẩu?", color = PrimaryColor, fontWeight = FontWeight.Medium)
+                    // Dùng màu Primary từ Theme
+                    Text("Quên mật khẩu?", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -199,18 +232,20 @@ fun RegisterScreen(
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
             }
 
-            // --- Social Login Buttons ---
+            // --- Social Login Buttons (Dùng Component chung) ---
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SocialButton(iconRes = R.drawable.ic_launcher_foreground){ /* Login Google */ }
+                SocialButton(iconRes = R.drawable.ic_google){
+                    /* Login Google */
+                    val signInIntent = googleSignInClient.signInIntent
+                    googleAuthLauncher.launch(signInIntent)}
                 Spacer(modifier = Modifier.width(20.dp))
-                SocialButton(iconRes = R.drawable.ic_launcher_foreground) { /* Login FB */ }
+                SocialButton(iconRes = R.drawable.ic_facebook) { /* Login FB */ }
                 Spacer(modifier = Modifier.width(20.dp))
-                SocialButton(iconRes = null, isApple = true) { /* Login Apple */ }
             }
 
             // --- Footer ---
@@ -219,42 +254,12 @@ fun RegisterScreen(
                 Text("Bạn đã có tài khoản? ", color = Color.Gray)
                 Text(
                     text = "Đăng nhập",
-                    color = PrimaryColor,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateBack() }
                 )
             }
             Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-// Component SocialButton (Giữ lại đây hoặc chuyển sang file riêng cũng được)
-@Composable
-fun SocialButton(iconRes: Int?, isApple: Boolean = false, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.size(52.dp),
-        shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E7EB)),
-        color = Color.White,
-        shadowElevation = 2.dp
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            if (isApple) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground), // Tạm thời dùng icon này
-                    contentDescription = "Apple",
-                    modifier = Modifier.size(24.dp),
-                    tint = Color.Black
-                )
-            } else if (iconRes != null) {
-                // Nếu chưa có ảnh thì dùng icon tạm
-                Icon(imageVector = Icons.Filled.Public, contentDescription = null, tint = Color.Gray)
-
-                // Khi có ảnh thật thì mở dòng này ra:
-                // Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(24.dp))
-            }
         }
     }
 }
