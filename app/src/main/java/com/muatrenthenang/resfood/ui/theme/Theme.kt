@@ -25,7 +25,8 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = TextLight,
     onSurface = TextLight,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    outline = DarkBorder,
 )
 
 // Cấu hình bảng màu cho chế độ Sáng (Light Mode - Mặc định)
@@ -37,7 +38,8 @@ private val LightColorScheme = lightColorScheme(
     onBackground = TextDark,
     onSurface = TextDark,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
+    outline = LightBorder,
 )
 
 @Composable
