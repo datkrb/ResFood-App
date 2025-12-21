@@ -83,4 +83,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Thư viện Database
     implementation("com.google.firebase:firebase-storage")   // Thư viện Ảnh
 
+    // Thư viện hỗ trợ Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
 }

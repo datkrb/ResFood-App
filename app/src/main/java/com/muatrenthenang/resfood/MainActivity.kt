@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 // Khai báo các màn hình và đường dẫn
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = "home") { //test
 
                     // 1. Màn hình Đăng Nhập
                     composable("login") {
