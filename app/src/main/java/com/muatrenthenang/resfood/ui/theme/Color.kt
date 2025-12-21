@@ -20,6 +20,13 @@ val SuccessGreen = Color(0xFF10B981) // Dùng cho hiển thị giảm giá / th�
 val LightBorder = Color(0xFFE5E7EB)  // Border trong chế độ sáng
 val DarkBorder = Color(0xFF2C3942)   // Border khi ở chế độ tối (để phù hợp với BgDark)
 
+// Surface tones used in checkout design
+val SurfaceLight = Color(0xFFFFFFFF)
+val SurfaceDark = Color(0xFF1A2530)
+
+// Accent
+val AccentOrange = Color(0xFFF97316)
+
 // Các màu phụ trợ khác (nếu cần giữ lại màu mặc định của Android)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
