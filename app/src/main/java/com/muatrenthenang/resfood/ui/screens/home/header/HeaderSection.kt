@@ -29,7 +29,7 @@ fun HeaderSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(HeaderBackground)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(top = 24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // avatar cua user
