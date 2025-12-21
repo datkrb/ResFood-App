@@ -1,0 +1,64 @@
+package com.muatrenthenang.resfood.ui.screens.home.header.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+private val RankBackground = Color(0xFF3A351E)
+private val RankColor = Color(0xFFC9A83A)
+
+@Composable
+fun TagRanking(
+    rank: String,
+    point: String,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(RankBackground)
+                .border(1.dp, RankColor, RoundedCornerShape(20.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.WorkspacePremium,
+                contentDescription = null,
+                tint = RankColor,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Thành viên $rank",
+                color = RankColor,
+                fontSize = 12.sp
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = point,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            fontStyle = FontStyle.Italic
+        )
+    }
+}
