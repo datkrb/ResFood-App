@@ -80,9 +80,32 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("settings") {
-                        // Placeholder cho màn hình Cài đặt (sẽ thực hiện chi tiết ở bước sau)
-                        Text(text = "Đây là trang Cài đặt")
+                        com.muatrenthenang.resfood.ui.screens.settings.SettingScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToLogin = {
+                                // Đăng xuất thành công -> Về màn Login và xóa lịch sử
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            },
+                            onNavigateToProfile = {
+                                // Chuyển sang màn hình hồ sơ
+                                navController.navigate("profile")
+                            }
+                        )
                     }
+
+                    // Thêm route tạm cho Profile
+                    composable("profile") {
+                        // Tạm thời hiển thị text
+                        androidx.compose.material3.Text(
+                            text = "Đây là màn hình Hồ Sơ Cá Nhân",
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
+
+
+
                 }
             }
         }
