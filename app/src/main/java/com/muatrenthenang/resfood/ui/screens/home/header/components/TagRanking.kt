@@ -21,9 +21,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private val RankBackground = Color(0xFF3A351E)
-private val RankColor = Color(0xFFC9A83A)
+import com.muatrenthenang.resfood.ui.theme.rankBackground
+import com.muatrenthenang.resfood.ui.theme.rankColor
 
 @Composable
 fun TagRanking(
@@ -34,21 +33,21 @@ fun TagRanking(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
-                .background(RankBackground)
-                .border(1.dp, RankColor, RoundedCornerShape(20.dp))
+                .background(rankBackground)
+                .border(1.dp, rankColor, RoundedCornerShape(20.dp))
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.WorkspacePremium,
                 contentDescription = null,
-                tint = RankColor,
+                tint = rankColor,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = "Thành viên $rank",
-                color = RankColor,
+                color = rankColor,
                 fontSize = 12.sp
             )
         }

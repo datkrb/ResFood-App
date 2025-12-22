@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.muatrenthenang.resfood.ui.screens.home.header.components.Avatar
-import com.muatrenthenang.resfood.ui.screens.home.header.components.Location
+import com.muatrenthenang.resfood.ui.screens.home.header.components.LocationText
 import com.muatrenthenang.resfood.ui.screens.home.header.components.NotificationIcon
 import com.muatrenthenang.resfood.ui.screens.home.header.components.TagRanking
 
@@ -55,11 +55,11 @@ fun HeaderSection(
             Spacer(modifier = Modifier.height(4.dp))
 
             // dia chi
-            Location(address = address)
+            LocationText(address = address)
         }
 
         // icon thong bao
-        NotificationIcon()
+        NotificationIcon(onClick = {})
     }
 }
 

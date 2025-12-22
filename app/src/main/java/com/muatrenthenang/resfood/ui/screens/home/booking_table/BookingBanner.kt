@@ -30,18 +30,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 
 @Composable
-fun BookingBanner(){
+fun BookingBanner(
+    onClick: () -> Unit
+){
 
     Card(
         modifier = Modifier
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xff349dff)
+            containerColor = PrimaryColor
         ),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -54,7 +58,7 @@ fun BookingBanner(){
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xff5bafff)),
+                    .background(PrimaryColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

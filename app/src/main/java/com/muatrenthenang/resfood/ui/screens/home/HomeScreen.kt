@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.ui.screens.home
 
+import NavigationBottom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import com.muatrenthenang.resfood.ui.screens.home.card_food.CardFood
 import com.muatrenthenang.resfood.ui.screens.home.category_food.CategoryFood
 import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
+import com.muatrenthenang.resfood.ui.theme.BgDark
 
 @Composable
 fun HomeScreen(
@@ -29,7 +31,10 @@ fun HomeScreen(
 ){
     val uiState by homeViewModel.uiState.collectAsState()
     Scaffold(
-        containerColor = Color(0xFF0F1923)
+        containerColor = BgDark,
+        bottomBar = {
+            NavigationBottom(onClick = {})
+        }
     ) { paddingValues ->
 
         LazyVerticalGrid(
@@ -46,7 +51,7 @@ fun HomeScreen(
                 ) {
                     HeaderSection()
                     SearchBar()
-                    BookingBanner()
+                    BookingBanner(onClick = {})
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -54,7 +59,8 @@ fun HomeScreen(
                         uiState.categories.forEach { category ->
                             CategoryFood(
                                 imgVector = category.icon,
-                                categoryFood = category.name
+                                categoryFood = category.name,
+                                onClick = {}
                             )
                         }
                     }
@@ -64,7 +70,11 @@ fun HomeScreen(
             // Layout food
             items(uiState.foods.size) { index ->
                 val food = uiState.foods[index]
-                CardFood(food)
+                CardFood(
+                    food,
+                    onClickFood = {},
+                    onClickAdd = {}
+                )
             }
         }
     }

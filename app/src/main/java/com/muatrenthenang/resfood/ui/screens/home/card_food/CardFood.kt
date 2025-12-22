@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.screens.home.card_food
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,14 +27,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.data.model.Food
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.ui.theme.bgCardFood
 
 @Composable
-fun CardFood(food: Food) {
+fun CardFood(
+    food: Food,
+    onClickFood: () -> Unit,
+    onClickAdd: () -> Unit,
+) {
     Card(
         modifier = Modifier
             .width(180.dp)
@@ -43,7 +48,7 @@ fun CardFood(food: Food) {
     ) {
         Column(
             modifier = Modifier
-                .background(Color(0xFF1F2A37))
+                .background(bgCardFood)
         ) {
 
             // IMAGE
@@ -54,11 +59,11 @@ fun CardFood(food: Food) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
+                    .clickable(onClick = onClickFood)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // TEXT + PRICE + BUTTON
             Column(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
@@ -82,7 +87,7 @@ fun CardFood(food: Food) {
 
                     Text(
                         text = food.price,
-                        color = Color(0xFF3B82F6), // xanh dương
+                        color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -91,9 +96,10 @@ fun CardFood(food: Food) {
                         modifier = Modifier
                             .size(36.dp)
                             .background(
-                                color = Color(0xFF3B82F6),
+                                color = PrimaryColor,
                                 shape = CircleShape
-                            ),
+                            )
+                            .clickable(onClick = onClickAdd),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

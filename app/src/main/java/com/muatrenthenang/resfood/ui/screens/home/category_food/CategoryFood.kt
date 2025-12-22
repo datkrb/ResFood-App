@@ -1,16 +1,13 @@
 package com.muatrenthenang.resfood.ui.screens.home.category_food
 
-import android.widget.Space
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,12 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 
 @Composable
-fun CategoryFood(imgVector: ImageVector, categoryFood: String){
+fun CategoryFood(
+    imgVector: ImageVector,
+    categoryFood: String,
+    onClick: () -> Unit
+){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -32,7 +33,8 @@ fun CategoryFood(imgVector: ImageVector, categoryFood: String){
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(Color(0xff349dff)),
+                .background(PrimaryColor)
+                .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ){
             Icon(
@@ -51,11 +53,4 @@ fun CategoryFood(imgVector: ImageVector, categoryFood: String){
             fontSize = 12.sp
         )
     }
-
-}
-
-@Preview(showBackground = true)
-@Composable
-fun Test(){
-    CategoryFood(Icons.Default.Restaurant, "Món chính")
 }
