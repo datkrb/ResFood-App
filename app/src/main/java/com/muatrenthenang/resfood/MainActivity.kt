@@ -47,7 +47,11 @@ class MainActivity : ComponentActivity() {
                     // 2. Màn hình Trang Chủ (Đã thay bằng màn hình thật)
                     composable("home") {
                         // Gọi màn hình Home thật của nhóm bạn
-                        HomeScreen()
+                        HomeScreen(
+                            onNavigateToSettings = {
+                                navController.navigate("settings")
+                            }
+                        )
 
                         // Nếu HomeScreen cần điều hướng (ví dụ bấm vào món ăn),
                         // bạn sẽ truyền lambda vào đây sau này. Ví dụ:
@@ -73,6 +77,11 @@ class MainActivity : ComponentActivity() {
                         ForgotPasswordScreen(
                             onNavigateBack = { navController.popBackStack() }
                         )
+                    }
+
+                    composable("settings") {
+                        // Placeholder cho màn hình Cài đặt (sẽ thực hiện chi tiết ở bước sau)
+                        Text(text = "Đây là trang Cài đặt")
                     }
                 }
             }

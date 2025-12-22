@@ -15,11 +15,16 @@ import androidx.compose.ui.unit.dp
 import com.muatrenthenang.resfood.ui.screens.home.booking_table.BookingBanner
 import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
+import com.muatrenthenang.resfood.ui.screens.home.footer.FooterSection
 
 @Composable
-fun HomeScreen(){
+fun HomeScreen(onNavigateToSettings: () -> Unit){
     Scaffold(
-        containerColor = Color(0xFF0F1923)
+        containerColor = Color(0xFF0F1923),
+        bottomBar = {
+            // Gọi FooterSection đã tách riêng
+            FooterSection(onNavigateToSettings = onNavigateToSettings)
+        }
     ) { paddingValues ->
 
         LazyVerticalGrid(
@@ -44,5 +49,5 @@ fun HomeScreen(){
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview(){
-    HomeScreen()
+    HomeScreen(onNavigateToSettings = {})
 }
