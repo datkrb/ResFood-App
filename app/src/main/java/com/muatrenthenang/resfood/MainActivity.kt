@@ -79,6 +79,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    //5. Trang Setting
                     composable("settings") {
                         com.muatrenthenang.resfood.ui.screens.settings.SettingScreen(
                             onNavigateBack = { navController.popBackStack() },
@@ -89,21 +90,28 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             onNavigateToProfile = {
-                                // Chuyển sang màn hình hồ sơ
-                                navController.navigate("profile")
+                                navController.navigate("account_center")
                             }
                         )
                     }
 
-                    // Thêm route tạm cho Profile
-                    composable("profile") {
-                        // Tạm thời hiển thị text
-                        androidx.compose.material3.Text(
-                            text = "Đây là màn hình Hồ Sơ Cá Nhân",
-                            color = androidx.compose.ui.graphics.Color.White
+                    // 6. Màn hình Trung tâm tài khoản
+                    composable("account_center") {
+                        com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen(
+                            onBack = { navController.popBackStack() },
+                            onNavigateToDetails = {
+                                // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
+                                navController.navigate("profile_details")
+                            }
                         )
                     }
 
+                    // 7. Màn hình Hồ sơ cá nhân chi tiết
+                    composable("profile_details") {
+                        com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
 
 
                 }

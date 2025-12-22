@@ -213,7 +213,7 @@ fun SettingItemRow(title: String, subtitle: String? = null, showArrow: Boolean =
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp) // Tạo khoảng cách nhỏ nếu muốn tách rời
+        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),

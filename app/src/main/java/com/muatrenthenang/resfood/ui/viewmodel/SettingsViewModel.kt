@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 class SettingsViewModel : ViewModel() {
     private val authRepository = AuthRepository()
 
-    // Hàm xử lý đăng xuất
     fun logout(onLogoutSuccess: () -> Unit) {
         viewModelScope.launch {
             authRepository.logout()
