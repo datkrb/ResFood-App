@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.bgCardFood
@@ -52,8 +53,8 @@ fun CardFood(
         ) {
 
             // IMAGE
-            Image(
-                painter = painterResource(id = food.imageUrl),
+            AsyncImage(
+                model = food.imageUrl, // Truyền thẳng URL vào đây
                 contentDescription = "Food image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -86,7 +87,7 @@ fun CardFood(
                 ) {
 
                     Text(
-                        text = food.price,
+                        text = food.price.toString(),
                         color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

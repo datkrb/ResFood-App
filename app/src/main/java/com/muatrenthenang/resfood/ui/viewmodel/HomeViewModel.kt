@@ -36,12 +36,12 @@ class HomeViewModel : ViewModel() {
 
             // danh sách món ăn (chưa phân theo danh mục)
             val foodData = listOf(
-                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
-                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
-                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
-                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
-                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
-            )
+                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
+                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
+                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
+                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
+                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
+                )
 
             _uiState.value = HomeUiState(
                 categories = categoryData,
