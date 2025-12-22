@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -39,9 +38,10 @@ import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.theme.AccentOrange
 import com.muatrenthenang.resfood.ui.viewmodel.CheckoutViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.PaymentMethod
-import com.muatrenthenang.resfood.ui.viewmodel.CartItem
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -120,7 +120,7 @@ fun CheckoutScreen(
                         ) {
                             Text(text = "Xác nhận", color = Color.White, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null, tint = Color.White)
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White)
                         }
                     }
                 }
@@ -191,14 +191,14 @@ fun CheckoutScreen(
                         items.forEach { it ->
                             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Box(modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp))) {
-                                    AsyncImage(model = it.imageUrl, contentDescription = it.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                    AsyncImage(model = it.food.imageUrl, contentDescription = it.food.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                                     Text(text = "x${it.quantity}", color = Color.White, modifier = Modifier.align(Alignment.BottomEnd).background(Color.Black.copy(alpha = 0.5f)).padding(3.dp), fontSize = 10.sp, lineHeight = 10.sp,)
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = it.name, fontWeight = FontWeight.Medium)
-                                        Text(text = vm.formatCurrency(it.price * it.quantity), fontWeight = FontWeight.Bold)
+                                        Text(text = it.food.name, fontWeight = FontWeight.Medium)
+                                        Text(text = vm.formatCurrency((it.food.price * it.quantity).toLong()), fontWeight = FontWeight.Bold)
                                     }
                                     Text(text = "Không hành, nhiều nước béo", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                                 }

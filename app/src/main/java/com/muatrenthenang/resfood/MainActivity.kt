@@ -13,6 +13,8 @@ import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
+import com.muatrenthenang.resfood.ui.screens.cart.CartScreen
+import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +74,20 @@ class MainActivity : ComponentActivity() {
                     composable("forgot_password") {
                         ForgotPasswordScreen(
                             onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("cart"){
+                        CartScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onProceedToCheckout = {navController.navigate("checkout")}
+                        )
+                    }
+
+                    composable("checkout"){
+                        CheckoutScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onPaymentConfirmed = {}
                         )
                     }
                 }
