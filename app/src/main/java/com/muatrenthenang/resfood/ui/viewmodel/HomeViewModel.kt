@@ -3,18 +3,17 @@ package com.muatrenthenang.resfood.ui.screens.home
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiFoodBeverage
 import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.Icecream
-import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Tapas
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.CategoryItem
+import com.muatrenthenang.resfood.data.model.Food
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.muatrenthenang.resfood.R
 
 class HomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -26,13 +25,28 @@ class HomeViewModel : ViewModel() {
 
     private fun loadCategories() {
         viewModelScope.launch {
+
+            // danh mục món ăn
             val categoryData = listOf(
                 CategoryItem(icon = Icons.Default.Restaurant, name = "Món chính"),
                 CategoryItem(icon = Icons.Default.Tapas, name = "Món phụ"),
                 CategoryItem(icon = Icons.Default.EmojiFoodBeverage, name = "Nước uống"),
                 CategoryItem(icon = Icons.Default.Fastfood, name = "Tráng miệng")
             )
-            _uiState.value = HomeUiState(categories = categoryData)
+
+            // danh sách món ăn (chưa phân theo danh mục)
+            val foodData = listOf(
+                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
+                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
+                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
+                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
+                Food("Khô gà đè tem", "100.000đ", R.drawable.domixi),
+            )
+
+            _uiState.value = HomeUiState(
+                categories = categoryData,
+                foods = foodData
+            )
         }
     }
 }

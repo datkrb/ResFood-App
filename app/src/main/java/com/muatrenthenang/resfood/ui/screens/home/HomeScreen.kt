@@ -18,13 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.screens.home.booking_table.BookingBanner
+import com.muatrenthenang.resfood.ui.screens.home.card_food.CardFood
 import com.muatrenthenang.resfood.ui.screens.home.category_food.CategoryFood
 import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
 
 @Composable
 fun HomeScreen(
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
 ){
     val uiState by homeViewModel.uiState.collectAsState()
     Scaffold(
@@ -35,7 +36,9 @@ fun HomeScreen(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .padding(paddingValues)
-                .padding(horizontal = 15.dp)
+                .padding(horizontal = 15.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp),
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             item(span = { GridItemSpan(2) }) {
                 Column(
@@ -56,6 +59,12 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
+
+            // Layout food
+            items(uiState.foods.size) { index ->
+                val food = uiState.foods[index]
+                CardFood(food)
             }
         }
     }
