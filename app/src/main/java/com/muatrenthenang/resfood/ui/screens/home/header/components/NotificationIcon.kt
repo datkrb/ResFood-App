@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.screens.home.header.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -19,12 +20,15 @@ import androidx.compose.ui.unit.dp
 private val IconBackground = Color(0xFF202A34)
 
 @Composable
-fun NotificationIcon() {
+fun NotificationIcon(
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(IconBackground),
+            .background(IconBackground)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(

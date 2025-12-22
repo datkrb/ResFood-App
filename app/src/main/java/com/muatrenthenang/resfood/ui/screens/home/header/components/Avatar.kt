@@ -23,7 +23,7 @@ fun Avatar(
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(60.dp)
+            .size(48.dp)
             .clip(CircleShape)
             .border(2.dp, Color.Yellow, CircleShape)
             .clickable(onClick = onClick)
