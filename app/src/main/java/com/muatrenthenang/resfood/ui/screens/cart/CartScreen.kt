@@ -35,13 +35,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
-import com.muatrenthenang.resfood.ui.components.ResFoodButton
 import com.muatrenthenang.resfood.ui.theme.BgLight
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.TextDark
 import com.muatrenthenang.resfood.ui.viewmodel.CartViewModel
 import androidx.compose.ui.tooling.preview.Preview
-
+import com.muatrenthenang.resfood.data.model.CartItem
 
 
 @Composable
@@ -57,7 +56,6 @@ fun CartScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val result by viewModel.actionResult.collectAsState()
     val needLogin by viewModel.needLogin.collectAsState()
-    var promoInput by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deletingItemId by remember { mutableStateOf<String?>(null) }
     var showClearAllDialog by remember { mutableStateOf(false) }
@@ -127,7 +125,7 @@ fun CartScreen(
                         .padding(16.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                             Button(
-                                onClick = { viewModel.checkout(); onProceedToCheckout() },
+                                onClick = { if(viewModel.canCheckout()) {onProceedToCheckout()} },
                                 enabled = !isLoading,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -309,36 +307,8 @@ fun CartScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Promo, Bill Summary, Bottom bar chỉ hiện khi có item
+                // Bill Summary, Bottom bar chỉ hiện khi có item
                 if (items.isNotEmpty()) {
-                    // Promo
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = promoInput,
-                            onValueChange = { promoInput = it },
-                            placeholder = { Text("Nhập mã khuyến mãi", color = Color.Gray) },
-                            leadingIcon = { Icon(imageVector = Icons.Filled.ConfirmationNumber, contentDescription = null, tint = Color.Gray) },
-                            trailingIcon = {
-                                TextButton(onClick = { viewModel.applyPromo(promoInput) }) {
-                                    Text(text = "Áp dụng", color = PrimaryColor, fontWeight = FontWeight.Medium)
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.outline,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                            )
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Bill Summary
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surface,
@@ -355,17 +325,12 @@ fun CartScreen(
                                 Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = viewModel.formatCurrency(15000L), fontWeight = FontWeight.Medium)
                             }
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Khuyến mãi", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                val discount = viewModel.discount()
-                                Text(text = if (discount > 0) "-" + viewModel.formatCurrency(discount) else viewModel.formatCurrency(0), fontWeight = FontWeight.Medium, color = if (discount>0) SuccessGreen else MaterialTheme.colorScheme.onSurface)
-                            }
                             Divider()
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Column {
                                     Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
                                 }
-                                Text(text = viewModel.formatCurrency(viewModel.total()), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
+                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + 15000L), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
                             }
                         }
                     }
@@ -433,9 +398,7 @@ fun CartScreen(
 @Composable
 fun CartScreenPreview() {
     CartScreen(
-        onProceedToCheckout = {
-
-        },
+        onProceedToCheckout = {},
         onNavigateBack = {
 
         }

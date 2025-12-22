@@ -24,11 +24,12 @@ class CartRepository {
             for (doc in snapshot) {
                 val foodId = doc.getString("foodId") ?: doc.id
                 val quantity = doc.getLong("quantity")?.toInt() ?: 1
+                val isSelected = doc.getBoolean("isSelected") ?: true
                 val note = doc.getString("note")
                 val foodDoc = db.collection("foods").document(foodId).get().await()
                 val food = foodDoc.toObject(Food::class.java)?.copy(id = foodId)
                 if (food != null) {
-                    items.add(CartItem(food, quantity, note))
+                    items.add(CartItem(food, quantity, isSelected, note))
                 }
             }
             Result.success(items)
@@ -38,7 +39,7 @@ class CartRepository {
     }
 
     // Thêm hoặc cập nhật 1 item vào cart
-    suspend fun addOrUpdateCartItem(foodId: String, quantity: Int, note: String? = null): Result<Boolean> {
+    suspend fun addOrUpdateCartItem(foodId: String, quantity: Int, note: String? = null, isSelected: Boolean = true): Result<Boolean> {
         val userId = auth.currentUser?.uid
             ?: return Result.failure(Exception("User chưa đăng nhập"))
         return try {
@@ -46,7 +47,12 @@ class CartRepository {
                 .document(userId)
                 .collection("cartItems")
                 .document(foodId)
-                .set(mapOf("foodId" to foodId, "quantity" to quantity, "note" to note))
+                .set(mapOf(
+                    "foodId" to foodId,
+                    "quantity" to quantity,
+                    "note" to note,
+                    "isSelected" to isSelected
+                ))
                 .await()
             Result.success(true)
         } catch (e: Exception) {

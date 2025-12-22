@@ -24,9 +24,6 @@ class CartViewModel(
     private val _needLogin = MutableStateFlow(false)
     val needLogin = _needLogin.asStateFlow()
 
-    private val _promoCode = MutableStateFlow<String?>(null)
-    val promoCode = _promoCode.asStateFlow()
-
     private val _shippingFee = 15000L
 
     init {
@@ -96,13 +93,9 @@ class CartViewModel(
         return _items.value.sumOf { it.food.price * it.quantity }
     }
 
-    fun discount(): Long {
-        return if (_promoCode.value == "NNDAI") 10000L else 0L
-    }
-
     fun total(): Long {
         val subtotal = subTotal()
-        return subtotal + _shippingFee - discount()
+        return subtotal + _shippingFee
     }
 
     fun formatCurrency(value: Long): String {
@@ -110,31 +103,20 @@ class CartViewModel(
         return pattern.format(value) + "đ"
     }
 
-    fun checkout() {
-        viewModelScope.launch {
-            if (_items.value.isEmpty()) {
-                _actionResult.value = "Giỏ hàng trống"
-                return@launch
-            }
-            _isLoading.value = true
-            kotlinx.coroutines.delay(1200)
-            _isLoading.value = false
-            _actionResult.value = "Checkout thành công"
-            clearCart()
-        }
-    }
+    fun canCheckout(): Boolean {
+        val items = _items.value
 
-    fun applyPromo(code: String) {
-        if (code.isBlank()) return
-        viewModelScope.launch {
-            if (code.trim().uppercase() == "NNDAI") {
-                _promoCode.value = "NNDAI"
-                _actionResult.value = "Mã khuyến mãi đã được áp dụng"
-            } else {
-                _actionResult.value = "Mã không hợp lệ"
-                _promoCode.value = null
-            }
+        if (items.isEmpty()) {
+            _actionResult.value = "Giỏ hàng trống"
+            return false
         }
+
+        if (!items.any { it.isSelected }) {
+            _actionResult.value = "Vui lòng chọn ít nhất một món"
+            return false
+        }
+
+        return true
     }
 
     fun clearResult() { _actionResult.value = null }
