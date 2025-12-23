@@ -3,6 +3,7 @@ package com.muatrenthenang.resfood.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.muatrenthenang.resfood.data.model.User
 
 class AuthRepository {
     private val auth = FirebaseAuth.getInstance()
@@ -109,5 +110,29 @@ class AuthRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // Hàm lấy thông tin chi tiết User từ Firestore
+    suspend fun getUserDetails(userId: String): Result<User> {
+        return try {
+            val document = db.collection("users").document(userId).get().await()
+            if (document.exists()) {
+                val user = document.toObject(User::class.java)
+                if (user != null) {
+                    Result.success(user)
+                } else {
+                    Result.failure(Exception("Dữ liệu user bị lỗi"))
+                }
+            } else {
+                Result.failure(Exception("Không tìm thấy user"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Hàm lấy ID người dùng hiện tại
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
     }
 }
