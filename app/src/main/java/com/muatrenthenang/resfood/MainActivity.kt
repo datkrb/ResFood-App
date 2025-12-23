@@ -1,10 +1,15 @@
 package com.muatrenthenang.resfood
 
+import SplashScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,6 +20,7 @@ import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.cart.CartScreen
 import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
+import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,8 +32,23 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 // Khai báo các màn hình và đường dẫn
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = "splash") {
 
+                    //Check Login
+                    composable("splash") {
+                        SplashScreen(
+                            onGoHome = {
+                                navController.navigate("home") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            },
+                            onGoLogin = {
+                                navController.navigate("login") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
                     // 1. Màn hình Đăng Nhập
                     composable("login") {
                         LoginScreen(
@@ -95,3 +116,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.muatrenthenang.resfood.ui.viewmodel
+package com.muatrenthenang.resfood.ui.viewmodel.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,8 @@ class LoginViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val _loginResult = MutableStateFlow<String?>(null) // null = chưa làm gì, "Success" = thành công, còn lại là lỗi
+    private val _loginResult =
+        MutableStateFlow<String?>(null) // null = chưa làm gì, "Success" = thành công, còn lại là lỗi
     val loginResult = _loginResult.asStateFlow()
 
     fun login(email: String, pass: String) {
