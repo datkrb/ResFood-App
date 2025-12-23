@@ -37,15 +37,18 @@ import com.muatrenthenang.resfood.ui.theme.bgCardFood
 @Composable
 fun CardFood(
     food: Food,
-    onClickFood: () -> Unit,
+    onClickFood: (Food) -> Unit,
     onClickAdd: () -> Unit,
 ) {
     Card(
         modifier = Modifier
             .width(180.dp)
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .clickable{
+                onClickFood(food)
+            },
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(6.dp)
+        elevation = CardDefaults.cardElevation(6.dp),
     ) {
         Column(
             modifier = Modifier
@@ -54,13 +57,12 @@ fun CardFood(
 
             // IMAGE
             AsyncImage(
-                model = food.imageUrl, // Truyền thẳng URL vào đây
+                model = food.imageUrl,
                 contentDescription = "Food image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
-                    .clickable(onClick = onClickFood)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -87,7 +89,7 @@ fun CardFood(
                 ) {
 
                     Text(
-                        text = food.price.toString(),
+                        text = "%,dđ".format(food.price),
                         color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

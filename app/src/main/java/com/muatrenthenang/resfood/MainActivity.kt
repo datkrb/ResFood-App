@@ -5,9 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.muatrenthenang.resfood.ui.screens.auth.ForgotPasswordScreen
 import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
@@ -15,6 +17,7 @@ import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.cart.CartScreen
 import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
+import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,8 +51,11 @@ class MainActivity : ComponentActivity() {
 
                     // 2. Màn hình Trang Chủ (Đã thay bằng màn hình thật)
                     composable("home") {
-                        // Gọi màn hình Home thật của nhóm bạn
-                        HomeScreen()
+                        HomeScreen(
+                            onFoodClick = { food ->
+                                navController.navigate("detail/${food.id}")
+                            }
+                        )
 
                         // Nếu HomeScreen cần điều hướng (ví dụ bấm vào món ăn),
                         // bạn sẽ truyền lambda vào đây sau này. Ví dụ:
@@ -88,6 +94,17 @@ class MainActivity : ComponentActivity() {
                         CheckoutScreen(
                             onNavigateBack = { navController.popBackStack() },
                             onPaymentConfirmed = {}
+                        )
+                    }
+
+                    composable(
+                        route = "detail/{foodId}",
+                        arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                        FoodDetailScreen(
+                            foodId = foodId,
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }
