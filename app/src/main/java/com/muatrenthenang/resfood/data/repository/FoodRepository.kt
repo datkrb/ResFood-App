@@ -40,13 +40,18 @@ class FoodRepository {
         }
     }
 
-    // Thêm món ăn (chỉ admin)
-    suspend fun addFood(food: Food): Result<Boolean> {
+    // Thêm món ăn (chỉ admin), id sẽ được tạo tự động
+    suspend fun addFood(food: Food): Result<Food> {
         checkAdmin().onFailure { return Result.failure(it) }
         return try {
-            val data = food.copy(id = "") // Firestore tự sinh id
-            db.collection("foods").add(data).await()
-            Result.success(true)
+            val docRef = db.collection("foods").add(food).await()
+            val foodWithId = food.copy(id = docRef.id)
+            db.collection("foods")
+                .document(docRef.id)
+                .set(foodWithId)
+                .await()
+
+            Result.success(foodWithId)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -57,8 +62,7 @@ class FoodRepository {
         checkAdmin().onFailure { return Result.failure(it) }
         val foodId = food.id ?: return Result.failure(Exception("Thiếu id món ăn"))
         return try {
-            val data = food.copy(id = "")
-            db.collection("foods").document(foodId).set(data).await()
+            db.collection("foods").document(foodId).set(food).await()
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
