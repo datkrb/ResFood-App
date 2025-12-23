@@ -22,8 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.R
+import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.viewmodel.SettingsViewModel
-
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 // Màu sắc định nghĩa theo hình ảnh
 private val BackgroundColor = Color(0xFF0F1923)
@@ -38,8 +39,11 @@ fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToProfile: () -> Unit, // Chức năng xem hồ sơ
-    viewModel: SettingsViewModel = viewModel()
+    userViewModel: UserViewModel
 ) {
+    val userState by userViewModel.userState.collectAsState()
+    val user = userState ?: User(fullName = "Đang tải...", rank = "...") // Placeholder khi loading
+
     Scaffold(
         containerColor = BackgroundColor,
         topBar = {
@@ -56,8 +60,8 @@ fun SettingScreen(
         ) {
             // 1. Trung tâm tài khoản (Account Center)
             AccountCenterCard(
-                name = viewModel.userName,
-                rank = viewModel.userRank,
+                name = user.fullName,  // Dữ liệu từ Firebase
+                rank = "Thành viên ${user.rank}",
                 onProfileClick = onNavigateToProfile
             )
 
@@ -88,7 +92,7 @@ fun SettingScreen(
             // 5. Nút Đăng xuất
             Button(
                 onClick = {
-                    viewModel.logout(onLogoutSuccess = onNavigateToLogin)
+                    userViewModel.logout(onLogoutSuccess = onNavigateToLogin)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

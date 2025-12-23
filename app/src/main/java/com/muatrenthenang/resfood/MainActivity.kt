@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -13,6 +14,7 @@ import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +24,8 @@ class MainActivity : ComponentActivity() {
             ResFoodTheme {
                 // Tạo bộ điều hướng
                 val navController = rememberNavController()
+                // Khởi tạo ViewModel (Dùng viewModel())
+                val userViewModel: UserViewModel = viewModel()
 
                 // Khai báo các màn hình và đường dẫn
                 NavHost(navController = navController, startDestination = "home") { //test
@@ -91,7 +95,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToProfile = {
                                 navController.navigate("account_center")
-                            }
+                            },
+                            userViewModel = userViewModel
                         )
                     }
 
@@ -102,14 +107,16 @@ class MainActivity : ComponentActivity() {
                             onNavigateToDetails = {
                                 // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
                                 navController.navigate("profile_details")
-                            }
+                            },
+                            userViewModel = userViewModel
                         )
                     }
 
                     // 7. Màn hình Hồ sơ cá nhân chi tiết
                     composable("profile_details") {
                         com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen(
-                            onBack = { navController.popBackStack() }
+                            onBack = { navController.popBackStack() },
+                            userViewModel = userViewModel
                         )
                     }
 

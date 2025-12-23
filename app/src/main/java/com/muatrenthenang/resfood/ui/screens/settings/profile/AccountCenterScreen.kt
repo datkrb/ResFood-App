@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muatrenthenang.resfood.data.model.User
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 // Màu sắc
 private val BgColor = Color(0xFF0F1923)
@@ -32,8 +36,11 @@ private val BlueAccent = Color(0xFF4FA5F5)
 @Composable
 fun AccountCenterScreen(
     onBack: () -> Unit,
-    onNavigateToDetails: () -> Unit
+    onNavigateToDetails: () -> Unit,
+    userViewModel: UserViewModel
 ) {
+    val userState by userViewModel.userState.collectAsState()
+    val user = userState ?: User(fullName = "...", points = 0, rank = "...")
     Scaffold(
         containerColor = BgColor,
         topBar = {
@@ -79,7 +86,7 @@ fun AccountCenterScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 1. Header Info
-            UserInfoHeader()
+            UserInfoHeader(user = user)
 
             // 2. Menu Options
             Column(modifier = Modifier.background(CardColor, RoundedCornerShape(16.dp))) {
@@ -91,10 +98,10 @@ fun AccountCenterScreen(
             }
 
             // 3. Rank Status Card
-            RankStatusCard()
+            RankStatusCard(user = user)
 
             // 4. Benefits List
-            Text("Quyền lợi hạng Vàng", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Quyền lợi hạng ${user.rank}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             BenefitItem(icon = Icons.Default.Star, title = "Tích điểm 5%", desc = "Nhận lại 5% giá trị mỗi đơn hàng vào ví.")
             BenefitItem(icon = Icons.Default.DateRange, title = "Ưu tiên đặt bàn", desc = "Được ưu tiên giữ chỗ vào giờ cao điểm.")
             BenefitItem(icon = Icons.Default.ShoppingCart, title = "Freeship dưới 5km", desc = "Miễn phí giao hàng cho mọi đơn đặt món < 5km.")
@@ -105,7 +112,7 @@ fun AccountCenterScreen(
 }
 
 @Composable
-fun UserInfoHeader() {
+fun UserInfoHeader(user: User) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,12 +130,12 @@ fun UserInfoHeader() {
         Spacer(modifier = Modifier.width(12.dp))
 
         Column {
-            Text("Nguyễn Văn A", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(user.fullName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Thành viên Vàng", color = GoldColor, fontSize = 12.sp)
+                Text("Thành viên ${user.rank}", color = GoldColor, fontSize = 12.sp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Surface(color = Color(0xFF1E2A38), shape = RoundedCornerShape(4.dp)) {
-                    Text("1,250 điểm", color = BlueAccent, fontSize = 10.sp, modifier = Modifier.padding(4.dp))
+                    Text("${user.points} điểm", color = BlueAccent, fontSize = 10.sp, modifier = Modifier.padding(4.dp))
                 }
             }
         }
@@ -151,8 +158,36 @@ fun MenuOptionItem(icon: ImageVector, title: String, onClick: () -> Unit) {
     }
 }
 
+// Hàm bổ trợ để lấy thông tin hiển thị theo Rank
 @Composable
-fun RankStatusCard() {
+fun getRankDisplayInfo(rank: String): RankInfo {
+    return when (rank) {
+        "Kim Cương" -> RankInfo(
+            color = Color(0xFFB9F2FF),
+            nextRank = "Tối đa",
+            targetPoints = 0
+        )
+        "Vàng" -> RankInfo(
+            color = Color(0xFFFFC107),
+            nextRank = "Kim Cương",
+            targetPoints = 3000
+        )
+        else -> RankInfo( // Mặc định là Bạc
+            color = Color(0xFFC0C0C0),
+            nextRank = "Vàng",
+            targetPoints = 1000
+        )
+    }
+}
+
+data class RankInfo(val color: Color, val nextRank: String, val targetPoints: Int)
+@Composable
+fun RankStatusCard(user: User) {
+    // Logic tính toán đơn giản (Ví dụ)
+    //val nextRankPoints = 3000
+    //val progress = if(nextRankPoints > 0) user.points.toFloat() / nextRankPoints else 0f
+
+    val info = getRankDisplayInfo(user.rank)
     Card(
         colors = CardDefaults.cardColors(containerColor = CardColor),
         shape = RoundedCornerShape(16.dp),
@@ -162,25 +197,33 @@ fun RankStatusCard() {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Column {
                     Text("CẤP BẬC HIỆN TẠI", color = Color.Gray, fontSize = 10.sp)
-                    Text("Vàng", color = GoldColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(user.rank, color = GoldColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
                 Icon(Icons.Default.Star, contentDescription = null, tint = GoldColor)
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("Tiến độ lên Bạch Kim", color = Color.White, fontSize = 12.sp)
-                Text("60%", color = Color.White, fontSize = 12.sp)
+            // Hiển thị tiến độ
+            if (user.rank != "Kim Cương") {
+                val progress = (user.points.toFloat() / info.targetPoints).coerceIn(0f, 1f)
+
+                Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Text("Tiến độ lên ${info.nextRank}", color = Color.White, fontSize = 12.sp)
+                    Text("${(progress * 100).toInt()}%", color = Color.White, fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth().height(6.dp),
+                    color = info.color,
+                    trackColor = Color.DarkGray,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                val pointsNeeded = info.targetPoints - user.points
+                Text("Bạn cần thêm $pointsNeeded điểm để thăng hạng.", color = Color.LightGray, fontSize = 12.sp)
+            } else {
+                Text("Bạn đã đạt cấp bậc cao nhất!", color = info.color, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { 0.6f },
-                modifier = Modifier.fillMaxWidth().height(6.dp),
-                color = GoldColor,
-                trackColor = Color.DarkGray,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Bạn cần chi tiêu thêm 2.000.000đ để thăng hạng.", color = Color.LightGray, fontSize = 12.sp)
         }
     }
 }
