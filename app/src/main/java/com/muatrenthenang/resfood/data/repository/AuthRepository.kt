@@ -112,11 +112,6 @@ class AuthRepository {
         }
     }
 
-    // Hàm lấy ID người dùng hiện tại
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
-
     // Hàm lấy thông tin chi tiết User từ Firestore
     suspend fun getUserDetails(userId: String): Result<User> {
         return try {
@@ -134,5 +129,10 @@ class AuthRepository {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // Hàm lấy ID người dùng hiện tại
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
     }
 }
