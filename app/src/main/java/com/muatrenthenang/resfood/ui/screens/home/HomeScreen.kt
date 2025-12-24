@@ -14,21 +14,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.screens.home.booking_table.BookingBanner
 import com.muatrenthenang.resfood.ui.screens.home.card_food.CardFood
 import com.muatrenthenang.resfood.ui.screens.home.category_food.CategoryFood
 import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
 import com.muatrenthenang.resfood.ui.theme.BgDark
+import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
 import com.muatrenthenang.resfood.ui.screens.home.footer.FooterSection
 
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
+    onFoodClick: (Food) -> Unit,
     onNavigateToSettings: () -> Unit
 ){
     val uiState by homeViewModel.uiState.collectAsState()
@@ -79,7 +80,9 @@ fun HomeScreen(
                 val food = uiState.foods[index]
                 CardFood(
                     food,
-                    onClickFood = {},
+                    onClickFood = { food ->
+                        onFoodClick(food)
+                    },
                     onClickAdd = {}
                 )
             }
@@ -87,8 +90,8 @@ fun HomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview(){
-    HomeScreen(onNavigateToSettings = {})
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview(){
+//    HomeScreen(onNavigateToSettings = {})
+//}
