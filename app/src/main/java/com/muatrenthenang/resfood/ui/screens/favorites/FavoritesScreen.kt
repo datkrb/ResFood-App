@@ -53,6 +53,7 @@ fun FavoritesScreen(
     val items by vm.items.collectAsState()
     val result by vm.actionResult.collectAsState()
     val needLogin by vm.needLogin.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
 
     // Remove confirmation state
     val showRemoveDialog = remember { mutableStateOf(false) }
@@ -106,6 +107,15 @@ fun FavoritesScreen(
                         Text("Đăng nhập", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+        } else if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
         } else {
             Column(modifier = Modifier

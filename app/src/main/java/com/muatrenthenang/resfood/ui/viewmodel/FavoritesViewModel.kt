@@ -24,26 +24,36 @@ class FavoritesViewModel(
     private val _needLogin = MutableStateFlow(false)
     val needLogin = _needLogin.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     private val _tag = "FavoritesViewModel"
 
     init {
+        _isLoading.value = true
         loadFavorites()
     }
 
     fun loadFavorites() {
         Log.d(_tag, "Loading favorites")
         viewModelScope.launch {
-            val result = _repository.getFavorites()
-            if (result.isSuccess) {
-                _items.value = result.getOrNull() ?: emptyList()
-                _needLogin.value = false
-                Log.d(_tag, "Loaded ${_items.value.size} favorite items")
-            } else {
-                if (result.exceptionOrNull()?.message?.contains("chưa đăng nhập", true) == true) {
-                    Log.e(_tag, "User not logged in")
-                    _needLogin.value = true
+            try {
+                val result = _repository.getFavorites()
+                if (result.isSuccess) {
+                    _items.value = result.getOrNull() ?: emptyList()
+                    _needLogin.value = false
+                    Log.d(_tag, "Loaded ${_items.value.size} favorite items")
+                } else {
+                    if (result.exceptionOrNull()?.message?.contains("chưa đăng nhập", true) == true) {
+                        Log.e(_tag, "User not logged in")
+                        _needLogin.value = true
+                    }
+                    _actionResult.value = result.exceptionOrNull()?.localizedMessage
                 }
-                _actionResult.value = result.exceptionOrNull()?.localizedMessage
+            } catch (e: Exception) {
+                _actionResult.value = e.localizedMessage
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -53,6 +63,7 @@ class FavoritesViewModel(
             val result = _repository.removeFavorite(id)
             if (result.isSuccess) {
                 _actionResult.value = "Đã xóa khỏi danh sách yêu thích"
+                // Re-load favorites (loadFavorites will update loading state)
                 loadFavorites()
             } else {
                 _actionResult.value = result.exceptionOrNull()?.localizedMessage
@@ -68,11 +79,15 @@ class FavoritesViewModel(
                 _actionResult.value = "Sản phẩm hiện không có"
                 return@launch
             }
-            val result = _cartRepository.addOrUpdateCartItem(item.food.id, 1)
-            if (result.isSuccess) {
-                _actionResult.value = "Đã thêm \"${item.food.name}\" vào giỏ hàng"
-            } else {
-                _actionResult.value = result.exceptionOrNull()?.localizedMessage ?: "Lỗi khi thêm vào giỏ hàng"
+            try {
+                val result = _cartRepository.addOrUpdateCartItem(item.food.id, 1)
+                if (result.isSuccess) {
+                    _actionResult.value = "Đã thêm \"${item.food.name}\" vào giỏ hàng"
+                } else {
+                    _actionResult.value = result.exceptionOrNull()?.localizedMessage ?: "Lỗi khi thêm vào giỏ hàng"
+                }
+            } catch (e: Exception) {
+                _actionResult.value = e.localizedMessage
             }
         }
     }
