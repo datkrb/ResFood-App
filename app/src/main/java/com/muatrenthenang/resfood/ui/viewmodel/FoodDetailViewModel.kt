@@ -1,15 +1,21 @@
 package com.muatrenthenang.resfood.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Topping
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.collections.toMutableSet
 
 class FoodDetailViewModel : ViewModel() {
+    private val _foodRepository = com.muatrenthenang.resfood.data.repository.FoodRepository()
+    private val _cartRepository = com.muatrenthenang.resfood.data.repository.CartRepository()
+    private val _favoritesRepository = com.muatrenthenang.resfood.data.repository.FavoritesRepository()
 
     private val _food = MutableStateFlow<Food?>(null)
     val food: StateFlow<Food?> = _food.asStateFlow()
@@ -25,6 +31,9 @@ class FoodDetailViewModel : ViewModel() {
 
     private val _totalPrice = MutableStateFlow(0)
     val totalPrice: StateFlow<Int> = _totalPrice.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
     // data tam de test
     val sampleFoods = listOf(
@@ -81,7 +90,27 @@ class FoodDetailViewModel : ViewModel() {
     //
 
     fun loadFoodDetail(foodId: String) {
-        _food.value = sampleFoods.find { it.id == foodId }
+        viewModelScope.launch {
+            val result = _foodRepository.getFood(foodId)
+            if (result.isSuccess) {
+                val foodItem = result.getOrNull()
+                _food.value = foodItem
+                _totalPrice.value = foodItem?.price ?: 0
+                // Check favorites status for this food
+                foodItem?.id?.let { id ->
+                    val favRes = _favoritesRepository.isFavorite(id)
+                    if (favRes.isSuccess) {
+                        _isFavorite.value = favRes.getOrNull() ?: false
+                    } else {
+                        _isFavorite.value = false
+                    }
+                }
+            } else {
+                _food.value = null
+                _isFavorite.value = false
+            }
+        }
+        //_food.value = sampleFoods.find { it.id == foodId }
         _allToppings.value = listTopping
 
         updateTotalPrice()
@@ -121,4 +150,36 @@ class FoodDetailViewModel : ViewModel() {
 
         _totalPrice.value = (foodPrice * currentQuantity) + toppingsPrice
     }
+
+    fun addToCart(){
+        viewModelScope.launch {
+            val foodItem = _food.value ?: return@launch
+            val result = _cartRepository.addOrUpdateCartItem(
+                foodId = foodItem.id ?: return@launch,
+                quantity = _quantity.value,
+                note = null
+            )
+            if (result.isSuccess) {
+                Log.d("FoodDetailViewModel", "Added to cart successfully")
+            } else {
+                Log.d("FoodDetailViewModel", "Failed to add to cart: ${result.exceptionOrNull()?.localizedMessage}")
+            }
+        }
+    }
+
+    fun addToFavorites(){
+        viewModelScope.launch {
+            val foodItem = _food.value ?: return@launch
+            // If already favorite, do nothing
+            if (_isFavorite.value) return@launch
+            val result = _favoritesRepository.addFavorite(foodItem.id ?: return@launch)
+            if (result.isSuccess) {
+                Log.d("FoodDetailViewModel", "Added to favorites successfully")
+                _isFavorite.value = true
+            } else {
+                Log.d("FoodDetailViewModel", "Failed to add to favorites: ${result.exceptionOrNull()?.localizedMessage}")
+            }
+        }
+    }
+
 }
