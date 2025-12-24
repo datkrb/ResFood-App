@@ -48,6 +48,7 @@ import com.muatrenthenang.resfood.data.model.CartItem
 fun CartScreen(
     onNavigateBack: () -> Unit,
     onProceedToCheckout: () -> Unit = {},
+    onOpenFoodDetail: (String) -> Unit = {},
     viewModel: CartViewModel = viewModel(),
     paddingValuesFromParent: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -251,10 +252,10 @@ fun CartScreen(
                                                 model = food.imageUrl,
                                                 contentDescription = food.name,
                                                 contentScale = ContentScale.Crop,
-                                                modifier = Modifier.fillMaxSize()
+                                                modifier = Modifier.fillMaxSize().clickable { onOpenFoodDetail(food.id) }
                                             )
                                         } else {
-                                            Icon(imageVector = Icons.Default.Image, contentDescription = null, modifier = Modifier.fillMaxSize())
+                                            Icon(imageVector = Icons.Default.Image, contentDescription = null, modifier = Modifier.fillMaxSize().clickable { onOpenFoodDetail(food.id) })
                                         }
 
                                         // Selection checkbox (top-left of image)

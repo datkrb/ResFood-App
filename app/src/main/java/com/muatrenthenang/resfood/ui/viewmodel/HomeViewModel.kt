@@ -14,9 +14,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.muatrenthenang.resfood.ui.screens.home.HomeUiState
+import com.muatrenthenang.resfood.data.repository.FoodRepository
 
-class HomeViewModel : ViewModel() {
-    private val _foodRepository = com.muatrenthenang.resfood.data.repository.FoodRepository()
+class HomeViewModel (
+    private val _foodRepository = FoodRepository()
+)   : ViewModel() {
+    
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 

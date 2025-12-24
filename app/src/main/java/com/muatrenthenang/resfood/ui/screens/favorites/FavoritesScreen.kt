@@ -46,6 +46,7 @@ fun FavoritesScreen(
     onNavigateBack: () -> Unit,
     onAddToCart: (String) -> Unit = {},
     onLogin: () -> Unit = {},
+    onOpenFoodDetail: (String) -> Unit = {},
     vm: FavoritesViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -172,7 +173,14 @@ fun FavoritesScreen(
                                         .aspectRatio(16f/9f)
                                         .clip(RoundedCornerShape(12.dp))) {
                                         if (food.imageUrl != null) {
-                                            AsyncImage(model = food.imageUrl, contentDescription = food.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                            AsyncImage(
+                                                model = food.imageUrl,
+                                                contentDescription = food.name,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clickable { onOpenFoodDetail(food.id) }
+                                            )
                                         }
                                         // gradient & badges
                                         Box(modifier = Modifier

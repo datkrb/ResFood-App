@@ -11,12 +11,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.collections.toMutableSet
+import com.muatrenthenang.resfood.data.repository.FoodRepository
+import com.muatrenthenang.resfood.data.repository.CartRepository
+import com.muatrenthenang.resfood.data.repository.FavoritesRepository
 
-class FoodDetailViewModel : ViewModel() {
-    private val _foodRepository = com.muatrenthenang.resfood.data.repository.FoodRepository()
-    private val _cartRepository = com.muatrenthenang.resfood.data.repository.CartRepository()
-    private val _favoritesRepository = com.muatrenthenang.resfood.data.repository.FavoritesRepository()
+class FoodDetailViewModel(
+    private val _foodRepository = FoodRepository()
+    private val _cartRepository = CartRepository()
+    private val _favoritesRepository = FavoritesRepository()
 
+) : ViewModel() {
+    
     private val _food = MutableStateFlow<Food?>(null)
     val food: StateFlow<Food?> = _food.asStateFlow()
 
