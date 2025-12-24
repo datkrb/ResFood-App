@@ -18,15 +18,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.muatrenthenang.resfood.data.model.Topping
 import com.muatrenthenang.resfood.ui.screens.detail.components.AddToCart
 import com.muatrenthenang.resfood.ui.screens.detail.components.FoodDescription
 import com.muatrenthenang.resfood.ui.screens.detail.components.FoodStats
 import com.muatrenthenang.resfood.ui.screens.detail.components.NameAndPriceFood
 import com.muatrenthenang.resfood.ui.screens.detail.components.ShareAndReview
+import com.muatrenthenang.resfood.ui.screens.detail.components.ToppingBonusCard
 import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 
 @Composable
@@ -36,6 +40,7 @@ fun FoodDetailScreen(
     viewModel: FoodDetailViewModel = viewModel()
 ) {
     val food by viewModel.food.collectAsState()
+    val topping by viewModel.topping.collectAsState()
 
     LaunchedEffect(foodId) {
         viewModel.loadFood(foodId)
@@ -94,6 +99,28 @@ fun FoodDetailScreen(
                         ShareAndReview()        // btn chia se + danh gia
                         FoodDescription(food)   // mo ta mon an
 
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text ="Topping them",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            topping?.forEach { topping ->
+                                ToppingBonusCard(
+                                    topping = topping,
+                                    isSelected = false,
+                                    onSelect = {}
+                                )
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(100.dp))
                     }
                 }
@@ -135,4 +162,10 @@ fun FoodDetailScreen(
             AddToCart()
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Test(){
+    FoodDetailScreen("2", {})
 }

@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.muatrenthenang.resfood.data.model.Food
+import com.muatrenthenang.resfood.data.model.Topping
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,6 +11,9 @@ class FoodDetailViewModel : ViewModel() {
 
     private val _food = MutableStateFlow<Food?>(null)
     val food: StateFlow<Food?> = _food.asStateFlow()
+
+    private val _topping = MutableStateFlow<List<Topping>?>(null)
+    val topping: StateFlow<List<Topping>?> = _topping.asStateFlow()
 
     fun loadFood(foodId: String) {
         val sampleFoods = listOf(
@@ -47,6 +51,28 @@ class FoodDetailViewModel : ViewModel() {
 
         )
 
+        fun loadTopping(): List<Topping>{
+            val listTopping = listOf(
+                Topping(
+                    name = "Trứng lòng đào",
+                    price = 5000,
+                    imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
+                ),
+                Topping(
+                    name = "Thịt nướng",
+                    price = 7000,
+                    imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
+                ),
+                Topping(
+                    name = "Tốp mỡ",
+                    price = 3000,
+                    imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
+                ),
+            )
+            return listTopping
+        }
+
         _food.value = sampleFoods.find { it.id == foodId }
+        _topping.value = loadTopping()
     }
 }
