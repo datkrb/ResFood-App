@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,6 +23,7 @@ import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.cart.CartScreen
 import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
+import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 
@@ -76,6 +78,9 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         // Gọi màn hình Home thật của nhóm bạn
                         HomeScreen(
+                            onFoodClick = { food ->
+                                navController.navigate("detail/${food.id}")
+                            },
                             onNavigateToSettings = {
                                 navController.navigate("settings")
                             }
@@ -158,7 +163,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-
+                    composable(
+                        route = "detail/{foodId}",
+                        arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                        FoodDetailScreen(
+                            foodId = foodId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }

@@ -29,7 +29,7 @@ import com.muatrenthenang.resfood.ui.screens.home.footer.FooterSection
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
-    onFoodClick: (Food) -> Unit
+    onFoodClick: (Food) -> Unit,
     onNavigateToSettings: () -> Unit
 ){
     val uiState by homeViewModel.uiState.collectAsState()
@@ -90,8 +90,8 @@ fun HomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview(){
-    HomeScreen(onNavigateToSettings = {})
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview(){
+//    HomeScreen(onNavigateToSettings = {})
+//}
