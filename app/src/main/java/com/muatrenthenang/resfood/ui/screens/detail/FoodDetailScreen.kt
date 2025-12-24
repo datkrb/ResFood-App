@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.muatrenthenang.resfood.data.model.Topping
 import com.muatrenthenang.resfood.ui.screens.detail.components.AddToCart
 import com.muatrenthenang.resfood.ui.screens.detail.components.FoodDescription
 import com.muatrenthenang.resfood.ui.screens.detail.components.FoodStats
@@ -39,11 +38,14 @@ fun FoodDetailScreen(
     onNavigateBack: () -> Unit,
     viewModel: FoodDetailViewModel = viewModel()
 ) {
+    val quantity by viewModel.quantity.collectAsState()
+    val totalPrice by viewModel.totalPrice.collectAsState()
     val food by viewModel.food.collectAsState()
-    val topping by viewModel.topping.collectAsState()
+    val allToppings by viewModel.allToppings.collectAsState()
+    val selectedToppings by viewModel.selectedToppings.collectAsState()
 
-    LaunchedEffect(foodId) {
-        viewModel.loadFood(foodId)
+    LaunchedEffect(Unit) {
+        viewModel.loadFoodDetail(foodId)
     }
 
     val imageFoodHeight = 400.dp
@@ -82,7 +84,7 @@ fun FoodDetailScreen(
                 ){
                     Column(
                         modifier = Modifier
-                            .padding(start = 24.dp, bottom = 24.dp, end = 24.dp, top = 10.dp),
+                            .padding(start = 22.dp, bottom = 22.dp, end = 22.dp, top = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
                     ){
                         // handle small bar
@@ -112,11 +114,14 @@ fun FoodDetailScreen(
 
                             Spacer(modifier = Modifier.height(10.dp))
 
-                            topping?.forEach { topping ->
+                            allToppings?.forEach { topping ->
                                 ToppingBonusCard(
                                     topping = topping,
-                                    isSelected = false,
-                                    onSelect = {}
+                                    isSelected = selectedToppings.contains(topping),
+                                    onSelect = {
+                                        val currentlySelected = selectedToppings.contains(topping)
+                                        viewModel.onToppingSelected(topping, !currentlySelected)
+                                    }
                                 )
                             }
                         }
@@ -157,9 +162,15 @@ fun FoodDetailScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .background(Color(0xFF0F172A))
-                .padding(20.dp)
-        ){
-            AddToCart()
+                .padding(22.dp)
+        ) {
+            AddToCart(
+                totalPrice = totalPrice,
+                quantity = quantity,
+                onIncrease = { viewModel.increaseQuantity() },
+                onDecrease = { viewModel.decreaseQuantity() },
+                onAddToCartClick = {}
+            )
         }
     }
 }
