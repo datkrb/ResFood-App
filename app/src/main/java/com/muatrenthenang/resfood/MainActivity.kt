@@ -110,10 +110,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("cart"){
-                        AppLayout(navController = navController) { _ ->
+                        AppLayout(navController = navController) { padding ->
                             CartScreen(
                                 onNavigateBack = { navController.popBackStack() },
-                                onProceedToCheckout = {navController.navigate("checkout")}
+                                onProceedToCheckout = { navController.navigate("checkout") },
+                                paddingValuesFromParent = padding
                             )
                         }
                     }
