@@ -26,6 +26,8 @@ import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
 import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
+import com.muatrenthenang.resfood.ui.layout.AppLayout
+import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,19 +78,14 @@ class MainActivity : ComponentActivity() {
 
                     // 2. Màn hình Trang Chủ (Đã thay bằng màn hình thật)
                     composable("home") {
-                        // Gọi màn hình Home thật của nhóm bạn
-                        HomeScreen(
-                            onFoodClick = { food ->
-                                navController.navigate("detail/${food.id}")
-                            },
-                            onNavigateToSettings = {
-                                navController.navigate("settings")
-                            }
-                        )
-
-                        // Nếu HomeScreen cần điều hướng (ví dụ bấm vào món ăn),
-                        // bạn sẽ truyền lambda vào đây sau này. Ví dụ:
-                        // HomeScreen(onFoodClick = { foodId -> navController.navigate("detail/$foodId") })
+                        AppLayout(navController = navController) { padding ->
+                            HomeScreen(
+                                onFoodClick = { food ->
+                                    navController.navigate("detail/${food.id}")
+                                },
+                                paddingValues = padding
+                            )
+                        }
                     }
 
                     // 3. Màn hình Đăng Ký
@@ -113,10 +110,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("cart"){
-                        CartScreen(
-                            onNavigateBack = { navController.popBackStack() },
-                            onProceedToCheckout = {navController.navigate("checkout")}
-                        )
+                        AppLayout(navController = navController) { _ ->
+                            CartScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onProceedToCheckout = {navController.navigate("checkout")}
+                            )
+                        }
                     }
 
                     composable("checkout"){
@@ -126,21 +125,34 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // Favorites route
+                    composable("favorites"){
+                        AppLayout(navController = navController) { padding ->
+                            FavoritesScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onAddToCart = {},
+                                onLogin = { navController.navigate("login") }
+                            )
+                        }
+                    }
+
                     // Trang Setting
                     composable("settings") {
-                        com.muatrenthenang.resfood.ui.screens.settings.SettingScreen(
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToLogin = {
-                                // Đăng xuất thành công -> Về màn Login và xóa lịch sử
-                                navController.navigate("login") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            },
-                            onNavigateToProfile = {
-                                navController.navigate("account_center")
-                            },
-                            userViewModel = userViewModel
-                        )
+                        AppLayout(navController = navController) { _ ->
+                            com.muatrenthenang.resfood.ui.screens.settings.SettingScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToLogin = {
+                                    // Đăng xuất thành công -> Về màn Login và xóa lịch sử
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToProfile = {
+                                    navController.navigate("account_center")
+                                },
+                                userViewModel = userViewModel
+                            )
+                        }
                     }
 
                     // Màn hình Trung tâm tài khoản

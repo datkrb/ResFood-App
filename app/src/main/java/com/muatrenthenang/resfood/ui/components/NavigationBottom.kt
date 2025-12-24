@@ -17,9 +17,10 @@ import com.muatrenthenang.resfood.ui.theme.unselectedNavBarColor
 
 @Composable
 fun NavigationBottom(
-    onClick: () -> Unit,
-    currentRoute: String = "home",
+    currentRoute: String = "",
     onNavigateToHome: () -> Unit = {},
+    onNavigateToCart: () -> Unit = {},
+    onNavigateToFavorites: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {}
 ) {
     val itemColors = NavigationBarItemDefaults.colors(
@@ -44,15 +45,15 @@ fun NavigationBottom(
         NavigationBarItem(
             icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Giỏ hàng") },
             label = { Text("Giỏ hàng") },
-            selected = currentRoute == "orders",
-            onClick = { /* Xử lý chuyển trang giỏ hàng */ },
+            selected = currentRoute == "cart",
+            onClick = onNavigateToCart,
             colors = itemColors
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Favorite, contentDescription = "Yêu thích") },
             label = { Text("Yêu thích") },
             selected = currentRoute == "favorites",
-            onClick = { /* Xử lý chuyển trang yêu thích */ },
+            onClick = onNavigateToFavorites,
             colors = itemColors
         )
         NavigationBarItem(
