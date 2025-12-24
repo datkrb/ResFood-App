@@ -3,7 +3,7 @@ package com.muatrenthenang.resfood.data.model
 import com.muatrenthenang.resfood.data.model.Food
 
 /**
- * Model cho mặt hàng trong giỏ hàng, chỉ cần Food và quantity
+ * Model cho mặt hàng trong giỏ hàng
  */
 data class CartItem(
     val food: Food,           // Thông tin món ăn

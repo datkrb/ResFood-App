@@ -34,7 +34,7 @@ import com.muatrenthenang.resfood.ui.components.ResFoodButton
 import com.muatrenthenang.resfood.ui.components.ResFoodPasswordField
 import com.muatrenthenang.resfood.ui.components.ResFoodTextField
 import com.muatrenthenang.resfood.ui.components.SocialButton // <-- Import Component chung
-import com.muatrenthenang.resfood.ui.viewmodel.RegisterViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.auth.RegisterViewModel
 
 @Composable
 fun RegisterScreen(

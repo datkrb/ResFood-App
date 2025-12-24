@@ -18,7 +18,9 @@ import com.muatrenthenang.resfood.ui.theme.unselectedNavBarColor
 @Composable
 fun NavigationBottom(
     onClick: () -> Unit,
-    currentRoute: String = "home"
+    currentRoute: String = "home",
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val itemColors = NavigationBarItemDefaults.colors(
         indicatorColor = Color.Transparent,
@@ -36,7 +38,7 @@ fun NavigationBottom(
             icon = { Icon(Icons.Default.Home, contentDescription = "Trang chủ") },
             label = { Text("Trang chủ") },
             selected = currentRoute == "home",
-            onClick = { /* Xử lý chuyển trang chủ */ },
+            onClick = onNavigateToHome,
             colors = itemColors
         )
         NavigationBarItem(
@@ -57,7 +59,7 @@ fun NavigationBottom(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Cài đặt") },
             label = { Text("Cài đặt") },
             selected = currentRoute == "settings",
-            onClick = {},
+            onClick = onNavigateToSettings,
             colors = itemColors
         )
     }

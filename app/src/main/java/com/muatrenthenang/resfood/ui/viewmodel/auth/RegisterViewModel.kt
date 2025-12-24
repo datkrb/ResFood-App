@@ -1,4 +1,4 @@
-package com.muatrenthenang.resfood.ui.viewmodel
+package com.muatrenthenang.resfood.ui.viewmodel.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

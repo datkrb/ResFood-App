@@ -84,4 +84,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Thư viện Database
     implementation("com.google.firebase:firebase-storage")   // Thư viện Ảnh
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    implementation("com.cloudinary:cloudinary-android:3.1.2")
 }

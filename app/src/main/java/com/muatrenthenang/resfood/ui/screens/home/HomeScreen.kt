@@ -24,17 +24,24 @@ import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
 import com.muatrenthenang.resfood.ui.theme.BgDark
 import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
+import com.muatrenthenang.resfood.ui.screens.home.footer.FooterSection
 
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     onFoodClick: (Food) -> Unit
+    onNavigateToSettings: () -> Unit
 ){
     val uiState by homeViewModel.uiState.collectAsState()
     Scaffold(
         containerColor = BgDark,
         bottomBar = {
-            NavigationBottom(onClick = {})
+            NavigationBottom(
+                onClick = {},
+                currentRoute = "home",
+                onNavigateToHome = {},
+                onNavigateToSettings = onNavigateToSettings
+            )
         }
     ) { paddingValues ->
 
@@ -81,4 +88,10 @@ fun HomeScreen(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview(){
+    HomeScreen(onNavigateToSettings = {})
 }
