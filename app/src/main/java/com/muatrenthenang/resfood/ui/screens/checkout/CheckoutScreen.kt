@@ -56,8 +56,14 @@ fun CheckoutScreen(
     val items by vm.items.collectAsState()
     val paymentMethod by vm.paymentMethod.collectAsState()
     val promo by vm.promoInput.collectAsState()
+    val appliedPromo by vm.appliedPromo.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val result by vm.actionResult.collectAsState()
+
+    // Compute totals from collected state so UI reacts immediately
+    val subtotalValue = items.sumOf { it.food.price.toLong() * it.quantity }
+    val discountValue = if (appliedPromo?.trim()?.uppercase() == "NNDAI") 10000L else 0L
+    val totalValue = subtotalValue + 15000L - discountValue
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -99,7 +105,8 @@ fun CheckoutScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        },        bottomBar = {
+        },
+        bottomBar = {
             Surface(
                 tonalElevation = 2.dp,
                 shadowElevation = 6.dp,
@@ -109,7 +116,7 @@ fun CheckoutScreen(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text(text = "Tổng thanh toán", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
-                            Text(text = vm.formatCurrency(vm.total()), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(text = vm.formatCurrency(totalValue), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Button(
                             onClick = { vm.confirmPayment() },
@@ -127,15 +134,25 @@ fun CheckoutScreen(
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus(); keyboardController?.hide() }) }
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus(); keyboardController?.hide() }) }
+                    .padding(paddingValues)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             // Address
             Column {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -196,9 +213,20 @@ fun CheckoutScreen(
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = it.food.name, fontWeight = FontWeight.Medium)
-                                        Text(text = vm.formatCurrency((it.food.price * it.quantity).toLong()), fontWeight = FontWeight.Bold)
+                                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = it.food.name,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = vm.formatCurrency((it.food.price).toLong()),
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.wrapContentWidth()
+                                        )
                                     }
                                     Text(text = "Không hành, nhiều nước béo", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                                 }
@@ -209,7 +237,7 @@ fun CheckoutScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = vm.formatCurrency(vm.subTotal()), fontWeight = FontWeight.Medium)
+                                Text(text = vm.formatCurrency(subtotalValue), fontWeight = FontWeight.Medium)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
@@ -220,12 +248,12 @@ fun CheckoutScreen(
                                     Text(text = "Giảm giá", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                     Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(16.dp))
                                 }
-                                Text(text = if (vm.discount() > 0) "-" + vm.formatCurrency(vm.discount()) else vm.formatCurrency(0), color = if (vm.discount()>0) SuccessGreen else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+                                Text(text = if (discountValue > 0) "-" + vm.formatCurrency(discountValue) else vm.formatCurrency(0), color = if (discountValue>0) SuccessGreen else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                             }
                             Divider()
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
-                                Text(text = vm.formatCurrency(vm.total()), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
+                                Text(text = vm.formatCurrency(totalValue), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
                             }
                         }
                     }
@@ -275,6 +303,7 @@ fun CheckoutScreen(
             }
 
             Spacer(modifier = Modifier.height(120.dp))
+            }
         }
     }
 }

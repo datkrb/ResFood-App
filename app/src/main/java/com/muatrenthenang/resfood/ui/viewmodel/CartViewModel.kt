@@ -27,6 +27,7 @@ class CartViewModel(
     private val _shippingFee = 15000L
 
     init {
+        _isLoading.value = true
         loadCart()
     }
 
@@ -42,26 +43,42 @@ class CartViewModel(
                 }
                 _actionResult.value = result.exceptionOrNull()?.localizedMessage
             }
-        }
-    }
-
-    fun addOrUpdateCartItem(foodId: String, quantity: Int, note: String? = null) {
-        viewModelScope.launch {
-            val result = _repository.addOrUpdateCartItem(foodId, quantity, note)
-            if (result.isSuccess) {
-                _actionResult.value = "Đã thêm/cập nhật giỏ hàng"
-                loadCart()
-            } else {
-                _actionResult.value = result.exceptionOrNull()?.localizedMessage
-            }
+            _isLoading.value = false
         }
     }
 
     fun changeQuantity(foodId: String, delta: Int) {
-        val item = _items.value.firstOrNull { it.food.id == foodId }
-        if (item != null) {
-            val newQty = (item.quantity + delta).coerceAtLeast(1)
-            addOrUpdateCartItem(foodId, newQty, item.note)
+        val item = _items.value.firstOrNull { it.food.id == foodId } ?: return
+        val newQty = (item.quantity + delta).coerceAtLeast(1)
+
+        _items.value = _items.value.map {
+            if (it.food.id == foodId) it.copy(quantity = newQty) else it
+        }
+
+        viewModelScope.launch {
+            val result = _repository.addOrUpdateCartItem(foodId, newQty, item.note)
+            if (!result.isSuccess) {
+                _actionResult.value = result.exceptionOrNull()?.localizedMessage
+                loadCart()
+            }
+        }
+    }
+
+    fun setItemSelected(foodId: String, selected: Boolean) {
+        val item = _items.value.firstOrNull { it.food.id == foodId } ?: return
+
+        // Optimistic update
+        _items.value = _items.value.map {
+            if (it.food.id == foodId) it.copy(isSelected = selected) else it
+        }
+
+        viewModelScope.launch {
+            val result = _repository.addOrUpdateCartItem(foodId, item.quantity, item.note, isSelected = selected)
+            if (!result.isSuccess) {
+                _actionResult.value = result.exceptionOrNull()?.localizedMessage
+                // Re-sync from backend on failure
+                loadCart()
+            }
         }
     }
 
@@ -90,12 +107,13 @@ class CartViewModel(
     }
 
     fun subTotal(): Int {
-        return _items.value.sumOf { it.food.price * it.quantity }
+        // Only include selected items in subtotal
+        return _items.value.filter { it.isSelected }.sumOf { it.food.price * it.quantity }
     }
 
     fun total(): Long {
         val subtotal = subTotal()
-        return subtotal + _shippingFee
+        return if (subtotal > 0) subtotal + _shippingFee else 0L
     }
 
     fun formatCurrency(value: Long): String {

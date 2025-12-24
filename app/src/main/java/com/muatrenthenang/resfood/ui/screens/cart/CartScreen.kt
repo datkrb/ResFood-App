@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.graphics.RectangleShape
 import com.muatrenthenang.resfood.ui.theme.BgLight
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.TextDark
@@ -47,7 +48,9 @@ import com.muatrenthenang.resfood.data.model.CartItem
 fun CartScreen(
     onNavigateBack: () -> Unit,
     onProceedToCheckout: () -> Unit = {},
-    viewModel: CartViewModel = viewModel()
+    onOpenFoodDetail: (String) -> Unit = {},
+    viewModel: CartViewModel = viewModel(),
+    paddingValuesFromParent: PaddingValues = PaddingValues(0.dp)
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -72,6 +75,7 @@ fun CartScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(bottom = paddingValuesFromParent.calculateBottomPadding()),
         topBar = {
             Box(
                 modifier = Modifier
@@ -115,37 +119,67 @@ fun CartScreen(
         },
         bottomBar = {
             if (items.isNotEmpty()) {
-                Surface(
-                    tonalElevation = 3.dp,
-                    shadowElevation = 6.dp,
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            Button(
-                                onClick = { if(viewModel.canCheckout()) {onProceedToCheckout()} },
-                                enabled = !isLoading,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp),
-                                shape = CircleShape,
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
-                            ) {
-                                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(text = "Tiến hành thanh toán", color = Color.White, fontWeight = FontWeight.Bold)
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = Color.White.copy(alpha = 0.15f)
-                                    ) {
-                                        Text(
-                                            text = viewModel.formatCurrency(viewModel.total()),
-                                            color = Color.White,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 18.sp,
-                                        )
+                Column {
+                    // Bill summary attached to bottom
+                    Surface(
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 1.dp,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong()), fontWeight = FontWeight.Medium)
+                            }
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = viewModel.formatCurrency(15000L), fontWeight = FontWeight.Medium)
+                            }
+                            Divider()
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column {
+                                    Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
+                                }
+                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + 15000L), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
+                            }
+                        }
+                    }
+
+                    // Checkout button
+                    Surface(
+                        tonalElevation = 3.dp,
+                        shadowElevation = 6.dp,
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                Button(
+                                    onClick = { if(viewModel.canCheckout()) {onProceedToCheckout()} },
+                                    enabled = !isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp),
+                                    shape = CircleShape,
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+                                ) {
+                                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(text = "Tiến hành thanh toán", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = Color.White.copy(alpha = 0.15f)
+                                        ) {
+                                            Text(
+                                                text = viewModel.formatCurrency(viewModel.total()),
+                                                color = Color.White,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.sp,
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -154,10 +188,10 @@ fun CartScreen(
                 }
             }
         }
-    ) { paddingValues ->
+    ) { innerPadding ->
         if (needLogin) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                modifier = Modifier.fillMaxSize().padding(innerPadding).padding(paddingValuesFromParent),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -178,7 +212,7 @@ fun CartScreen(
                             keyboardController?.hide()
                         })
                     }
-                    .padding(paddingValues)
+                    .padding(innerPadding)
                     .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -186,7 +220,11 @@ fun CartScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Items
-                if (items.isEmpty()) {
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (items.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                         Text("Giỏ hàng của bạn đang trống!", color = Color.Gray, fontSize = 16.sp)
                     }
@@ -214,10 +252,25 @@ fun CartScreen(
                                                 model = food.imageUrl,
                                                 contentDescription = food.name,
                                                 contentScale = ContentScale.Crop,
-                                                modifier = Modifier.fillMaxSize()
+                                                modifier = Modifier.fillMaxSize().clickable { onOpenFoodDetail(food.id) }
                                             )
                                         } else {
-                                            Icon(imageVector = Icons.Default.Image, contentDescription = null, modifier = Modifier.fillMaxSize())
+                                            Icon(imageVector = Icons.Default.Image, contentDescription = null, modifier = Modifier.fillMaxSize().clickable { onOpenFoodDetail(food.id) })
+                                        }
+
+                                        // Selection checkbox (top-left of image)
+                                        Box(modifier = Modifier
+                                            .align(Alignment.TopStart)
+                                            .padding(2.dp)) {
+                                            Surface(shape = RectangleShape, color = Color.Black.copy(alpha = 0.75f), modifier = Modifier.size(20.dp).padding(0.dp)) {
+                                                // Use Checkbox for accessibility; update ViewModel on change
+                                                Checkbox(
+                                                    checked = item.isSelected,
+                                                    onCheckedChange = { checked -> viewModel.setItemSelected(food.id, checked) },
+                                                    modifier = Modifier.padding(1.dp),
+                                                    colors = CheckboxDefaults.colors(checkedColor = PrimaryColor, uncheckedColor = Color.White)
+                                                )
+                                            }
                                         }
                                     }
 
@@ -305,38 +358,7 @@ fun CartScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
 
-                // Bill Summary, Bottom bar chỉ hiện khi có item
-                if (items.isNotEmpty()) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 1.dp,
-                        shadowElevation = 2.dp,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong()), fontWeight = FontWeight.Medium)
-                            }
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = viewModel.formatCurrency(15000L), fontWeight = FontWeight.Medium)
-                            }
-                            Divider()
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Column {
-                                    Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
-                                }
-                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + 15000L), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(80.dp)) // để nhường chỗ cho bottom bar
-                }
             }
 
             // Xác nhận xóa 1 item

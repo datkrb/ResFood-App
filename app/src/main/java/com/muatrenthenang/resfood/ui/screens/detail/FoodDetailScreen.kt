@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import com.muatrenthenang.resfood.ui.screens.detail.components.FoodStats
 import com.muatrenthenang.resfood.ui.screens.detail.components.NameAndPriceFood
 import com.muatrenthenang.resfood.ui.screens.detail.components.ShareAndReview
 import com.muatrenthenang.resfood.ui.screens.detail.components.ToppingBonusCard
+import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 
 @Composable
@@ -149,11 +151,16 @@ fun FoodDetailScreen(
             }
 
             // favorite
+            val isFavorite by viewModel.isFavorite.collectAsState()
             IconButton(
-                onClick = {},
+                onClick = { if (!isFavorite) viewModel.addToFavorites() },
                 modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
             ) {
-                Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorite", tint = Color.White)
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (isFavorite) LightRed else Color.White
+                )
             }
         }
 
@@ -169,7 +176,7 @@ fun FoodDetailScreen(
                 quantity = quantity,
                 onIncrease = { viewModel.increaseQuantity() },
                 onDecrease = { viewModel.decreaseQuantity() },
-                onAddToCartClick = {}
+                onAddToCartClick = { viewModel.addToCart() }
             )
         }
     }

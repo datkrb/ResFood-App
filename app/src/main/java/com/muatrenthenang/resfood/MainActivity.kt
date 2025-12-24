@@ -110,10 +110,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("cart"){
-                        AppLayout(navController = navController) { _ ->
+                        AppLayout(navController = navController) { padding ->
                             CartScreen(
                                 onNavigateBack = { navController.popBackStack() },
-                                onProceedToCheckout = {navController.navigate("checkout")}
+                                onProceedToCheckout = { navController.navigate("checkout") },
+                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
+                                paddingValuesFromParent = padding
                             )
                         }
                     }
@@ -131,7 +133,8 @@ class MainActivity : ComponentActivity() {
                             FavoritesScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onAddToCart = {},
-                                onLogin = { navController.navigate("login") }
+                                onLogin = { navController.navigate("login") },
+                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") }
                             )
                         }
                     }

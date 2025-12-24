@@ -38,4 +38,23 @@ class CheckoutRepository {
             Result.failure(e)
         }
     }
+
+    // Xóa các item trong cart mà isSelected = true
+    suspend fun removeSelectedItems(): Result<Boolean> {
+        val userId = auth.currentUser?.uid
+            ?: return Result.failure(Exception("User chưa đăng nhập"))
+        return try {
+            val cartRef = db.collection("carts").document(userId).collection("cartItems")
+            val snapshot = cartRef.whereEqualTo("isSelected", true).get().await()
+            if (snapshot.isEmpty) return Result.success(true)
+            val batch = db.batch()
+            for (doc in snapshot) {
+                batch.delete(doc.reference)
+            }
+            batch.commit().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

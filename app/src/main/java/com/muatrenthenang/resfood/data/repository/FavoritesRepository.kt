@@ -73,4 +73,21 @@ class FavoritesRepository {
             Result.failure(e)
         }
     }
+
+    // Kiểm tra xem một foodId có nằm trong danh sách yêu thích của user hiện tại hay không
+    suspend fun isFavorite(foodId: String): Result<Boolean> {
+        val userId = auth.currentUser?.uid
+            ?: return Result.failure(Exception("User chưa đăng nhập"))
+        return try {
+            val doc = db.collection("favorites")
+                .document(userId)
+                .collection("items")
+                .document(foodId)
+                .get()
+                .await()
+            Result.success(doc.exists())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
