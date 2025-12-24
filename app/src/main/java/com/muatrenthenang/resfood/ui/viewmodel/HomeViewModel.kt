@@ -17,7 +17,7 @@ import com.muatrenthenang.resfood.ui.screens.home.HomeUiState
 import com.muatrenthenang.resfood.data.repository.FoodRepository
 
 class HomeViewModel (
-    private val _foodRepository = FoodRepository()
+    private val _foodRepository: FoodRepository = FoodRepository()
 )   : ViewModel() {
     
     private val _uiState = MutableStateFlow(HomeUiState())

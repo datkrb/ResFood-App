@@ -109,6 +109,7 @@ class CheckoutViewModel(
                 return@launch
             }
             _isLoading.value = true
+            _repository.removeSelectedItems()
             delay(1200)
             _isLoading.value = false
             _actionResult.value = "Thanh toán thành công"

@@ -16,9 +16,9 @@ import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.data.repository.FavoritesRepository
 
 class FoodDetailViewModel(
-    private val _foodRepository = FoodRepository()
-    private val _cartRepository = CartRepository()
-    private val _favoritesRepository = FavoritesRepository()
+    private val _foodRepository: FoodRepository = FoodRepository(),
+    private val _cartRepository: CartRepository = CartRepository(),
+    private val _favoritesRepository: FavoritesRepository = FavoritesRepository()
 
 ) : ViewModel() {
     
