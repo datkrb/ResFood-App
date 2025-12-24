@@ -22,29 +22,8 @@ enum class PaymentMethod { ZALOPAY, MOMO, COD }
 class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository()
 ) : ViewModel() {
-    // Helper
-    fun formatCurrency(value: Long): String {
-        val grouped = java.text.DecimalFormat("###,###").format(value)
-        return "${grouped}đ"
-    }
-
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
-
-    init {
-        loadSelectedCartItems()
-    }
-
-    fun loadSelectedCartItems() {
-        viewModelScope.launch {
-            val result = _repository.getSelectedCartItems()
-            if (result.isSuccess) {
-                _items.value = result.getOrNull() ?: emptyList()
-            } else {
-                _items.value = emptyList()
-            }
-        }
-    }
 
     private val _address = MutableStateFlow(Address(
         label = "Nhà riêng",
@@ -72,6 +51,30 @@ class CheckoutViewModel(
     val actionResult = _actionResult.asStateFlow()
 
     private val _shippingFee = 15000L
+
+    init {
+        loadSelectedCartItems()
+    }
+
+    fun loadSelectedCartItems() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = _repository.getSelectedCartItems()
+                if (result.isSuccess) {
+                    _items.value = result.getOrNull() ?: emptyList()
+                } else {
+                    _items.value = emptyList()
+                    _actionResult.value = result.exceptionOrNull()?.localizedMessage
+                }
+            } catch (e: Exception) {
+                _items.value = emptyList()
+                _actionResult.value = e.localizedMessage
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setPromoInput(s: String) { _promoInput.value = s }
@@ -113,4 +116,10 @@ class CheckoutViewModel(
     }
 
     fun clearResult(){ _actionResult.value = null }
+
+    // Helper
+    fun formatCurrency(value: Long): String {
+        val grouped = java.text.DecimalFormat("###,###").format(value)
+        return "${grouped}đ"
+    }
 }
