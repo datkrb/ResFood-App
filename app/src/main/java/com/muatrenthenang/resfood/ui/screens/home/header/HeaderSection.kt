@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.screens.home.header.components.Avatar
 import com.muatrenthenang.resfood.ui.screens.home.header.components.LocationText
 import com.muatrenthenang.resfood.ui.screens.home.header.components.NotificationIcon
@@ -19,12 +20,7 @@ import com.muatrenthenang.resfood.ui.screens.home.header.components.TagRanking
 private val HeaderBackground = Color(0xFF0F1923)
 
 @Composable
-fun HeaderSection(
-    userName: String = "Cừn",
-    address: String = "KTX Khu B, ĐHQG",
-    rank: String = "vàng",
-    point: String = "1,350 điểm"
-) {
+fun HeaderSection(user: User?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -32,7 +28,10 @@ fun HeaderSection(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // avatar cua user
-        Avatar(onClick = {})
+        Avatar(
+            imageUrl = user?.avatarUrl,
+            onClick = {}
+        )
 
         // cum thong tin user
         Column(
@@ -40,13 +39,13 @@ fun HeaderSection(
                 .padding(start = 12.dp)
                 .weight(1f)
         ) {
-            TagRanking(rank = rank, point = point) // ranking
+            TagRanking(rank = user?.rank, point = user?.points) // ranking
 
             Spacer(modifier = Modifier.height(6.dp))
 
             // name user
             Text(
-                text = "Chào buổi sáng, $userName!",
+                text = "Chào buổi sáng, ${user?.fullName}!",
                 color = Color.White,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
@@ -55,16 +54,10 @@ fun HeaderSection(
             Spacer(modifier = Modifier.height(4.dp))
 
             // dia chi
-            LocationText(address = address)
+            LocationText(address = user?.address)
         }
 
         // icon thong bao
         NotificationIcon(onClick = {})
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HeaderSectionPreview() {
-    HeaderSection()
 }

@@ -20,17 +20,19 @@ import com.muatrenthenang.resfood.ui.screens.home.card_food.CardFood
 import com.muatrenthenang.resfood.ui.screens.home.category_food.CategoryFood
 import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
-import com.muatrenthenang.resfood.ui.theme.BgDark
 import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
 import androidx.compose.foundation.layout.PaddingValues
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(),
     onFoodClick: (Food) -> Unit,
     paddingValues: PaddingValues = PaddingValues()
 ){
     val uiState by homeViewModel.uiState.collectAsState()
+    val userState by userViewModel.userState.collectAsState()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -44,7 +46,7 @@ fun HomeScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                HeaderSection()
+                HeaderSection(userState)
                 SearchBar()
                 BookingBanner(onClick = {})
                 Row(
@@ -75,9 +77,3 @@ fun HomeScreen(
         }
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun HomeScreenPreview(){
-//    HomeScreen(onNavigateToSettings = {})
-//}
