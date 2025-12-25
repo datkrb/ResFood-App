@@ -35,7 +35,7 @@ fun ResFoodPasswordField(
         Text(
             text = label,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF0F1923),
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
         )
 
@@ -45,11 +45,12 @@ fun ResFoodPasswordField(
             modifier = Modifier.fillMaxWidth(),
             shape = CircleShape,
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE5E7EB),
-                focusedBorderColor = Color(0xFF339CFF),
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                cursorColor = Color(0xFF339CFF)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null, tint = Color.Gray) },
             trailingIcon = {

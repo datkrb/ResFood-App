@@ -30,12 +30,13 @@ fun ResFoodButton(
             .height(56.dp) // Chiều cao chuẩn 56px như HTML
             .shadow(
                 elevation = if (isEnabled) 10.dp else 0.dp,
-                spotColor = primaryColor.copy(alpha = 0.5f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 shape = CircleShape
             ),
         colors = ButtonDefaults.buttonColors(
-            containerColor = primaryColor,
-            disabledContainerColor = Color.Gray
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         ),
         shape = CircleShape,
         enabled = isEnabled && !isLoading

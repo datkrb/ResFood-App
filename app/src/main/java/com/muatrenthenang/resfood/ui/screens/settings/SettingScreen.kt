@@ -43,9 +43,10 @@ fun SettingScreen(
 ) {
     val userState by userViewModel.userState.collectAsState()
     val user = userState ?: User(fullName = "Đang tải...", rank = "...") // Placeholder khi loading
+    val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
 
     Scaffold(
-        containerColor = BackgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             SettingsTopBar(onBack = onNavigateBack)
         }
@@ -68,7 +69,15 @@ fun SettingScreen(
             // 2. Các mục giao diện tĩnh (Hiển thị & Ngôn ngữ) - Visual only
             SectionHeader(title = "HIỂN THỊ & NGÔN NGỮ")
             SettingItemRow(title = "Ngôn ngữ", subtitle = "Tiếng Việt", showArrow = true)
-            SettingToggleRow(title = "Chế độ tối", subtitle = "Giảm mỏi mắt vào ban đêm", checked = true)
+            //SettingToggleRow(title = "Chế độ tối", subtitle = "Giảm mỏi mắt vào ban đêm", checked = true)
+            SettingToggleRow(
+                title = "Chế độ tối",
+                subtitle = "Giảm mỏi mắt vào ban đêm",
+                checked = isDarkTheme, // Hiển thị theo state
+                onCheckedChange = { isChecked: Boolean ->
+                    userViewModel.toggleTheme(isChecked)
+                }
+            )
 
             // 3. Thông báo - Visual only
             SectionHeader(title = "THÔNG BÁO")
@@ -97,11 +106,11 @@ fun SettingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F2933)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
                 shape = RoundedCornerShape(12.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, RedColor.copy(alpha = 0.5f))
             ) {
-                Text(text = "Đăng xuất", color = RedColor, fontWeight = FontWeight.Bold)
+                Text(text = "Đăng xuất", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
             }
 
             // Footer Version
@@ -128,14 +137,14 @@ fun SettingsTopBar(onBack: () -> Unit) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Back",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Cài đặt & Tùy chỉnh",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
     }
@@ -144,7 +153,9 @@ fun SettingsTopBar(onBack: () -> Unit) {
 @Composable
 fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface // Màu card động
+        ),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -171,18 +182,18 @@ fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = name, color = TextColorPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(text = rank, color = TextColorSecondary, fontSize = 14.sp)
+                Text(text = name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(text = rank, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
             }
 
             // Nút Hồ sơ
             Button(
                 onClick = onProfileClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3A47)),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 modifier = Modifier.height(32.dp)
             ) {
-                Text("Hồ sơ", color = Color(0xFF4FA5F5), fontSize = 12.sp)
+                Text("Hồ sơ", color = MaterialTheme.colorScheme.surface, fontSize = 12.sp)
             }
         }
     }
@@ -194,7 +205,7 @@ fun SectionHeader(title: String, badge: String? = null) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
     ) {
-        Text(text = title, color = TextColorSecondary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = title, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         if (badge != null) {
             Spacer(modifier = Modifier.width(8.dp))
             Surface(
@@ -215,7 +226,7 @@ fun SectionHeader(title: String, badge: String? = null) {
 @Composable
 fun SettingItemRow(title: String, subtitle: String? = null, showArrow: Boolean = false) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
     ) {
@@ -225,23 +236,23 @@ fun SettingItemRow(title: String, subtitle: String? = null, showArrow: Boolean =
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = title, color = TextColorPrimary, fontSize = 16.sp)
+                Text(text = title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
                 if (subtitle != null) {
-                    Text(text = subtitle, color = TextColorSecondary, fontSize = 14.sp)
+                    Text(text = subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 }
             }
             if (showArrow) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = TextColorSecondary)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
 @Composable
-fun SettingToggleRow(title: String, subtitle: String? = null, checked: Boolean) {
-    var isChecked by remember { mutableStateOf(checked) }
+fun SettingToggleRow(title: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit = {}) {
+    //var isChecked by remember { mutableStateOf(checked) }
     Card(
-        colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -251,17 +262,17 @@ fun SettingToggleRow(title: String, subtitle: String? = null, checked: Boolean) 
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, color = TextColorPrimary, fontSize = 16.sp)
+                Text(text = title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
                 if (subtitle != null) {
-                    Text(text = subtitle, color = TextColorSecondary, fontSize = 12.sp)
+                    Text(text = subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
             }
             Switch(
-                checked = isChecked,
-                onCheckedChange = { isChecked = it },
+                checked = checked,
+                onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = Color(0xFF4FA5F5),
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
                     uncheckedThumbColor = Color.Gray,
                     uncheckedTrackColor = Color.DarkGray
                 )

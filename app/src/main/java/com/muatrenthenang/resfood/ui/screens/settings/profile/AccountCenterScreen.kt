@@ -42,7 +42,7 @@ fun AccountCenterScreen(
     val userState by userViewModel.userState.collectAsState()
     val user = userState ?: User(fullName = "...", points = 0, rank = "...")
     Scaffold(
-        containerColor = BgColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -51,13 +51,13 @@ fun AccountCenterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "Trung tâm tài khoản",
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -89,7 +89,7 @@ fun AccountCenterScreen(
             UserInfoHeader(user = user)
 
             // 2. Menu Options
-            Column(modifier = Modifier.background(CardColor, RoundedCornerShape(16.dp))) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))) {
                 MenuOptionItem(icon = Icons.Default.Person, title = "Thông tin chi tiết tài khoản", onClick = onNavigateToDetails)
                 HorizontalDivider(thickness = 1.dp, color = BgColor)
                 MenuOptionItem(icon = Icons.Default.ShoppingCart, title = "Thống kê chi tiêu", onClick = {})
@@ -101,7 +101,7 @@ fun AccountCenterScreen(
             RankStatusCard(user = user)
 
             // 4. Benefits List
-            Text("Quyền lợi hạng ${user.rank}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Quyền lợi hạng ${user.rank}", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             BenefitItem(icon = Icons.Default.Star, title = "Tích điểm 5%", desc = "Nhận lại 5% giá trị mỗi đơn hàng vào ví.")
             BenefitItem(icon = Icons.Default.DateRange, title = "Ưu tiên đặt bàn", desc = "Được ưu tiên giữ chỗ vào giờ cao điểm.")
             BenefitItem(icon = Icons.Default.ShoppingCart, title = "Freeship dưới 5km", desc = "Miễn phí giao hàng cho mọi đơn đặt món < 5km.")

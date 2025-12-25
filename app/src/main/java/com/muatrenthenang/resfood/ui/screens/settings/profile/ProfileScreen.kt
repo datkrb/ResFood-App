@@ -40,7 +40,7 @@ fun ProfileScreen(
     val userState by userViewModel.userState.collectAsState()
     val user = userState ?: User()
     Scaffold(
-        containerColor = BgColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -147,7 +147,7 @@ fun ProfileScreen(
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        color = Color.White,
+        color = MaterialTheme.colorScheme.onBackground,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
     )
@@ -160,13 +160,13 @@ fun ProfileTextField(label: String, value: String, icon: ImageVector) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(CardColor, RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text(value, color = Color.White, fontSize = 14.sp)
+            Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
         }
     }
 }

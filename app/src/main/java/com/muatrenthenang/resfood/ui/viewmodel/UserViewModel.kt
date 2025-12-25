@@ -44,4 +44,13 @@ class UserViewModel : ViewModel() {
             onLogoutSuccess()
         }
     }
+
+    // State quản lý chế độ tối (Mặc định là true)
+    private val _isDarkTheme = MutableStateFlow(true)
+    val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
+
+    // Hàm chuyển đổi theme
+    fun toggleTheme(isDark: Boolean) {
+        _isDarkTheme.value = isDark
+    }
 }

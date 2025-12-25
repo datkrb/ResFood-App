@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,12 +24,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // Khởi tạo ViewModel (Dùng viewModel())
+            val userViewModel: UserViewModel = viewModel()
+            // Lấy trạng thái theme từ ViewModel
+            val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
             // Áp dụng Theme
-            ResFoodTheme {
+            ResFoodTheme (darkTheme = isDarkTheme) {
                 // Tạo bộ điều hướng
                 val navController = rememberNavController()
-                // Khởi tạo ViewModel (Dùng viewModel())
-                val userViewModel: UserViewModel = viewModel()
 
                 // Khai báo các màn hình và đường dẫn
                 NavHost(navController = navController, startDestination = "login") {

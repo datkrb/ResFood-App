@@ -33,7 +33,7 @@ fun ResFoodTextField(
         Text(
             text = label,
             fontWeight = FontWeight.Medium,
-            color = TextDark,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
         )
 
@@ -43,11 +43,13 @@ fun ResFoodTextField(
             modifier = Modifier.fillMaxWidth(),
             shape = CircleShape, // Bo tròn chuẩn theo thiết kế
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(0xFFE5E7EB),
-                focusedBorderColor = PrimaryColor,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                cursorColor = PrimaryColor
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                cursorColor = MaterialTheme.colorScheme.primary
             ),
             leadingIcon = { Icon(imageVector = icon, contentDescription = null, tint = Color.Gray) },
             placeholder = { Text(placeholder, color = Color.LightGray) },

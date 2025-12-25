@@ -17,11 +17,11 @@ class AuthRepository {
             val user = authResult.user
 
             // 2. Kiểm tra xem user đã click link xác nhận trong email chưa
-            if (user != null && !user.isEmailVerified) {
-                // Nếu chưa xác nhận mail thì đăng xuất ngay và báo lỗi
-                auth.signOut()
-                throw Exception("Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
-            }
+//            if (user != null && !user.isEmailVerified) {
+//                // Nếu chưa xác nhận mail thì đăng xuất ngay và báo lỗi
+//                auth.signOut()
+//                throw Exception("Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
+//            }
 
             // 3. Nếu mọi thứ ok thì báo thành công
             Result.success(true)
