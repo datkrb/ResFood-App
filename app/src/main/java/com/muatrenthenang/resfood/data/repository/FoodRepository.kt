@@ -3,6 +3,7 @@ package com.muatrenthenang.resfood.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.muatrenthenang.resfood.data.model.Food
+import com.muatrenthenang.resfood.data.model.Review
 import kotlinx.coroutines.tasks.await
 
 class FoodRepository {
@@ -74,6 +75,51 @@ class FoodRepository {
         checkAdmin().onFailure { return Result.failure(it) }
         return try {
             db.collection("foods").document(foodId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Gửi đánh giá cho món ăn
+    suspend fun submitReview(
+        foodId: String,
+        rating: Int,
+        comment: String,
+        userId: String,
+        userName: String
+    ): Result<Boolean> {
+        return try {
+            // Tạo review object
+            val review = Review(
+                star = rating,
+                comment = comment,
+                userId = userId,
+                userName = userName,
+                createdAt = System.currentTimeMillis()
+            )
+
+            // Lấy thông tin món ăn hiện tại
+            val foodResult = getFood(foodId)
+            val food = foodResult.getOrNull()
+                ?: return Result.failure(Exception("Không tìm thấy món ăn"))
+
+            // Thêm review vào danh sách reviews
+            val updatedReviews = food.reviews.toMutableList()
+            updatedReviews.add(review)
+
+            // Tính lại rating trung bình
+            val averageRating = updatedReviews.map { it.star }.average().toFloat()
+
+            // Cập nhật món ăn với review mới và rating mới
+            val updatedFood = food.copy(
+                reviews = updatedReviews,
+                rating = averageRating
+            )
+
+            // Lưu vào Firestore
+            db.collection("foods").document(foodId).set(updatedFood).await()
+
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

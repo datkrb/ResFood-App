@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import com.muatrenthenang.resfood.ui.screens.home.header.HeaderSection
 import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
 import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
 import androidx.compose.foundation.layout.PaddingValues
+import com.muatrenthenang.resfood.ui.theme.BgDark
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 @Composable
@@ -37,6 +39,7 @@ fun HomeScreen(
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
+            .background(BgDark)
             .padding(paddingValues)
             .padding(horizontal = 15.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp),

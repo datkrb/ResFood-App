@@ -38,6 +38,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 fun FoodDetailScreen(
     foodId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToReview: (foodId: String, foodName: String, foodImageUrl: String?) -> Unit = { _, _, _ -> },
     viewModel: FoodDetailViewModel = viewModel()
 ) {
     val quantity by viewModel.quantity.collectAsState()
@@ -100,7 +101,13 @@ fun FoodDetailScreen(
 
                         NameAndPriceFood(food)  // ten mon an + gia tien
                         FoodStats(food)         // thong so mon an
-                        ShareAndReview()        // btn chia se + danh gia
+                        ShareAndReview(
+                            onReviewClick = {
+                                food?.let {
+                                    onNavigateToReview(it.id, it.name, it.imageUrl)
+                                }
+                            }
+                        )        // btn chia se + danh gia
                         FoodDescription(food)   // mo ta mon an
 
                         Column(
