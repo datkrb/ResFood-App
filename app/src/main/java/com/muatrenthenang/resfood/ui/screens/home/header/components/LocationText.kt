@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LocationText(address: String) {
+fun LocationText(address: String?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = Icons.Default.AddLocation,
@@ -26,7 +26,7 @@ fun LocationText(address: String) {
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = address,
+            text = address ?: "",
             color = Color.White,
             style = MaterialTheme.typography.bodySmall
         )

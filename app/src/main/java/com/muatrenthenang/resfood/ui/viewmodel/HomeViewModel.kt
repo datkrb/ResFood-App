@@ -1,4 +1,4 @@
-package com.muatrenthenang.resfood.ui.screens.home
+package com.muatrenthenang.resfood.ui.viewmodel
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.EmojiFoodBeverage
@@ -13,14 +13,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.muatrenthenang.resfood.R
+import com.muatrenthenang.resfood.ui.screens.home.HomeUiState
+import com.muatrenthenang.resfood.data.repository.FoodRepository
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel (
+    private val _foodRepository: FoodRepository = FoodRepository()
+)   : ViewModel() {
+    
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
         loadCategories()
+        loadFoods()
     }
 
     private fun loadCategories() {
@@ -34,19 +39,24 @@ class HomeViewModel : ViewModel() {
                 CategoryItem(icon = Icons.Default.Fastfood, name = "Tráng miệng")
             )
 
-            // danh sách món ăn (chưa phân theo danh mục)
-            val foodData = listOf(
-                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
-                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
-                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
-                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
-                Food(name = "Khô gà đè tem", price = 100000, imageUrl = "https://cleverads.vn/wp-content/uploads/2023/10/thi-truong-healthy-food-1.jpg"),
-                )
+            // keep UI categories; foods will be loaded from repository
+            _uiState.value = _uiState.value.copy(categories = categoryData)
+        }
+    }
 
-            _uiState.value = HomeUiState(
-                categories = categoryData,
-                foods = foodData
-            )
+    private fun loadFoods() {
+        viewModelScope.launch {
+            try {
+                val result = _foodRepository.getFoods()
+                result.fold(onSuccess = { foods ->
+                    _uiState.value = _uiState.value.copy(foods = foods)
+                }, onFailure = {
+                    // keep empty list on failure (you may show error later)
+                    _uiState.value = _uiState.value.copy(foods = emptyList())
+                })
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(foods = emptyList())
+            }
         }
     }
 }

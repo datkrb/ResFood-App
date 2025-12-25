@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.components.ResFoodButton
 import com.muatrenthenang.resfood.ui.components.ResFoodTextField
-import com.muatrenthenang.resfood.ui.viewmodel.ForgotPasswordViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.auth.ForgotPasswordViewModel
 
 @Composable
 fun ForgotPasswordScreen(

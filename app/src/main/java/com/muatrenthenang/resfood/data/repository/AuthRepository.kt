@@ -1,6 +1,7 @@
 package com.muatrenthenang.resfood.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.muatrenthenang.resfood.data.model.User
@@ -9,7 +10,12 @@ class AuthRepository {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    // Hàm đăng nhập (Có kiểm tra xác thực Email)
+    //kiểm tra user
+    fun getCurrentUser(): FirebaseUser? {
+        return auth.currentUser
+    }
+
+    // Hàm đăng nhập
     suspend fun login(email: String, pass: String): Result<Boolean> {
         return try {
             // 1. Đăng nhập vào Firebase Auth
@@ -30,7 +36,7 @@ class AuthRepository {
         }
     }
 
-    // Hàm đăng ký chuẩn (Tự động gửi mail xác thực)
+    // Hàm đăng ký chuẩn
     suspend fun register(email: String, pass: String, fullName: String): Result<Boolean> {
         return try {
             // 1. Tạo tài khoản Auth (Email + Pass)

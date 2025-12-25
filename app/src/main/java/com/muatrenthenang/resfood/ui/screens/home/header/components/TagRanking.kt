@@ -26,8 +26,8 @@ import com.muatrenthenang.resfood.ui.theme.rankColor
 
 @Composable
 fun TagRanking(
-    rank: String,
-    point: String,
+    rank: String?,
+    point: Int?,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Row(
@@ -53,7 +53,7 @@ fun TagRanking(
         }
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = point,
+            text = "${point ?: 0} điểm",
             color = Color.White,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
