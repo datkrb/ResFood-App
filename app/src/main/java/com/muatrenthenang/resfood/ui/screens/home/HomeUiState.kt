@@ -5,5 +5,6 @@ import com.muatrenthenang.resfood.data.model.Food
 
 data class HomeUiState(
     val categories: List<CategoryItem> = emptyList(),
-    val foods: List<Food> = emptyList()
+    val foods: List<Food> = emptyList(),
+    val searchQuery: String = ""
 )
