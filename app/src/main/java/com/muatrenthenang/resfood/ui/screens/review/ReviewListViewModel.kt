@@ -2,7 +2,6 @@ package com.muatrenthenang.resfood.ui.screens.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.muatrenthenang.resfood.data.local.MockReviewStorage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Review
 import com.muatrenthenang.resfood.data.repository.FoodRepository
@@ -32,22 +31,26 @@ class ReviewListViewModel : ViewModel() {
             val foodResult = foodRepository.getFood(foodId)
             foodResult.onSuccess { food ->
                 _food.value = food
+
+                // Use reviews from Food model
+                val allReviews = food.reviews
+                _reviews.value = allReviews.sortedByDescending { it.createdAt }
+
+                // Calculate rating statistics
+                val stats = mutableMapOf<Int, Int>()
+                for (star in 1..5) {
+                    stats[star] = allReviews.count { it.star == star }
+                }
+                _ratingStats.value = stats
+
+                // Average rating from food (already precomputed in repo) or fallback to calc
+                _averageRating.value = if (food.reviews.isEmpty()) 0f else food.rating
+            }.onFailure {
+                _food.value = null
+                _reviews.value = emptyList()
+                _ratingStats.value = emptyMap()
+                _averageRating.value = 0f
             }
-
-            // Load reviews from mock storage
-            val allReviews = MockReviewStorage.getReviews(foodId)
-            // Sort by newest first
-            _reviews.value = allReviews.sortedByDescending { it.createdAt }
-
-            // Calculate rating statistics
-            val stats = mutableMapOf<Int, Int>()
-            for (star in 1..5) {
-                stats[star] = allReviews.count { it.star == star }
-            }
-            _ratingStats.value = stats
-
-            // Calculate average rating
-            _averageRating.value = MockReviewStorage.getAverageRating(foodId)
         }
     }
 }

@@ -2,7 +2,6 @@ package com.muatrenthenang.resfood.ui.screens.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.muatrenthenang.resfood.data.local.MockReviewStorage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Review
 import com.muatrenthenang.resfood.data.repository.AuthRepository
@@ -93,25 +92,33 @@ class ReviewViewModel : ViewModel() {
                 "Người dùng"
             }
 
-            // Tạo review object
-            val review = Review(
-                star = _rating.value,
-                comment = _comment.value,
-                userId = userId,
-                userName = userName,
-                createdAt = System.currentTimeMillis()
-            )
+            // Submit review via repository (updates Firestore and recalculates rating)
+            val submitResult = try {
+                foodRepository.submitReview(
+                    foodId = foodId,
+                    rating = _rating.value,
+                    comment = _comment.value,
+                    userId = userId,
+                    userName = userName
+                )
+            } catch (e: Exception) {
+                Result.failure<Boolean>(e)
+            }
 
-            MockReviewStorage.addReview(foodId, review)
+            submitResult.onSuccess {
+                // Reload food to get updated reviews
+                loadFood()
 
-            _isLoading.value = false
+                // Reset form
+                _rating.value = 0
+                _comment.value = ""
 
-            // Reset form
-            _rating.value = 0
-            _comment.value = ""
-
-            // Call success callback
-            onSuccess()
+                _isLoading.value = false
+                onSuccess()
+            }.onFailure { e ->
+                _isLoading.value = false
+                _errorMessage.value = e.message ?: "Đã có lỗi xảy ra"
+            }
         }
     }
 }
