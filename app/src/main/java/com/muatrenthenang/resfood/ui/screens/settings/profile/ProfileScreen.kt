@@ -20,17 +20,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
-
-private val BgColor = Color(0xFF0F1923)
-private val CardColor = Color(0xFF16202A)
-private val BlueAccent = Color(0xFF4FA5F5)
 
 @Composable
 fun ProfileScreen(
@@ -49,13 +44,22 @@ fun ProfileScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Back", tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onBackground // Icon tự động đổi màu
+                    )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Text("Hồ sơ cá nhân", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(
+                    "Hồ sơ cá nhân",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground, // Chữ tự động đổi màu
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 TextButton(onClick = { /* Save action */ }) {
-                    Text("Lưu", color = BlueAccent)
+                    Text("Lưu", color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -69,24 +73,38 @@ fun ProfileScreen(
         ) {
             // Avatar Section
             Box(contentAlignment = Alignment.BottomEnd) {
-                Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.Gray))
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest) // Nền avatar placeholder
+                )
                 Box(
                     modifier = Modifier
                         .size(30.dp)
                         .clip(CircleShape)
-                        .background(BlueAccent)
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Change Avatar", tint = Color.White)
+                    Icon(Icons.Default.Add, contentDescription = "Change Avatar", tint = MaterialTheme.colorScheme.onPrimary)
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text(user.fullName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(
+                user.fullName,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = BlueAccent, modifier = Modifier.size(14.dp))
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Thành viên ${user.rank}", color = Color.Gray, fontSize = 14.sp)
+                Text(
+                    "Thành viên ${user.rank}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, // Màu phụ (xám)
+                    fontSize = 14.sp
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -102,11 +120,16 @@ fun ProfileScreen(
 
             // Cài đặt tài khoản
             SectionTitle("Cài đặt tài khoản")
-            Column(modifier = Modifier.background(CardColor, RoundedCornerShape(12.dp))) {
+            Column(
+                modifier = Modifier.background(
+                    MaterialTheme.colorScheme.surface, // Nền card động
+                    RoundedCornerShape(12.dp)
+                )
+            ) {
                 SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu")
-                HorizontalDivider(thickness = 1.dp, color = BgColor)
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                 SettingRow(icon = Icons.Default.ShoppingCart, title = "Ví Voucher")
-                HorizontalDivider(thickness = 1.dp, color = BgColor)
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                 SettingRow(icon = Icons.Default.LocationOn, title = "Quản lý địa chỉ")
             }
 
@@ -117,7 +140,7 @@ fun ProfileScreen(
                 onClick = { /* Logout Logic Here */ },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -132,7 +155,10 @@ fun ProfileScreen(
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFFF4B4B), containerColor = Color(0xFF1E0F0F))
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error,
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                )
             ) {
                 Icon(Icons.Default.Clear, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -156,17 +182,31 @@ fun SectionTitle(title: String) {
 @Composable
 fun ProfileTextField(label: String, value: String, icon: ImageVector) {
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        Text(label, color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 4.dp))
+        Text(
+            label,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, // Màu chữ nhãn
+            fontSize = 12.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp)) // Nền input động
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
             Spacer(modifier = Modifier.width(12.dp))
-            Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+            Text(
+                value,
+                color = MaterialTheme.colorScheme.onSurface, // Màu chữ nội dung
+                fontSize = 14.sp
+            )
         }
     }
 }
@@ -180,11 +220,30 @@ fun SettingRow(icon: ImageVector, title: String) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.size(32.dp).background(Color(0xFF23303E), CircleShape), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = BlueAccent, modifier = Modifier.size(16.dp))
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), // Nền icon tròn
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer, // Màu icon bên trong
+                modifier = Modifier.size(16.dp)
+            )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(title, color = Color.White, modifier = Modifier.weight(1f), fontSize = 14.sp)
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = Color.Gray)
+        Text(
+            title,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+            fontSize = 14.sp
+        )
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

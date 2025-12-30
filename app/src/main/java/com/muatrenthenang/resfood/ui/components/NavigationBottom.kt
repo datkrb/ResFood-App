@@ -4,6 +4,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -25,15 +26,15 @@ fun NavigationBottom(
 ) {
     val itemColors = NavigationBarItemDefaults.colors(
         indicatorColor = Color.Transparent,
-        selectedIconColor = selectedNavBarColor,
-        unselectedIconColor = unselectedNavBarColor,
-        selectedTextColor = selectedNavBarColor,
-        unselectedTextColor = unselectedNavBarColor
+        selectedIconColor = MaterialTheme.colorScheme.primary,
+        unselectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     NavigationBar(
-        containerColor = backgroundBottomBarColor,
-        contentColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Trang chủ") },

@@ -26,13 +26,8 @@ import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.viewmodel.SettingsViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
-// Màu sắc định nghĩa theo hình ảnh
-private val BackgroundColor = Color(0xFF0F1923)
-private val CardBackgroundColor = Color(0xFF16202A)
-private val TextColorPrimary = Color.White
-private val TextColorSecondary = Color.Gray
-private val RedColor = Color(0xFFFF4B4B)
 
+private val TextColorSecondary = Color.Gray
 
 @Composable
 fun SettingScreen(
@@ -108,7 +103,7 @@ fun SettingScreen(
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
                 shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, RedColor.copy(alpha = 0.5f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
             ) {
                 Text(text = "Đăng xuất", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
             }
@@ -189,11 +184,13 @@ fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
             // Nút Hồ sơ
             Button(
                 onClick = onProfileClick,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 modifier = Modifier.height(32.dp)
             ) {
-                Text("Hồ sơ", color = MaterialTheme.colorScheme.surface, fontSize = 12.sp)
+                Text("Hồ sơ", fontSize = 12.sp)
             }
         }
     }
@@ -271,10 +268,11 @@ fun SettingToggleRow(title: String, subtitle: String? = null, checked: Boolean, 
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                     checkedTrackColor = MaterialTheme.colorScheme.primary,
-                    uncheckedThumbColor = Color.Gray,
-                    uncheckedTrackColor = Color.DarkGray
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
         }
