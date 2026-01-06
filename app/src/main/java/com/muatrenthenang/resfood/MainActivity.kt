@@ -28,6 +28,8 @@ import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 import com.muatrenthenang.resfood.ui.layout.AppLayout
 import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesScreen
+import com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.settings.AdminSettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,11 +47,12 @@ class MainActivity : ComponentActivity() {
                 // Khai báo các màn hình và đường dẫn
                 NavHost(navController = navController, startDestination = "splash") {
 
-                    //Check Login
+                    // 0. Màn hình Chờ (Splash)
                     composable("splash") {
                         SplashScreen(
-                            onGoHome = {
-                                navController.navigate("home") {
+                            onAuthSuccess = { isAdmin ->
+                                val destination = if (isAdmin) "admin_dashboard" else "home"
+                                navController.navigate(destination) {
                                     popUpTo("splash") { inclusive = true }
                                 }
                             },
@@ -63,9 +66,10 @@ class MainActivity : ComponentActivity() {
                     // 1. Màn hình Đăng Nhập
                     composable("login") {
                         LoginScreen(
-                            onLoginSuccess = {
-                                // Khi login thành công -> Chuyển sang Home và xóa Login khỏi lịch sử back
-                                navController.navigate("home") {
+                            onLoginSuccess = { isAdmin ->
+                                // Khi login thành công -> Chuyển sang Home hoặc Dashboard và xóa Login khỏi lịch sử back
+                                val destination = if (isAdmin) "admin_dashboard" else "home"
+                                navController.navigate(destination) {
                                     popUpTo("login") { inclusive = true }
                                 }
                             },
@@ -180,7 +184,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable(
+                composable(
                         route = "detail/{foodId}",
                         arguments = listOf(navArgument("foodId") { type = NavType.StringType })
                     ) { backStackEntry ->
@@ -188,6 +192,172 @@ class MainActivity : ComponentActivity() {
                         FoodDetailScreen(
                             foodId = foodId,
                             onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // Admin Routes
+                    composable("admin_dashboard") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen(
+                            viewModel = adminViewModel,
+                            onNavigateToFoodManagement = {
+                                navController.navigate("admin_food_management")
+                            },
+                            onNavigateToMenu = {
+                                // Already in admin flow, maybe switch tab or navigate?
+                                // For now just keep it simple or navigate back to home if "Menu" means User Menu
+                                navController.navigate("home")
+                            },
+                            onNavigateToAnalytics = {
+                                navController.navigate("admin_analytics")
+                            },
+                            onNavigateToSettings = {
+                                navController.navigate("admin_settings")
+                            },
+                            onNavigateToOrders = {
+                                navController.navigate("admin_orders")
+                            },
+                            onNavigateToCustomers = {
+                                navController.navigate("admin_customers")
+                            },
+                            onNavigateToPromo = {
+                                navController.navigate("admin_promotions")
+                            },
+                            onNavigateToTables = {
+                                navController.navigate("admin_tables")
+                            }
+                        )
+                    }
+
+                    composable("admin_promotions") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        PromotionManagementScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                        )
+                    }
+
+
+
+
+                    composable("admin_food_management") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEdit = { foodId ->
+                                if (foodId != null) {
+                                    navController.navigate("admin_food_edit/$foodId")
+                                } else {
+                                    navController.navigate("admin_food_edit_new")
+                                }
+                            },
+                            onNavigateToHome = {
+                                navController.navigate("admin_dashboard") {
+                                    popUpTo("admin_dashboard") { inclusive = true }
+                                }
+                            },
+                            onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                            onNavigateToSettings = { navController.navigate("admin_settings") },
+                            onNavigateToOrders = { navController.navigate("admin_orders") }
+                        )
+                    }
+
+                    composable(
+                        route = "admin_food_edit/{foodId}",
+                        arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val foodId = backStackEntry.arguments?.getString("foodId")
+                        com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen(
+                            foodId = foodId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+
+                    composable("admin_food_edit_new") {
+                        com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen(
+                            foodId = null,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // New Admin Screens
+                    composable("admin_orders") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.orders.OrderManagementScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
+                        )
+                    }
+
+                    composable("admin_order_detail/{orderId}") { backStackEntry ->
+                        val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                        com.muatrenthenang.resfood.ui.screens.admin.orders.OrderDetailScreen(
+                            orderId = orderId, 
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("admin_customers") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.customers.CustomerManagementScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("admin_promotion_add") {
+                        com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionAddScreen(
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("admin_tables") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.tables.TableManagementScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable("admin_analytics") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        com.muatrenthenang.resfood.ui.screens.admin.analytics.AnalyticsScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToHome = {
+                                navController.navigate("admin_dashboard") {
+                                    popUpTo("admin_dashboard") { inclusive = true }
+                                }
+                            },
+                            onNavigateToMenu = { navController.navigate("admin_food_management") },
+                            onNavigateToSettings = { navController.navigate("admin_settings") },
+                            onNavigateToOrders = { navController.navigate("admin_orders") }
+                        )
+                    }
+
+                    composable("admin_settings") {
+                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        AdminSettingsScreen(
+                            viewModel = adminViewModel,
+                            onNavigateBack = { navController.popBackStack() },
+                            onLogout = {
+                                // Clear backstack and go to login
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            },
+                            onNavigateToHome = {
+                                navController.navigate("admin_dashboard") {
+                                    popUpTo("admin_dashboard") { inclusive = true }
+                                }
+                            },
+                            onNavigateToMenu = { navController.navigate("admin_food_management") },
+                            onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                            onNavigateToOrders = { navController.navigate("admin_orders") }
                         )
                     }
                 }

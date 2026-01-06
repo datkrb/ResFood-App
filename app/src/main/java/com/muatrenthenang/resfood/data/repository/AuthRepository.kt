@@ -16,21 +16,24 @@ class AuthRepository {
     }
 
     // Hàm đăng nhập
-    suspend fun login(email: String, pass: String): Result<Boolean> {
+    suspend fun login(email: String, pass: String): Result<User> {
         return try {
             // 1. Đăng nhập vào Firebase Auth
             val authResult = auth.signInWithEmailAndPassword(email, pass).await()
-            val user = authResult.user
+            val firebaseUser = authResult.user
 
-            // 2. Kiểm tra xem user đã click link xác nhận trong email chưa
-//            if (user != null && !user.isEmailVerified) {
-//                // Nếu chưa xác nhận mail thì đăng xuất ngay và báo lỗi
-//                auth.signOut()
-//                throw Exception("Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.")
-//            }
-
-            // 3. Nếu mọi thứ ok thì báo thành công
-            Result.success(true)
+            // 2. Lấy thông tin chi tiết user từ Firestore để check role
+            if (firebaseUser != null) {
+                val userDoc = db.collection("users").document(firebaseUser.uid).get().await()
+                val user = userDoc.toObject(User::class.java)
+                if (user != null) {
+                    Result.success(user)
+                } else {
+                    Result.failure(Exception("Không tìm thấy dữ liệu người dùng"))
+                }
+            } else {
+                Result.failure(Exception("Lỗi đăng nhập: User null"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }

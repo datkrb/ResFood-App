@@ -12,17 +12,17 @@ import com.muatrenthenang.resfood.ui.viewmodel.auth.AuthViewModel
 
 @Composable
 fun SplashScreen(
-    onGoHome: () -> Unit,
+    onAuthSuccess: (Boolean) -> Unit, // isAdmin
     onGoLogin: () -> Unit
 ) {
     val viewModel: AuthViewModel = viewModel()
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val authState by viewModel.authState.collectAsState()
 
-    LaunchedEffect(isLoggedIn) {
-        when (isLoggedIn) {
-            true -> onGoHome()
-            false -> onGoLogin()
-            null -> {} // loading
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthViewModel.AuthState.Authenticated -> onAuthSuccess(state.isAdmin)
+            is AuthViewModel.AuthState.Unauthenticated -> onGoLogin()
+            is AuthViewModel.AuthState.Loading -> {}
         }
     }
 

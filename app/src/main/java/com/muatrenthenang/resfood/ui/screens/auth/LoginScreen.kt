@@ -39,7 +39,7 @@
 
     @Composable
     fun LoginScreen(
-        onLoginSuccess: () -> Unit,
+        onLoginSuccess: (Boolean) -> Unit,
         onNavigateToRegister: () -> Unit,
         onNavigateToForgotPassword: () -> Unit
     ) {
@@ -56,14 +56,16 @@
 
         // Xử lý kết quả đăng nhập
         LaunchedEffect(loginResult) {
-            when (loginResult) {
-                "Success" -> {
+            when (val result = loginResult) {
+                is LoginViewModel.LoginState.Success -> {
                     Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
                     viewModel.resetLoginState()
-                    onLoginSuccess()
+                    onLoginSuccess(result.isAdmin)
+                }
+                is LoginViewModel.LoginState.Error -> {
+                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
                 }
                 null -> {}
-                else -> Toast.makeText(context, loginResult, Toast.LENGTH_SHORT).show()
             }
         }
 
