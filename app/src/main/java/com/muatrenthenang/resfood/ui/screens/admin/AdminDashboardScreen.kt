@@ -45,7 +45,9 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -70,6 +72,11 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.ActivityType
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.DashboardUiState
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.IconButton
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
     viewModel: AdminViewModel,
@@ -83,6 +90,8 @@ fun AdminDashboardScreen(
     onNavigateToTables: () -> Unit
 ) {
     val state by viewModel.dashboardUiState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         bottomBar = {
@@ -96,19 +105,27 @@ fun AdminDashboardScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(bottom = 20.dp)
         ) {
-            item { TopAppBarSection() }
-            item { TimeFilterSection() }
-            item { StatsHeroSection(state, onNavigateToAnalytics, onNavigateToOrders) }
-            item { QuickActionsSection(onNavigateToFoodManagement, onNavigateToPromo, onNavigateToCustomers, onNavigateToTables) }
-            item { OperationsStatusSection(state, onNavigateToOrders, onNavigateToTables, onNavigateToFoodManagement) }
-            item { RecentActivitySection(state.recentActivities) }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(bottom = 20.dp)
+            ) {
+                item { TopAppBarSection() }
+                item { TimeFilterSection(state.timeRange, viewModel::setTimeRange) }
+                item { StatsHeroSection(state, onNavigateToAnalytics, onNavigateToOrders) }
+                item { QuickActionsSection(onNavigateToFoodManagement, onNavigateToPromo, onNavigateToCustomers, onNavigateToTables) }
+                item { OperationsStatusSection(state, onNavigateToOrders, onNavigateToTables, onNavigateToFoodManagement) }
+                item { RecentActivitySection(state.recentActivities) }
+            }
         }
     }
 }
@@ -149,20 +166,22 @@ fun TopAppBarSection() {
                     )
                 }
             }
-            Box {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifications",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .padding(8.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color.Red, CircleShape)
-                        .align(Alignment.TopEnd)
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(8.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(Color.Red, CircleShape)
+                            .align(Alignment.TopEnd)
+                    )
+                }
             }
         }
         Text(
@@ -175,7 +194,7 @@ fun TopAppBarSection() {
 }
 
 @Composable
-fun TimeFilterSection() {
+fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,21 +204,21 @@ fun TimeFilterSection() {
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TimeFilterButton(text = "Today", isSelected = true)
-        TimeFilterButton(text = "This Week", isSelected = false)
-        TimeFilterButton(text = "This Month", isSelected = false)
+        TimeFilterButton(text = "Today", isSelected = selectedRange == "Today", onClick = { onRangeSelected("Today") })
+        TimeFilterButton(text = "This Week", isSelected = selectedRange == "This Week", onClick = { onRangeSelected("This Week") })
+        TimeFilterButton(text = "This Month", isSelected = selectedRange == "This Month", onClick = { onRangeSelected("This Month") })
     }
 }
 
 @Composable
-fun TimeFilterButton(text: String, isSelected: Boolean) {
+fun TimeFilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth(0.33f)
             .height(40.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(

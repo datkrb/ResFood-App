@@ -1,6 +1,6 @@
 package com.muatrenthenang.resfood.ui.layout
 
-import NavigationBottom
+import com.muatrenthenang.resfood.ui.components.NavigationBottom
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

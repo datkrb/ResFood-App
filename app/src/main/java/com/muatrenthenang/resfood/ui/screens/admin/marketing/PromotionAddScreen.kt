@@ -25,19 +25,42 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Percent
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromotionAddScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: AdminViewModel = viewModel()
 ) {
     var promoName by remember { mutableStateOf("") }
-    var promoCode by remember { mutableStateOf("VD: SUMMER2024") }
+    var promoCode by remember { mutableStateOf("") }
     var discountValue by remember { mutableStateOf("") }
     var discountType by remember { mutableStateOf(0) } // 0: %, 1: VND
     var minOrderValue by remember { mutableStateOf("") }
     var maxDiscountValue by remember { mutableStateOf("") }
     var isActive by remember { mutableStateOf(true) }
+    
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    fun generateCode() {
+        val allowedChars = ('A'..'Z') + ('0'..'9')
+        promoCode = (1..8)
+            .map { allowedChars.random() }
+            .joinToString("")
+    }
+    
+    fun savePromotion() {
+        if(promoName.isBlank() || promoCode.isBlank() || discountValue.isBlank()) {
+            android.widget.Toast.makeText(context, "Vui lòng nhập đủ thông tin", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val value = discountValue.toIntOrNull() ?: 0
+        viewModel.addPromotion(promoName, promoCode, value, discountType)
+        android.widget.Toast.makeText(context, "Đã lưu khuyến mãi", android.widget.Toast.LENGTH_SHORT).show()
+        onNavigateBack()
+    }
 
     Scaffold(
         topBar = {
@@ -49,7 +72,7 @@ fun PromotionAddScreen(
                     }
                 },
                 actions = {
-                    TextButton(onClick = { /* Save */ }) {
+                    TextButton(onClick = { savePromotion() }) {
                         Text("Lưu", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold)
                     }
                 },
@@ -64,7 +87,7 @@ fun PromotionAddScreen(
         bottomBar = {
             Box(modifier = Modifier.padding(16.dp)) {
                 Button(
-                    onClick = { /* Save */ },
+                    onClick = { savePromotion() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(25.dp)
@@ -98,7 +121,11 @@ fun PromotionAddScreen(
                     value = promoCode,
                     onValueChange = { promoCode = it },
                     placeholder = "Nhập mã...",
-                    trailingIcon = { Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = Color(0xFF2196F3)) }
+                    trailingIcon = { 
+                        IconButton(onClick = { generateCode() }) {
+                           Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = Color(0xFF2196F3)) 
+                        }
+                    }
                 )
             }
 

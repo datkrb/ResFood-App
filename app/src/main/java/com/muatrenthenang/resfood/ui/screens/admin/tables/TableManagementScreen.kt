@@ -19,17 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
+import com.muatrenthenang.resfood.data.model.Table
 
-data class MockTable(
-    val id: String,
-    val name: String,
-    val status: TableStatus,
-    val seats: Int
-)
-
-enum class TableStatus {
-    EMPTY, OCCUPIED, RESERVED
-}
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,19 +30,9 @@ fun TableManagementScreen(
     viewModel: AdminViewModel,
     onNavigateBack: () -> Unit
 ) {
-    // Mock Data - In real app, move to ViewModel
-    val tables = remember {
-        listOf(
-            MockTable("1", "Bàn 01", TableStatus.OCCUPIED, 4),
-            MockTable("2", "Bàn 02", TableStatus.EMPTY, 2),
-            MockTable("3", "Bàn 03", TableStatus.RESERVED, 6),
-            MockTable("4", "Bàn 04", TableStatus.EMPTY, 4),
-            MockTable("5", "Bàn 05", TableStatus.OCCUPIED, 8),
-            MockTable("6", "Bàn 06", TableStatus.EMPTY, 2),
-            MockTable("7", "Bàn 07", TableStatus.EMPTY, 4),
-            MockTable("8", "Bàn 08", TableStatus.RESERVED, 4),
-        )
-    }
+    val tables by viewModel.tables.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         topBar = {
@@ -60,6 +43,9 @@ fun TableManagementScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF1E2126),
                     titleContentColor = Color.White,
@@ -69,21 +55,28 @@ fun TableManagementScreen(
         },
         containerColor = Color(0xFF1E2126)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            // Legend
-            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                StatusLegend(Color(0xFF4CAF50), "Trống")
-                StatusLegend(Color(0xFFF44336), "Đang dùng")
-                StatusLegend(Color(0xFFFF9800), "Đặt trước")
-            }
-
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 100.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(tables) { table ->
-                    TableItem(table)
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
+            modifier = Modifier.padding(padding).fillMaxSize()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Legend
+                Row(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    StatusLegend(Color(0xFF4CAF50), "Trống")
+                    StatusLegend(Color(0xFFF44336), "Đang dùng")
+                    StatusLegend(Color(0xFFFF9800), "Đặt trước")
+                }
+    
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 100.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(tables) { table ->
+                        TableItem(table)
+                    }
                 }
             }
         }
@@ -100,16 +93,18 @@ fun StatusLegend(color: Color, label: String) {
 }
 
 @Composable
-fun TableItem(table: MockTable) {
+fun TableItem(table: Table) {
     val bgColor = when (table.status) {
-        TableStatus.EMPTY -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-        TableStatus.OCCUPIED -> Color(0xFFF44336).copy(alpha = 0.2f)
-        TableStatus.RESERVED -> Color(0xFFFF9800).copy(alpha = 0.2f)
+        "EMPTY" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
+        "OCCUPIED" -> Color(0xFFF44336).copy(alpha = 0.2f)
+        "RESERVED" -> Color(0xFFFF9800).copy(alpha = 0.2f)
+        else -> Color.Gray
     }
     val contentColor = when (table.status) {
-        TableStatus.EMPTY -> Color(0xFF4CAF50)
-        TableStatus.OCCUPIED -> Color(0xFFF44336)
-        TableStatus.RESERVED -> Color(0xFFFF9800)
+        "EMPTY" -> Color(0xFF4CAF50)
+        "OCCUPIED" -> Color(0xFFF44336)
+        "RESERVED" -> Color(0xFFFF9800)
+        else -> Color.Gray
     }
 
     Card(
@@ -132,9 +127,10 @@ fun TableItem(table: MockTable) {
             ) {
                 Text(
                     when(table.status){
-                        TableStatus.EMPTY -> "Trống"
-                        TableStatus.OCCUPIED -> "Có khách"
-                        TableStatus.RESERVED -> "Đã đặt"
+                        "EMPTY" -> "Trống"
+                        "OCCUPIED" -> "Có khách"
+                        "RESERVED" -> "Đã đặt"
+                        else -> "N/A"
                     },
                     color = contentColor,
                     fontSize = 10.sp,

@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -52,13 +54,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodFilter
 import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodManagementUiState
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
-
-
+import com.muatrenthenang.resfood.data.model.Food
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +73,7 @@ fun FoodManagementScreen(
 ) {
     val state by viewModel.foodManagementUiState.collectAsState()
     val filteredFoods = viewModel.getFilteredFoods()
+    val pullRefreshState = rememberPullToRefreshState()
     
     // Dark theme simulated colors to match image
     val backgroundColor = Color(0xFF0F1923)
@@ -125,11 +126,17 @@ fun FoodManagementScreen(
         },
         containerColor = backgroundColor
     ) { padding ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
             // Search Bar
             OutlinedTextField(
                 value = "",
@@ -160,35 +167,30 @@ fun FoodManagementScreen(
                 item { FilterChip("Món chính", false, primaryColor) {} } // Dummy
             }
 
-            if (state.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = primaryColor)
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Text(
+                        "DANH SÁCH MÓN ĂN",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                 }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        Text(
-                            "DANH SÁCH MÓN ĂN",
-                            color = Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                    }
-                    
-                    items(filteredFoods) { food ->
-                        FoodItemCard(
-                            food = food,
-                            cardColor = cardColor,
-                            primaryColor = primaryColor,
-                            onEditClick = { onNavigateToEdit(food.id) }
-                        )
-                    }
+                
+                items(filteredFoods) { food ->
+                    FoodItemCard(
+                        food = food,
+                        cardColor = cardColor,
+                        primaryColor = primaryColor,
+                        onEditClick = { onNavigateToEdit(food.id) }
+                    )
                 }
             }
+        }
         }
     }
 }

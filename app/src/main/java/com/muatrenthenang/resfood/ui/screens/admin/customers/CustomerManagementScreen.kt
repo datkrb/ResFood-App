@@ -27,6 +27,9 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.data.model.User
 import coil.compose.AsyncImage
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerManagementScreen(
@@ -34,6 +37,28 @@ fun CustomerManagementScreen(
     onNavigateBack: () -> Unit
 ) {
     val customers by viewModel.customers.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+    var searchQuery by remember { mutableStateOf("") }
+    
+    // Filtering Logic
+    val filteredCustomers = customers.filter { user ->
+        val query = searchQuery.trim().lowercase()
+        user.fullName.lowercase().contains(query) || 
+        (user.phone?.contains(query) == true)
+    }
+
+    // Stats Logic
+    val totalCustomers = customers.size
+    // Roughly estimate new customers this month (mock logic if date parsing is complex or just check if recent)
+    // For now assuming 10% are new if no date field easily accessible or verify createdAt
+    val newCustomers = customers.filter { 
+        // Simple check: Created within last 30 days. 
+        // If createdAt is missing or old type, defaulting to 0 or mock.
+        // Assuming createdAt is Long timestamp
+        val diff = System.currentTimeMillis() - it.createdAt
+        diff < 30L * 24 * 60 * 60 * 1000
+    }.size
 
     Scaffold(
         topBar = {
@@ -58,7 +83,13 @@ fun CustomerManagementScreen(
         },
         containerColor = Color(0xFF1E2126)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
+            modifier = Modifier.padding(padding).fillMaxSize()
+        ) {
+            Column {
             // Stats Header
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -66,17 +97,17 @@ fun CustomerManagementScreen(
             ) {
                 StatCard(
                     title = "Tổng khách",
-                    value = "1,240",
-                    badge = "+12%",
+                    value = "$totalCustomers",
+                    badge = "Thành viên",
                     icon = Icons.Default.Person,
                     color = Color(0xFF2196F3),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     title = "Tháng này",
-                    value = "+45",
-                    badge = "+5%",
-                    icon = Icons.Default.Add, // Or specific icon
+                    value = "+$newCustomers",
+                    badge = "Mới",
+                    icon = Icons.Default.Add,
                     color = Color(0xFF9C27B0),
                     modifier = Modifier.weight(1f)
                 )
@@ -98,7 +129,19 @@ fun CustomerManagementScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                          Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
                          Spacer(modifier = Modifier.width(8.dp))
-                         Text("Tìm tên hoặc số điện thoại...", color = Color.Gray)
+                         androidx.compose.foundation.text.BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            singleLine = true,
+                            textStyle = LocalTextStyle.current.copy(color = Color.White),
+                            modifier = Modifier.fillMaxWidth(),
+                            decorationBox = { innerTextField ->
+                                if (searchQuery.isEmpty()) {
+                                    Text("Tìm tên hoặc số điện thoại...", color = Color.Gray)
+                                }
+                                innerTextField()
+                            }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -124,7 +167,7 @@ fun CustomerManagementScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Danh sách (1,240)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Danh sách ($totalCustomers)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Text("Sắp xếp", color = Color(0xFF2196F3))
             }
 
@@ -133,9 +176,10 @@ fun CustomerManagementScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(customers) { customer ->
+                items(filteredCustomers) { customer ->
                     CustomerItem(customer)
                 }
+            }
             }
         }
     }

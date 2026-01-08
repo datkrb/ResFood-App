@@ -1,3 +1,5 @@
+package com.muatrenthenang.resfood.ui.components
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home

@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderManagementScreen(
@@ -34,7 +37,27 @@ fun OrderManagementScreen(
     onNavigateToDetail: (String) -> Unit
 ) {
     val orders by viewModel.orders.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
     var selectedFilter by remember { mutableStateOf("Tất cả") }
+    var searchQuery by remember { mutableStateOf("") }
+    
+    // Filter Logic
+    val filteredOrders = orders.filter { order ->
+        val matchesFilter = when(selectedFilter) {
+             "Tất cả" -> true
+             "Mới" -> order.status == "PENDING"
+             "Chờ duyệt" -> order.status == "PROCESSING"
+             "Đang giao" -> order.status == "DELIVERING" // Assumed status
+             else -> true
+        }
+        val matchesSearch = if(searchQuery.isBlank()) true else {
+            order.id.contains(searchQuery, ignoreCase = true) ||
+            order.userName.contains(searchQuery, ignoreCase = true) ||
+            order.userPhone.contains(searchQuery)
+        }
+        matchesFilter && matchesSearch
+    }.sortedByDescending { it.createdAt }
 
     Scaffold(
         topBar = {
@@ -60,9 +83,21 @@ fun OrderManagementScreen(
         },
         containerColor = Color(0xFF1E2126)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            
+            Column {
             // Search Bar
-            SearchBar()
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it }
+            )
             
             // Filters
             FilterTabs(selectedFilter) { selectedFilter = it }
@@ -82,32 +117,60 @@ fun OrderManagementScreen(
                        verticalAlignment = Alignment.CenterVertically
                    ) {
                        Text("Đơn mới cần xử lý", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                       Text("${orders.size} Đơn", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                       Text("${filteredOrders.size} Đơn", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
                    }
                 }
 
-                items(orders) { order ->
-                    OrderItem(order, onClick = { onNavigateToDetail(order.id) })
+                if (filteredOrders.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("Không có đơn hàng nào", color = Color.Gray)
+                        }
+                    }
                 }
+
+                items(filteredOrders) { order ->
+                    OrderItem(
+                        order = order, 
+                        onClick = { onNavigateToDetail(order.id) },
+                        onAccept = { viewModel.approveOrder(order.id) },
+                        onReject = { viewModel.rejectOrder(order.id) }
+                    )
+                }
+            }
             }
         }
     }
 }
 
 @Composable
-fun SearchBar() {
+fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .height(48.dp)
+            .height(50.dp)
             .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Tìm mã đơn, tên khách, SĐT...", color = Color.Gray)
+        // Replaced custom text with standard BasicTextField or TextField for input
+        // Since original was custom, let's use transparent TextField
+        androidx.compose.foundation.text.BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(color = Color.White),
+            modifier = Modifier.weight(1f),
+            decorationBox = { innerTextField ->
+                if (query.isEmpty()) {
+                    Text("Tìm mã đơn, tên khách, SĐT...", color = Color.Gray)
+                }
+                innerTextField()
+            }
+        )
     }
 }
 
@@ -138,7 +201,7 @@ fun FilterTabs(selected: String, onSelect: (String) -> Unit) {
 }
 
 @Composable
-fun OrderItem(order: Order, onClick: () -> Unit) {
+fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
         shape = RoundedCornerShape(16.dp),
@@ -161,7 +224,7 @@ fun OrderItem(order: Order, onClick: () -> Unit) {
                         val date = if(order.createdAt != null) {
                              java.text.SimpleDateFormat("HH:mm").format(order.createdAt.toDate())
                         } else "Vừa xong"
-                        Text(date + " • #" + order.id.takeLast(6), color = Color.Gray, fontSize = 12.sp)
+                        Text(date + " • #" + order.id.takeLast(6).uppercase(), color = Color.Gray, fontSize = 12.sp)
                     }
                 }
                 
@@ -180,7 +243,15 @@ fun OrderItem(order: Order, onClick: () -> Unit) {
                         .background(badgeBg)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text(order.status, color = badgeText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    val statusLabel = when(order.status) {
+                        "PENDING" -> "Mới"
+                        "PROCESSING" -> "Đang làm"
+                        "COMPLETED" -> "Xong"
+                        "CANCELLED" -> "Hủy"
+                        "REJECTED" -> "Từ chối"
+                        else -> order.status
+                    }
+                    Text(statusLabel, color = badgeText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -213,7 +284,11 @@ fun OrderItem(order: Order, onClick: () -> Unit) {
                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                        // Reject Button (Icon only or small text)
                        Box(
-                           modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.1f)),
+                           modifier = Modifier
+                               .size(40.dp)
+                               .clip(CircleShape)
+                               .background(Color.White.copy(alpha = 0.1f))
+                               .clickable { onReject() },
                            contentAlignment = Alignment.Center
                        ) {
                            Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.LightGray)
@@ -221,7 +296,7 @@ fun OrderItem(order: Order, onClick: () -> Unit) {
                        
                        // Approve Button
                        Button(
-                           onClick = { },
+                           onClick = onAccept,
                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
                            shape = RoundedCornerShape(20.dp)
                        ) {

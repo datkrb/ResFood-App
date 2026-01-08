@@ -9,25 +9,25 @@ import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
+import com.muatrenthenang.resfood.data.model.Promotion
+import com.muatrenthenang.resfood.data.model.Table
+import com.muatrenthenang.resfood.data.repository.TableRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class DashboardUiState(
-    val totalRevenue: Double = 1240.50, // Mock data matching HTML
-    val revenueGrowth: Int = 15,
-    val newOrders: Int = 12,
-    val newOrdersCount: Int = 2,
-    val pendingOrders: Int = 5,
-    val processingOrders: Int = 8,
-    val reservations: Int = 12,
-    val outOfStockItems: Int = 3,
-    val recentActivities: List<ActivityItem> = listOf(
-        ActivityItem("Order #2033 Completed", "2 mins ago", "$45.00", ActivityType.SUCCESS),
-        ActivityItem("Table 4 Reserved", "10 mins ago • 19:00 PM", "4 Pax", ActivityType.PURPLE),
-        ActivityItem("Order #2034 Pending", "15 mins ago", "$12.50", ActivityType.WARNING)
-    )
+    val timeRange: String = "Today",
+    val totalRevenue: Double = 0.0,
+    val revenueGrowth: Int = 0,
+    val newOrders: Int = 0,
+    val newOrdersCount: Int = 0,
+    val pendingOrders: Int = 0,
+    val processingOrders: Int = 0,
+    val reservations: Int = 0,
+    val outOfStockItems: Int = 0,
+    val recentActivities: List<ActivityItem> = emptyList()
 )
 
 data class ActivityItem(
@@ -52,15 +52,40 @@ enum class FoodFilter {
     ALL, AVAILABLE, OUT_OF_STOCK
 }
 
+data class AnalyticsUiState(
+    val filterType: AnalyticsFilterType = AnalyticsFilterType.TODAY,
+    val startDate: Long = System.currentTimeMillis(),
+    val endDate: Long = System.currentTimeMillis(),
+    val totalRevenue: Double = 0.0,
+    val totalOrders: Int = 0,
+    val revenueChartData: List<Pair<String, Double>> = emptyList(), // Label -> Value
+    val orderStatusData: Map<String, Int> = emptyMap(), // Status -> Count
+    val topProducts: List<TopProductItem> = emptyList()
+)
+
+data class TopProductItem(
+    val name: String,
+    val count: Int,
+    val revenue: Double
+)
+
+enum class AnalyticsFilterType {
+    TODAY, WEEK, MONTH, CUSTOM
+}
+
 class AdminViewModel(
     private val foodRepository: FoodRepository = FoodRepository(),
     private val orderRepository: OrderRepository = OrderRepository(),
     private val userRepository: UserRepository = UserRepository(),
-    private val promotionRepository: PromotionRepository = PromotionRepository()
+    private val promotionRepository: PromotionRepository = PromotionRepository(),
+    private val tableRepository: TableRepository = TableRepository()
 ) : ViewModel() {
 
     private val _dashboardUiState = MutableStateFlow(DashboardUiState())
     val dashboardUiState: StateFlow<DashboardUiState> = _dashboardUiState.asStateFlow()
+
+    private val _analyticsUiState = MutableStateFlow(AnalyticsUiState())
+    val analyticsUiState: StateFlow<AnalyticsUiState> = _analyticsUiState.asStateFlow()
 
     private val _foodManagementUiState = MutableStateFlow(FoodManagementUiState())
     val foodManagementUiState: StateFlow<FoodManagementUiState> = _foodManagementUiState.asStateFlow()
@@ -70,64 +95,249 @@ class AdminViewModel(
 
     private val _customers = MutableStateFlow<List<User>>(emptyList())
     val customers: StateFlow<List<User>> = _customers.asStateFlow()
+    
+    private val _promotions = MutableStateFlow<List<Promotion>>(emptyList())
+    val promotions: StateFlow<List<Promotion>> = _promotions.asStateFlow()
+    
+    private val _tables = MutableStateFlow<List<Table>>(emptyList())
+    val tables: StateFlow<List<Table>> = _tables.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
-        loadData()
-    }
-
-    private fun loadData() {
-        loadFoods()
-        loadOrders()
-        loadCustomers()
-    }
-
-    private fun loadFoods() {
         viewModelScope.launch {
-            _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = true, error = null)
-            foodRepository.getFoods().onSuccess { foods ->
-                _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, foods = foods)
-                updateDashboardStats() // Update stats like out of stock
-            }.onFailure {
-                _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, error = it.message)
-            }
+            com.muatrenthenang.resfood.data.DataSeeder().seedAll()
+            loadOrders()
+            // Initialize analytics with TODAY filter
+            setAnalyticsFilter(AnalyticsFilterType.TODAY)
+            loadData()
+        }
+    }
+    
+    fun refreshData() {
+        viewModelScope.launch {
+            loadData()
+            // Re-calculate analytics on refresh using current filter
+            calculateAnalytics()
         }
     }
 
+    private suspend fun loadData() {
+        _isLoading.value = true
+        loadFoods()
+        loadCustomers()
+        loadPromotions()
+        loadTables()
+        _isLoading.value = false
+    }
+
+    private suspend fun loadFoods() {
+        _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = true, error = null)
+        foodRepository.getFoods().onSuccess { foods ->
+            _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, foods = foods)
+            updateDashboardStats()
+        }.onFailure {
+            _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, error = it.message)
+        }
+    }
+    
     private fun loadOrders() {
         viewModelScope.launch {
             orderRepository.getAllOrdersFlow().collect { orderList ->
                 _orders.value = orderList
                 updateDashboardStats()
+                calculateAnalytics()
             }
         }
     }
+    
+    private suspend fun loadCustomers() {
+         userRepository.getAllCustomers().onSuccess { userList ->
+            _customers.value = userList
+        }.onFailure {
+            _customers.value = emptyList()
+        }
+    }
+    
+    private suspend fun loadPromotions() {
+         promotionRepository.getAllPromotions().onSuccess { promos ->
+             _promotions.value = promos
+         }.onFailure {
+             if(_promotions.value.isEmpty()) {
+                 _promotions.value = listOf(
+                     Promotion(id="1", name = "Giảm giá khai trương", code = "OPEN50", discountValue = 50, discountType = 0),
+                     Promotion(id="2", name = "Freeship đơn 200k", code = "FREESHIP", discountValue = 15000, discountType = 1)
+                 )
+             }
+         }
+    }
+    
+    private suspend fun loadTables() {
+        tableRepository.getAllTables().onSuccess { tableList ->
+            if(tableList.isEmpty()) {
+                val seed = listOf(
+                    Table(name = "Bàn 01", status = "EMPTY", seats = 4),
+                    Table(name = "Bàn 02", status = "EMPTY", seats = 2),
+                    Table(name = "Bàn 03", status = "EMPTY", seats = 4),
+                    Table(name = "Bàn 04", status = "EMPTY", seats = 6),
+                )
+                seed.forEach { tableRepository.createTable(it) }
+                _tables.value = seed
+            } else {
+                _tables.value = tableList
+            }
+        }.onFailure {
+            _tables.value = emptyList()
+        }
+    }
 
-    private fun loadCustomers() {
-        viewModelScope.launch {
-            userRepository.getAllCustomers().onSuccess { userList ->
-                _customers.value = userList
+    fun setAnalyticsFilter(type: AnalyticsFilterType, start: Long? = null, end: Long? = null) {
+        val now = System.currentTimeMillis()
+        var startDate: Long = now
+        var endDate: Long = now
+
+        when (type) {
+            AnalyticsFilterType.TODAY -> {
+                val calendar = java.util.Calendar.getInstance()
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                calendar.set(java.util.Calendar.MINUTE, 0)
+                calendar.set(java.util.Calendar.SECOND, 0)
+                calendar.set(java.util.Calendar.MILLISECOND, 0)
+                startDate = calendar.timeInMillis
+                endDate = now // Until now
+            }
+            AnalyticsFilterType.WEEK -> {
+                val calendar = java.util.Calendar.getInstance()
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, -7)
+                 startDate = calendar.timeInMillis
+                 endDate = now
+            }
+            AnalyticsFilterType.MONTH -> {
+                val calendar = java.util.Calendar.getInstance()
+                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                calendar.set(java.util.Calendar.MINUTE, 0)
+                calendar.set(java.util.Calendar.SECOND, 0)
+                startDate = calendar.timeInMillis
+                endDate = now
+            }
+            AnalyticsFilterType.CUSTOM -> {
+                startDate = start ?: now
+                endDate = end ?: now
             }
         }
+        
+        _analyticsUiState.value = _analyticsUiState.value.copy(
+            filterType = type,
+            startDate = startDate,
+            endDate = endDate
+        )
+        calculateAnalytics()
+    }
+
+    private fun calculateAnalytics() {
+        val state = _analyticsUiState.value
+        val allOrders = _orders.value
+        
+        // Filter orders
+        val filteredOrders = allOrders.filter { order ->
+            val time = order.createdAt?.toDate()?.time ?: 0L
+            time >= state.startDate && time <= state.endDate
+        }
+        
+        val completedOrders = filteredOrders.filter { it.status == "COMPLETED" }
+
+        // 1. Overview Stats
+        val totalRevenue = completedOrders.sumOf { it.total.toDouble() }
+        val totalOrders = completedOrders.size
+        
+        // 2. Chart Data 
+        val chartData = if (state.filterType == AnalyticsFilterType.TODAY) {
+            // Group by Hour
+            completedOrders.groupBy { 
+                val cal = java.util.Calendar.getInstance()
+                cal.time = it.createdAt!!.toDate() 
+                cal.get(java.util.Calendar.HOUR_OF_DAY)
+            }.map { (hour, orders) ->
+                "${hour}:00" to orders.sumOf { it.total.toDouble() }
+            }.sortedBy { it.first }
+        } else {
+            // Group by Date (dd/MM)
+            val dateFormat = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault())
+            completedOrders.groupBy { 
+                dateFormat.format(it.createdAt!!.toDate())
+            }.map { (date, orders) ->
+                date to orders.sumOf { it.total.toDouble() }
+            }.sortedBy { it.first } 
+        }
+
+        // 3. Order Status Distribution (All filtered)
+        val statusData = filteredOrders.groupBy { it.status }
+            .mapValues { it.value.size }
+            
+        // 4. Top Products
+        val productMap = mutableMapOf<String, TopProductItem>()
+        completedOrders.flatMap { it.items }.forEach { item ->
+             val existing = productMap[item.foodName]
+             if (existing != null) {
+                 productMap[item.foodName] = existing.copy(
+                     count = existing.count + item.quantity,
+                     revenue = existing.revenue + (item.price * item.quantity)
+                 )
+             } else {
+                 productMap[item.foodName] = TopProductItem(item.foodName, item.quantity, (item.price * item.quantity).toDouble())
+             }
+        }
+        val topProducts = productMap.values.sortedByDescending { it.revenue }.take(5).toList()
+
+        _analyticsUiState.value = state.copy(
+            totalRevenue = totalRevenue,
+            totalOrders = totalOrders,
+            revenueChartData = chartData,
+            orderStatusData = statusData,
+            topProducts = topProducts
+        )
     }
 
     private fun updateDashboardStats() {
         val orderList = _orders.value
         val foodList = _foodManagementUiState.value.foods
+        val range = _dashboardUiState.value.timeRange
 
-        val totalRevenue = orderList.filter { it.status == "COMPLETED" }.sumOf { it.total.toDouble() }
-        val newOrdersCount = orderList.count { it.status == "PENDING" } // Define NEW as PENDING for now
-        val pendingOrders = orderList.count { it.status == "PENDING" }
-        val processingOrders = orderList.count { it.status == "PROCESSING" }
+        // Filter orders by time range
+        val now = System.currentTimeMillis()
+        val filteredOrders = orderList.filter { order ->
+            if (order.createdAt == null) return@filter false // Should not happen with real data
+            val time = order.createdAt.toDate().time
+            val diff = now - time
+            when (range) {
+                "Today" -> diff < 24 * 60 * 60 * 1000L
+                "This Week" -> diff < 7 * 24 * 60 * 60 * 1000L
+                "This Month" -> diff < 30L * 24 * 60 * 60 * 1000L
+                else -> true
+            }
+        }
+
+        val totalRevenue = filteredOrders.filter { it.status == "COMPLETED" }.sumOf { it.total.toDouble() }
+        val newOrdersCount = filteredOrders.count { it.status == "PENDING" } 
+        val pendingOrders = filteredOrders.count { it.status == "PENDING" }
+        val processingOrders = filteredOrders.count { it.status == "PROCESSING" }
         val outOfStockItems = foodList.count { !it.isAvailable }
+        
+        // Simple mock revenue growth
+        val previousSemRevenue = 1000.0 
+        val revenueGrowth = if(previousSemRevenue > 0 && totalRevenue > 0) ((totalRevenue - previousSemRevenue) / previousSemRevenue * 100).toInt() else 0
 
         _dashboardUiState.value = _dashboardUiState.value.copy(
             totalRevenue = totalRevenue,
+            revenueGrowth = revenueGrowth,
             newOrders = newOrdersCount,
             newOrdersCount = newOrdersCount,
             pendingOrders = pendingOrders,
             processingOrders = processingOrders,
             outOfStockItems = outOfStockItems,
-            recentActivities = orderList.take(5).map { order ->
+            recentActivities = filteredOrders.sortedByDescending { it.createdAt }.take(5).map { order ->
                 ActivityItem(
                     title = "Order #${order.id.takeLast(5)}",
                     subtitle = order.status,
@@ -140,6 +350,11 @@ class AdminViewModel(
                 )
             }
         )
+    }
+    
+    fun setTimeRange(range: String) {
+        _dashboardUiState.value = _dashboardUiState.value.copy(timeRange = range)
+        updateDashboardStats()
     }
 
     fun setFoodFilter(filter: FoodFilter) {
@@ -180,22 +395,30 @@ class AdminViewModel(
              orderRepository.updateOrderStatus(orderId, "COMPLETED")
         }
     }
+    
+    fun getOrderById(orderId: String): Order? {
+        return _orders.value.find { it.id == orderId }
+    }
+    
+    fun addPromotion(name: String, code: String, value: Int, type: Int) {
+        viewModelScope.launch {
+            val promo = Promotion(name = name, code = code, discountValue = value, discountType = type)
+            promotionRepository.createPromotion(promo)
+            loadPromotions()
+        }
+    }
+    
+    fun addTable(name: String, seats: Int) {
+        viewModelScope.launch {
+             tableRepository.createTable(Table(name = name, seats = seats))
+             loadTables()
+        }
+    }
+    
+    fun updateTableStatus(tableId: String, status: String) {
+        viewModelScope.launch {
+             tableRepository.updateTableStatus(tableId, status)
+             loadTables()
+        }
+    }
 }
-
-data class MockOrder(
-    val id: String,
-    val userName: String,
-    val time: String,
-    val total: Double,
-    val status: String,
-    val items: List<String>,
-    val isTable: Boolean = false
-)
-
-data class MockCustomer(
-    val name: String,
-    val phone: String,
-    val rank: String,
-    val totalSpend: Double,
-    val orderCount: Int
-)

@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -19,8 +21,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
-
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
+import com.muatrenthenang.resfood.ui.viewmodel.admin.AnalyticsUiState
+import com.muatrenthenang.resfood.ui.viewmodel.admin.TopProductItem
+import com.muatrenthenang.resfood.ui.components.DateRangeSelector
+import com.muatrenthenang.resfood.ui.components.RevenueLineChart
+import com.muatrenthenang.resfood.ui.components.OrderStatusPieChart
+
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +41,10 @@ fun AnalyticsScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToOrders: () -> Unit
 ) {
+    val analyticsState by viewModel.analyticsUiState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -40,6 +53,9 @@ fun AnalyticsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
+                },
+                actions = {
+                    
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF1E2126),
@@ -60,55 +76,107 @@ fun AnalyticsScreen(
         },
         containerColor = Color(0xFF1E2126)
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
+            modifier = Modifier.padding(padding).fillMaxSize()
         ) {
-            // Summary Cards
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    AnalyticSummaryCard(
-                        "Doanh thu ngày",
-                        "12.500.000đ",
-                        "+15%",
-                        Color(0xFF4CAF50),
-                        Modifier.weight(1f)
-                    )
-                    AnalyticSummaryCard(
-                        "Chi phí",
-                        "4.200.000đ",
-                        "-5%",
-                        Color(0xFFFF5252),
-                        Modifier.weight(1f)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 20.dp)
+            ) {
+                // 1. Date Range Filter
+                item {
+                    DateRangeSelector(
+                        selectedType = analyticsState.filterType,
+                        startDate = analyticsState.startDate,
+                        endDate = analyticsState.endDate,
+                        onTypeSelected = { type -> viewModel.setAnalyticsFilter(type = type) },
+                        onDateRangeSelected = { start, end -> viewModel.setAnalyticsFilter(analyticsState.filterType, start, end) }
                     )
                 }
-            }
 
-            // Chart Section
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().height(300.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                         Text("Biểu đồ doanh thu tuần", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
-                         SimpleBarChart()
+                // 2. Summary Cards
+                item {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        AnalyticSummaryCard(
+                            "Tổng Doanh thu",
+                            "${analyticsState.totalRevenue.toInt()}đ",
+                            "${analyticsState.totalOrders} Đơn",
+                            Color(0xFF4CAF50),
+                            Modifier.weight(1f)
+                        )
+                        AnalyticSummaryCard(
+                            "Doanh thu trung bình",
+                            if (analyticsState.totalOrders > 0) "${(analyticsState.totalRevenue / analyticsState.totalOrders).toInt()}đ" else "0đ", 
+                            "Đơn",
+                            Color(0xFF2196F3),
+                            Modifier.weight(1f)
+                        )
                     }
                 }
-            }
 
-            // Top Products
-            item {
-                Text("Món ăn bán chạy", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038))) {
-                    Column {
-                        TopProductRow("1. Beefsteak sốt tiêu đen", "150 đơn", "45.000.000đ")
-                        Divider(color = Color.Gray.copy(alpha = 0.2f))
-                        TopProductRow("2. Pizza Hải sản", "120 đơn", "24.000.000đ")
-                        Divider(color = Color.Gray.copy(alpha = 0.2f))
-                        TopProductRow("3. Mì Ý Carbonara", "98 đơn", "11.760.000đ")
+                // 3. Revenue Trend Chart
+                item {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                         Text("Biểu đồ doanh thu", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                         Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().height(300.dp)
+                        ) {
+                             RevenueLineChart(
+                                 data = analyticsState.revenueChartData,
+                                 modifier = Modifier.fillMaxSize()
+                             )
+                        }
+                    }
+                }
+                
+                // 4. Order Status Distribution (Pie Chart)
+                item {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                         Text("Trạng thái đơn hàng", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                         Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                        ) {
+                             OrderStatusPieChart(
+                                 data = analyticsState.orderStatusData,
+                                 modifier = Modifier.fillMaxWidth().padding(16.dp)
+                             )
+                        }
+                    }
+                }
+
+                // 5. Top Products
+                item {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Text("Món ăn bán chạy", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038))) {
+                            Column {
+                                if(analyticsState.topProducts.isEmpty()) {
+                                    Text("Chưa có dữ liệu", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                                } else {
+                                    analyticsState.topProducts.forEachIndexed { index, item ->
+                                        TopProductRow(
+                                            name = "${index+1}. ${item.name}", 
+                                            count = "${item.count} đơn", 
+                                            revenue = "${item.revenue.toInt()}đ"
+                                        )
+                                        if(index < analyticsState.topProducts.size - 1) {
+                                            Divider(color = Color.Gray.copy(alpha = 0.2f))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -117,7 +185,7 @@ fun AnalyticsScreen(
 }
 
 @Composable
-fun AnalyticSummaryCard(title: String, value: String, growth: String, growthColor: Color, modifier: Modifier = Modifier) {
+fun AnalyticSummaryCard(title: String, value: String, subtitle: String, color: Color, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
         shape = RoundedCornerShape(16.dp),
@@ -129,34 +197,10 @@ fun AnalyticSummaryCard(title: String, value: String, growth: String, growthColo
             Text(value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.TrendingUp, contentDescription = null, tint = growthColor, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(growth, color = growthColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Box(modifier = Modifier.size(8.dp).background(color, androidx.compose.foundation.shape.CircleShape))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(subtitle, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
-        }
-    }
-}
-
-@Composable
-fun SimpleBarChart() {
-    // Mock data: 7 days
-    val data = listOf(0.4f, 0.6f, 0.3f, 0.8f, 0.5f, 0.9f, 0.7f)
-    
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val barWidth = size.width / (data.size * 2)
-        val spacing = barWidth
-        val maxBarHeight = size.height
-
-        data.forEachIndexed { index, value ->
-            val barHeight = maxBarHeight * value
-            drawRect(
-                color = Color(0xFF2196F3),
-                topLeft = Offset(
-                    x = index * (barWidth + spacing) + spacing / 2,
-                    y = maxBarHeight - barHeight
-                ),
-                size = Size(barWidth, barHeight)
-            )
         }
     }
 }

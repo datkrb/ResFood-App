@@ -1,6 +1,5 @@
 package com.muatrenthenang.resfood
 
-import SplashScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,32 +9,45 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.muatrenthenang.resfood.ui.layout.AppLayout
+import com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen
+import com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen
+import com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.analytics.AnalyticsScreen
+import com.muatrenthenang.resfood.ui.screens.admin.customers.CustomerManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionAddScreen
+import com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.orders.OrderDetailScreen
+import com.muatrenthenang.resfood.ui.screens.admin.orders.OrderManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.settings.AdminSettingsScreen
+import com.muatrenthenang.resfood.ui.screens.admin.tables.TableManagementScreen
 import com.muatrenthenang.resfood.ui.screens.auth.ForgotPasswordScreen
 import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
-import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
-import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
+import com.muatrenthenang.resfood.ui.screens.auth.SplashScreen
 import com.muatrenthenang.resfood.ui.screens.cart.CartScreen
 import com.muatrenthenang.resfood.ui.screens.checkout.CheckoutScreen
 import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
-import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
-import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
-import com.muatrenthenang.resfood.ui.layout.AppLayout
 import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesScreen
-import com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionManagementScreen
-import com.muatrenthenang.resfood.ui.screens.admin.settings.AdminSettingsScreen
+import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
+import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
+import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
+import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
+import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Khởi tạo ViewModel (Dùng viewModel())
+            // Khởi tạo ViewModel
             val userViewModel: UserViewModel = viewModel()
             // Lấy trạng thái theme từ ViewModel
             val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
@@ -148,7 +160,7 @@ class MainActivity : ComponentActivity() {
                     // Trang Setting
                     composable("settings") {
                         AppLayout(navController = navController) { _ ->
-                            com.muatrenthenang.resfood.ui.screens.settings.SettingScreen(
+                            SettingScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToLogin = {
                                     // Đăng xuất thành công -> Về màn Login và xóa lịch sử
@@ -166,7 +178,7 @@ class MainActivity : ComponentActivity() {
 
                     // Màn hình Trung tâm tài khoản
                     composable("account_center") {
-                        com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen(
+                        AccountCenterScreen(
                             onBack = { navController.popBackStack() },
                             onNavigateToDetails = {
                                 // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
@@ -178,7 +190,7 @@ class MainActivity : ComponentActivity() {
 
                     // Màn hình Hồ sơ cá nhân chi tiết
                     composable("profile_details") {
-                        com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen(
+                        ProfileScreen(
                             onBack = { navController.popBackStack() },
                             userViewModel = userViewModel
                         )
@@ -197,14 +209,13 @@ class MainActivity : ComponentActivity() {
 
                     // Admin Routes
                     composable("admin_dashboard") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        AdminDashboardScreen(
                             viewModel = adminViewModel,
                             onNavigateToFoodManagement = {
                                 navController.navigate("admin_food_management")
                             },
                             onNavigateToMenu = {
-                                // Already in admin flow, maybe switch tab or navigate?
                                 // For now just keep it simple or navigate back to home if "Menu" means User Menu
                                 navController.navigate("home")
                             },
@@ -230,7 +241,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("admin_promotions") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        val adminViewModel: AdminViewModel = viewModel()
                         PromotionManagementScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() },
@@ -239,11 +250,9 @@ class MainActivity : ComponentActivity() {
                     }
 
 
-
-
                     composable("admin_food_management") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        FoodManagementScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToEdit = { foodId ->
@@ -269,7 +278,7 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument("foodId") { type = NavType.StringType })
                     ) { backStackEntry ->
                         val foodId = backStackEntry.arguments?.getString("foodId")
-                        com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen(
+                        FoodEditScreen(
                             foodId = foodId,
                             onNavigateBack = { navController.popBackStack() }
                         )
@@ -277,7 +286,7 @@ class MainActivity : ComponentActivity() {
 
 
                     composable("admin_food_edit_new") {
-                        com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen(
+                        FoodEditScreen(
                             foodId = null,
                             onNavigateBack = { navController.popBackStack() }
                         )
@@ -285,8 +294,8 @@ class MainActivity : ComponentActivity() {
 
                     // New Admin Screens
                     composable("admin_orders") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.orders.OrderManagementScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        OrderManagementScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
@@ -295,37 +304,37 @@ class MainActivity : ComponentActivity() {
 
                     composable("admin_order_detail/{orderId}") { backStackEntry ->
                         val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
-                        com.muatrenthenang.resfood.ui.screens.admin.orders.OrderDetailScreen(
+                        OrderDetailScreen(
                             orderId = orderId, 
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
                     composable("admin_customers") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.customers.CustomerManagementScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        CustomerManagementScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
                     composable("admin_promotion_add") {
-                        com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionAddScreen(
+                        PromotionAddScreen(
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
                     composable("admin_tables") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.tables.TableManagementScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        TableManagementScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
                     composable("admin_analytics") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
-                        com.muatrenthenang.resfood.ui.screens.admin.analytics.AnalyticsScreen(
+                        val adminViewModel: AdminViewModel = viewModel()
+                        AnalyticsScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToHome = {
@@ -340,7 +349,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable("admin_settings") {
-                        val adminViewModel: com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel = viewModel()
+                        val adminViewModel: AdminViewModel = viewModel()
                         AdminSettingsScreen(
                             viewModel = adminViewModel,
                             onNavigateBack = { navController.popBackStack() },

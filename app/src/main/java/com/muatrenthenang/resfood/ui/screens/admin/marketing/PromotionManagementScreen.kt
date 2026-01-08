@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PromotionManagementScreen(
@@ -30,9 +33,9 @@ fun PromotionManagementScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAdd: () -> Unit
 ) {
-    // Note: Assuming viewModel has promotions flow. If not, will add placeholder or update VM.
-    // For now, using mock list inside screen or check if VM has it. AdminViewModel doesn't expose promos yet.
-    // I will add promos to AdminViewModel in next step.
+    val promos by viewModel.promotions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
     
     Scaffold(
         topBar = {
@@ -58,17 +61,24 @@ fun PromotionManagementScreen(
         },
         containerColor = Color(0xFF1E2126)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            // Mock List for now until VM updated
-            val promos = listOf(
-                Promotion(name = "Giảm giá khai trương", code = "OPEN50", discountValue = 50, discountType = 0),
-                Promotion(name = "Freeship đơn 200k", code = "FREESHIP", discountValue = 15000, discountType = 1),
-            )
-            
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                 items(promos) { promo ->
-                     PromotionItem(promo)
-                 }
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refreshData() },
+            state = pullRefreshState,
+            modifier = Modifier.padding(padding).fillMaxSize()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                if (promos.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Chưa có chương trình khuyến mãi nào", color = Color.Gray)
+                    }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                         items(promos) { promo ->
+                             PromotionItem(promo)
+                         }
+                    }
+                }
             }
         }
     }
