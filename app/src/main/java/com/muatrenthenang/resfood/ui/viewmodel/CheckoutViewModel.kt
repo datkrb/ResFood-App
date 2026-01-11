@@ -2,20 +2,27 @@ package com.muatrenthenang.resfood.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.muatrenthenang.resfood.data.model.Address
 import com.muatrenthenang.resfood.data.model.CartItem
+import com.muatrenthenang.resfood.data.model.Order
+import com.muatrenthenang.resfood.data.model.OrderItem
+import com.muatrenthenang.resfood.data.repository.AuthRepository
 import com.muatrenthenang.resfood.data.repository.CheckoutRepository
+import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
 
 enum class PaymentMethod { ZALOPAY, MOMO, COD }
 
 class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository(),
-    private val _userRepository: UserRepository = UserRepository()
+    private val _userRepository: UserRepository = UserRepository(),
+    private val _orderRepository: OrderRepository = OrderRepository(),
+    private val _authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
@@ -34,7 +41,7 @@ class CheckoutViewModel(
     ))
     val address = _address.asStateFlow()
 
-    private val _paymentMethod = MutableStateFlow(PaymentMethod.ZALOPAY)
+    private val _paymentMethod = MutableStateFlow(PaymentMethod.COD)
     val paymentMethod = _paymentMethod.asStateFlow()
 
     private val _promoInput = MutableStateFlow("")
@@ -139,7 +146,6 @@ class CheckoutViewModel(
     fun total(): Long = subTotal() + _shippingFee - discount()
 
     fun applyPromo() {
-        //test
         viewModelScope.launch {
             val code = _promoInput.value.trim().uppercase()
             if (code.isEmpty()) {
@@ -157,17 +163,79 @@ class CheckoutViewModel(
         }
     }
 
+    /**
+     * Xác nhận đơn hàng và tạo Order trong Firebase
+     */
     fun confirmPayment() {
         viewModelScope.launch {
-            if (_items.value.none { it.isSelected }) {
+            // Validate items
+            val selectedItems = _items.value.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
                 _actionResult.value = "Không có món nào được chọn để thanh toán"
                 return@launch
             }
+
+            // Validate address
+            val currentAddress = _address.value
+            if (currentAddress.id.isBlank() || currentAddress.contactName.isBlank()) {
+                _actionResult.value = "Vui lòng chọn địa chỉ giao hàng"
+                return@launch
+            }
+
             _isLoading.value = true
-            _repository.removeSelectedItems()
-            delay(1200)
-            _isLoading.value = false
-            _actionResult.value = "Thanh toán thành công"
+
+            try {
+                // Get current user ID
+                val userId = _authRepository.getCurrentUserId() ?: ""
+
+                // Convert cart items to order items
+                val orderItems = selectedItems.map { cartItem ->
+                    OrderItem(
+                        foodId = cartItem.food.id,
+                        foodName = cartItem.food.name,
+                        foodImage = cartItem.food.imageUrl,
+                        quantity = cartItem.quantity,
+                        price = cartItem.food.price,
+                        note = null
+                    )
+                }
+
+                // Create Order object
+                val order = Order(
+                    id = "",
+                    userId = userId,
+                    userName = currentAddress.contactName,
+                    userPhone = currentAddress.phone,
+                    address = currentAddress.getFullAddress(),
+                    items = orderItems,
+                    subtotal = subTotal().toInt(),
+                    discount = discount().toInt(),
+                    deliveryFee = _shippingFee.toInt(),
+                    total = total().toInt(),
+                    status = "PENDING",
+                    paymentMethod = when (_paymentMethod.value) {
+                        PaymentMethod.COD -> "COD"
+                        PaymentMethod.MOMO -> "MOMO"
+                        PaymentMethod.ZALOPAY -> "ZALOPAY"
+                    },
+                    createdAt = Timestamp.now()
+                )
+
+                // Save order to Firebase
+                val result = _orderRepository.createOrder(order)
+                
+                if (result.isSuccess) {
+                    // Remove selected items from cart
+                    _repository.removeSelectedItems()
+                    _actionResult.value = "Đặt hàng thành công"
+                } else {
+                    _actionResult.value = result.exceptionOrNull()?.message ?: "Lỗi tạo đơn hàng"
+                }
+            } catch (e: Exception) {
+                _actionResult.value = e.message ?: "Đã xảy ra lỗi"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 
