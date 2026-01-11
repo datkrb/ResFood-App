@@ -30,6 +30,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onNavigateToAddresses: () -> Unit = {},
     userViewModel: UserViewModel
 ) {
     val userState by userViewModel.userState.collectAsState()
@@ -114,7 +115,7 @@ fun ProfileScreen(
             ProfileTextField(label = "Họ và tên", value = user.fullName, icon = Icons.Default.Person)
             ProfileTextField(label = "Số điện thoại", value = user.phone ?: "Chưa cập nhật", icon = Icons.Default.Phone)
             ProfileTextField(label = "Email", value = user.email, icon = Icons.Default.Email)
-            ProfileTextField(label = "Địa chỉ giao hàng", value = user.address ?: "Chưa cập nhật", icon = Icons.Default.LocationOn)
+            ProfileTextField(label = "Địa chỉ giao hàng", value = user.getDefaultAddress()?.getFullAddress() ?: "Chưa cập nhật", icon = Icons.Default.LocationOn)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -126,11 +127,11 @@ fun ProfileScreen(
                     RoundedCornerShape(12.dp)
                 )
             ) {
-                SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu")
+                SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu", onClick = { })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(icon = Icons.Default.ShoppingCart, title = "Ví Voucher")
+                SettingRow(icon = Icons.Default.ShoppingCart, title = "Ví Voucher", onClick = { })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(icon = Icons.Default.LocationOn, title = "Quản lý địa chỉ")
+                SettingRow(icon = Icons.Default.LocationOn, title = "Quản lý địa chỉ", onClick = onNavigateToAddresses)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -212,11 +213,11 @@ fun ProfileTextField(label: String, value: String, icon: ImageVector) {
 }
 
 @Composable
-fun SettingRow(icon: ImageVector, title: String) {
+fun SettingRow(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

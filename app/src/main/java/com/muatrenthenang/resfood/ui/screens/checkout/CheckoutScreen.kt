@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun CheckoutScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToAddresses: () -> Unit = {},
     onPaymentConfirmed: () -> Unit = {},
     vm: CheckoutViewModel = viewModel()
 ) {
@@ -87,10 +88,10 @@ fun CheckoutScreen(
                 IconButton(
                     onClick = onNavigateBack,
                     modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .size(40.dp)
+                        .align(Alignment.CenterStart)                        .size(40.dp)
                         .background(Color.Transparent, CircleShape)
                 ) {
+
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -157,7 +158,7 @@ fun CheckoutScreen(
             Column {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Địa chỉ nhận hàng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(text = "Thay đổi", color = PrimaryColor, modifier = Modifier.clickable { /* TODO navigate */ }, fontWeight = FontWeight.SemiBold)
+                    Text(text = "Thay đổi", color = PrimaryColor, modifier = Modifier.clickable { onNavigateToAddresses() }, fontWeight = FontWeight.SemiBold)
                 }
 
                 Surface(
@@ -185,10 +186,9 @@ fun CheckoutScreen(
                                     Text(text = "Mặc định", color = PrimaryColor.copy(alpha = 0.58f), fontSize = 11.sp, modifier = Modifier.padding(4.dp))
                                 }
                             }
-                            Text(text = address.addressLine, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(text = address.getFullAddress(), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(text = "${address.contactName} • ${address.phone}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
                         }
-                        IconButton(onClick = { /* edit */ }) { Icon(Icons.Default.Edit, contentDescription = null, tint = PrimaryColor) }
                     }
                 }
             }

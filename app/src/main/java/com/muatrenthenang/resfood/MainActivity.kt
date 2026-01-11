@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -38,8 +39,12 @@ import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
+import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
+import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.CheckoutViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 
@@ -138,10 +143,87 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    composable("checkout"){
+                    composable("checkout"){ backStackEntry ->
+                        val checkoutViewModel: CheckoutViewModel = viewModel()
+                        
+                        // Listen for selected address from AddressListScreen
+                        LaunchedEffect(backStackEntry) {
+                            backStackEntry.savedStateHandle.getStateFlow<String?>("selected_address_id", null)
+                                .collect { addressId ->
+                                    addressId?.let { id ->
+                                        // Load the selected address by ID
+                                        val addresses = checkoutViewModel.getAddressesFromRepo()
+                                        addresses.find { it.id == id }?.let { address ->
+                                            checkoutViewModel.setAddress(address)
+                                        }
+                                        // Clear the saved state
+                                        backStackEntry.savedStateHandle.remove<String>("selected_address_id")
+                                    }
+                                }
+                        }
+                        
                         CheckoutScreen(
                             onNavigateBack = { navController.popBackStack() },
-                            onPaymentConfirmed = {}
+                            onNavigateToAddresses = { navController.navigate("addresses") },
+                            onPaymentConfirmed = {},
+                            vm = checkoutViewModel
+                        )
+                    }
+
+                    // Address management routes
+                    composable("addresses") {
+                        val addressViewModel: AddressViewModel = viewModel()
+                        
+                        // Reload addresses when this screen becomes visible
+                        LaunchedEffect(Unit) {
+                            addressViewModel.loadAddresses()
+                        }
+                        
+                        AddressListScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEdit = { addressId ->
+                                if (addressId != null) {
+                                    navController.navigate("address_edit/$addressId")
+                                } else {
+                                    navController.navigate("address_add")
+                                }
+                            },
+                            onAddressSelected = { address ->
+                                // Pass the selected address ID back to checkout via savedStateHandle
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selected_address_id", address.id)
+                                navController.popBackStack()
+                            },
+                            vm = addressViewModel
+                        )
+                    }
+
+                    composable("address_add") {
+                        val addressViewModel: AddressViewModel = viewModel()
+                        AddressEditScreen(
+                            addressId = null,
+                            onNavigateBack = { navController.popBackStack() },
+                            onSaveSuccess = { 
+                                // Reload will happen in addresses composable via LaunchedEffect
+                                navController.popBackStack() 
+                            },
+                            vm = addressViewModel
+                        )
+                    }
+
+                    composable(
+                        route = "address_edit/{addressId}",
+                        arguments = listOf(navArgument("addressId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val addressId = backStackEntry.arguments?.getString("addressId")
+                        val addressViewModel: AddressViewModel = viewModel()
+                        AddressEditScreen(
+                            addressId = addressId,
+                            onNavigateBack = { navController.popBackStack() },
+                            onSaveSuccess = { 
+                                // Reload will happen in addresses composable via LaunchedEffect
+                                navController.popBackStack() 
+                            },
+                            vm = addressViewModel
                         )
                     }
 
@@ -192,7 +274,33 @@ class MainActivity : ComponentActivity() {
                     composable("profile_details") {
                         ProfileScreen(
                             onBack = { navController.popBackStack() },
+                            onNavigateToAddresses = { navController.navigate("profile_addresses") },
                             userViewModel = userViewModel
+                        )
+                    }
+
+                    // Quản lý địa chỉ từ Profile
+                    composable("profile_addresses") {
+                        val addressViewModel: AddressViewModel = viewModel()
+                        
+                        LaunchedEffect(Unit) {
+                            addressViewModel.loadAddresses()
+                        }
+                        
+                        AddressListScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEdit = { addressId ->
+                                if (addressId != null) {
+                                    navController.navigate("address_edit/$addressId")
+                                } else {
+                                    navController.navigate("address_add")
+                                }
+                            },
+                            onAddressSelected = { 
+                                // Không làm gì khi chọn địa chỉ từ profile, chỉ để xem
+                                navController.popBackStack()
+                            },
+                            vm = addressViewModel
                         )
                     }
 

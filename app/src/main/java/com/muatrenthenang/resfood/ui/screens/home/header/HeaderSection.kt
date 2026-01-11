@@ -54,7 +54,7 @@ fun HeaderSection(user: User?) {
             Spacer(modifier = Modifier.height(4.dp))
 
             // dia chi
-            LocationText(address = user?.address)
+            LocationText(address = user?.getDefaultAddress()?.getFullAddress())
         }
 
         // icon thong bao

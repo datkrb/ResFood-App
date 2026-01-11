@@ -6,31 +6,31 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.muatrenthenang.resfood.data.model.Address
 import com.muatrenthenang.resfood.data.model.CartItem
 import com.muatrenthenang.resfood.data.repository.CheckoutRepository
+import com.muatrenthenang.resfood.data.repository.UserRepository
 
-// Class data test, sẽ chuyển vào model chung sau
-data class Address(
-    val label: String,
-    val isDefault: Boolean,
-    val addressLine: String,
-    val contactName: String,
-    val phone: String
-)
 enum class PaymentMethod { ZALOPAY, MOMO, COD }
 
 class CheckoutViewModel(
-    private val _repository: CheckoutRepository = CheckoutRepository()
+    private val _repository: CheckoutRepository = CheckoutRepository(),
+    private val _userRepository: UserRepository = UserRepository()
 ) : ViewModel() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
 
+    // Initialize with empty address, will be loaded from Firebase
     private val _address = MutableStateFlow(Address(
-        label = "Nhà riêng",
+        id = "",
+        label = "Đang tải...",
         isDefault = true,
-        addressLine = "123 Đường Nguyễn Huệ, P. Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-        contactName = "Nguyễn Văn A",
-        phone = "+84 901 234 567"
+        addressLine = "",
+        ward = "",
+        district = "",
+        city = "",
+        contactName = "",
+        phone = ""
     ))
     val address = _address.asStateFlow()
 
@@ -54,6 +54,49 @@ class CheckoutViewModel(
 
     init {
         loadSelectedCartItems()
+        loadDefaultAddress()
+    }
+
+    /**
+     * Load địa chỉ mặc định từ Firebase
+     */
+    fun loadDefaultAddress() {
+        viewModelScope.launch {
+            try {
+                val result = _userRepository.getDefaultAddress()
+                if (result.isSuccess) {
+                    result.getOrNull()?.let { defaultAddress ->
+                        _address.value = defaultAddress
+                    } ?: run {
+                        // Không có địa chỉ nào, hiển thị placeholder
+                        _address.value = Address(
+                            id = "",
+                            label = "Chưa có địa chỉ",
+                            isDefault = false,
+                            addressLine = "Vui lòng thêm địa chỉ giao hàng",
+                            ward = "",
+                            district = "",
+                            city = "",
+                            contactName = "",
+                            phone = ""
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // Fallback to placeholder if error
+                _address.value = Address(
+                    id = "",
+                    label = "Lỗi tải địa chỉ",
+                    isDefault = false,
+                    addressLine = e.message ?: "Vui lòng thử lại",
+                    ward = "",
+                    district = "",
+                    city = "",
+                    contactName = "",
+                    phone = ""
+                )
+            }
+        }
     }
 
     fun loadSelectedCartItems() {
@@ -76,8 +119,20 @@ class CheckoutViewModel(
         }
     }
 
+    /**
+     * Lấy danh sách địa chỉ từ Firebase để tìm địa chỉ theo ID
+     */
+    suspend fun getAddressesFromRepo(): List<Address> {
+        return try {
+            _userRepository.getAddresses().getOrNull() ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setPromoInput(s: String) { _promoInput.value = s }
+    fun setAddress(a: Address) { _address.value = a }
 
     fun subTotal(): Long = _items.value.sumOf { it.food.price.toLong() * it.quantity }
     fun discount(): Long = if (_appliedPromo.value?.trim()?.uppercase() == "NNDAI") 10000L else 0L
