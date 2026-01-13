@@ -25,6 +25,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.MaterialTheme
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
+import com.muatrenthenang.resfood.ui.components.FoodItemSkeleton
 
 @Composable
 fun HomeScreen(
@@ -68,15 +69,21 @@ fun HomeScreen(
         }
 
         // Layout food
-        items(uiState.foods.size) { index ->
-            val food = uiState.foods[index]
-            CardFood(
-                food,
-                onClickFood = { food ->
-                    onFoodClick(food)
-                },
-                onClickAdd = {}
-            )
+        if (uiState.isLoading) {
+            items(6) {
+                FoodItemSkeleton()
+            }
+        } else {
+            items(uiState.foods.size) { index ->
+                val food = uiState.foods[index]
+                CardFood(
+                    food,
+                    onClickFood = { food ->
+                        onFoodClick(food)
+                    },
+                    onClickAdd = {}
+                )
+            }
         }
     }
 }
