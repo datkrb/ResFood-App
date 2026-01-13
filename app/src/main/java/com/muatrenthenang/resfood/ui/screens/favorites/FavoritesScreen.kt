@@ -47,6 +47,7 @@ fun FavoritesScreen(
     onAddToCart: (String) -> Unit = {},
     onLogin: () -> Unit = {},
     onOpenFoodDetail: (String) -> Unit = {},
+    paddingValuesFromParent: PaddingValues = PaddingValues(),
     vm: FavoritesViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -98,7 +99,8 @@ fun FavoritesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding()),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -113,7 +115,8 @@ fun FavoritesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding()),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -122,7 +125,8 @@ fun FavoritesScreen(
             Column(modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-                .padding(paddingValues)) {
+                .padding(paddingValues)
+                .padding(bottom = paddingValuesFromParent.calculateBottomPadding())) {
 
                 // Search bar (sticky mimic: placed at top of scroll content)
                 Column(modifier = Modifier

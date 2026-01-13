@@ -14,6 +14,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.screens.home.booking_table.BookingBanner
@@ -37,43 +41,50 @@ fun HomeScreen(
     val uiState by homeViewModel.uiState.collectAsState()
     val userState by userViewModel.userState.collectAsState()
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .background(MaterialTheme.colorScheme.background)
-            .padding(paddingValues)
-            .padding(horizontal = 15.dp),
-        verticalArrangement = Arrangement.spacedBy(15.dp),
-        horizontalArrangement = Arrangement.spacedBy(15.dp)
-    ) {
-        item(span = { GridItemSpan(2) }) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                HeaderSection(userState)
-                SearchBar()
-                BookingBanner(onClick = {})
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
+                .padding(horizontal = 15.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp),
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
+        ) {
+            item(span = { GridItemSpan(2) }) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    uiState.categories.forEach { category ->
-                        CategoryFood(
-                            imgVector = category.icon,
-                            categoryFood = category.name,
-                            onClick = {}
-                        )
+                    HeaderSection(userState)
+                    SearchBar()
+                    BookingBanner(onClick = {})
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        uiState.categories.forEach { category ->
+                            CategoryFood(
+                                imgVector = category.icon,
+                                categoryFood = category.name,
+                                onClick = {}
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Layout food
-        if (uiState.isLoading) {
-            items(6) {
-                FoodItemSkeleton()
-            }
-        } else {
+            // Layout food
             items(uiState.foods.size) { index ->
                 val food = uiState.foods[index]
                 CardFood(

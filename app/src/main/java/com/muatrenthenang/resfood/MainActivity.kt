@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = "splash",
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier
                     ) {
 
                         // 0. Màn hình Chờ (Splash)
@@ -108,7 +108,8 @@ class MainActivity : ComponentActivity() {
                                 onFoodClick = { food ->
                                     navController.navigate("detail/${food.id}")
                                 },
-                                paddingValues = PaddingValues() // Padding đã được xử lý bởi NavHost
+
+                                paddingValues = innerPadding
                             )
                         }
 
@@ -138,7 +139,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onProceedToCheckout = { navController.navigate("checkout") },
                                 onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
-                                paddingValuesFromParent = PaddingValues()
+
+                                paddingValuesFromParent = innerPadding
                             )
                         }
 
@@ -155,7 +157,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() },
                                 onAddToCart = {},
                                 onLogin = { navController.navigate("login") },
-                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") }
+                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
+                                paddingValuesFromParent = innerPadding
                             )
                         }
 
@@ -172,6 +175,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToProfile = {
                                     navController.navigate("account_center")
                                 },
+                                paddingValuesFromParent = innerPadding,
                                 userViewModel = userViewModel
                             )
                         }
