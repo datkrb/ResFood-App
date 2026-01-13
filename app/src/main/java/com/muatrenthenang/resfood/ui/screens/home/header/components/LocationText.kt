@@ -21,13 +21,13 @@ fun LocationText(address: String?) {
         Icon(
             imageVector = Icons.Default.AddLocation,
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = address ?: "",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.bodySmall
         )
     }

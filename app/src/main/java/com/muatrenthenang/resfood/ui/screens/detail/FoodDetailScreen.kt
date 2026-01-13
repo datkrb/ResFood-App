@@ -82,7 +82,7 @@ fun FoodDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                    color = Color(0xFF0F172A)
+                    color = MaterialTheme.colorScheme.background
                 ){
                     Column(
                         modifier = Modifier
@@ -109,7 +109,7 @@ fun FoodDetailScreen(
                         ) {
                             Text(
                                 text ="Topping them",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -147,7 +147,7 @@ fun FoodDetailScreen(
                 onClick = onNavigateBack,
                 modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
 
             // favorite
@@ -159,7 +159,7 @@ fun FoodDetailScreen(
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorite",
-                    tint = if (isFavorite) LightRed else Color.White
+                    tint = if (isFavorite) LightRed else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -168,7 +168,7 @@ fun FoodDetailScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(Color(0xFF0F172A))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(22.dp)
         ) {
             AddToCart(

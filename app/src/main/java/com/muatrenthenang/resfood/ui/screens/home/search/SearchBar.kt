@@ -1,11 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.home.search
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -13,12 +9,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -44,7 +40,7 @@ fun SearchBar(
         placeholder = {
             Text(
                 text = "Tìm món ăn, nhà hàng...",
-                color = Color(0xFF94A3B8),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = TextStyle(
                     fontSize = 14.sp,
                     platformStyle = PlatformTextStyle(
@@ -57,17 +53,17 @@ fun SearchBar(
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search",
-                tint = Color(0xFF94A3B8)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         singleLine = true,
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color.White,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            cursorColor = MaterialTheme.colorScheme.primary,
 
-            focusedContainerColor = Color(0xFF1E2936),
-            unfocusedContainerColor = Color(0xFF1E2936),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
 
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent

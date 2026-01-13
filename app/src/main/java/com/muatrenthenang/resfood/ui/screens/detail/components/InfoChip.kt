@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,9 +48,9 @@ fun InfoChip(
     Row(
         modifier = clickableModifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xff1e2836))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
-                BorderStroke(1.dp, Color(0xff2b3544)),
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 RoundedCornerShape(20.dp)
             )
             .padding(paddingValues),
@@ -66,7 +67,7 @@ fun InfoChip(
 
         Text(
             text = textInfo,
-            color = Color(0xffe5e7ea),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = fontSize,
             fontWeight = fontWeight
         )

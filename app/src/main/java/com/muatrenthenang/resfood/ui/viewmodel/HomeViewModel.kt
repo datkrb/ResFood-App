@@ -49,13 +49,12 @@ class HomeViewModel (
             try {
                 val result = _foodRepository.getFoods()
                 result.fold(onSuccess = { foods ->
-                    _uiState.value = _uiState.value.copy(foods = foods)
+                    _uiState.value = _uiState.value.copy(foods = foods, isLoading = false)
                 }, onFailure = {
-                    // keep empty list on failure (you may show error later)
-                    _uiState.value = _uiState.value.copy(foods = emptyList())
+                    _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
                 })
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(foods = emptyList())
+                _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
             }
         }
     }

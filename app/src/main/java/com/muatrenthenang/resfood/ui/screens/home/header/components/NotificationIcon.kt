@@ -17,7 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-private val IconBackground = Color(0xFF202A34)
+import androidx.compose.material3.MaterialTheme
+
 
 @Composable
 fun NotificationIcon(
@@ -27,14 +28,14 @@ fun NotificationIcon(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(IconBackground)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Default.Notifications,
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp)
         )
         Box(
@@ -43,7 +44,7 @@ fun NotificationIcon(
                 .offset((-2).dp, 2.dp)
                 .size(10.dp)
                 .background(Color.Red, CircleShape)
-                .border(1.dp, IconBackground, CircleShape)
+                .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape)
         )
     }
 }
