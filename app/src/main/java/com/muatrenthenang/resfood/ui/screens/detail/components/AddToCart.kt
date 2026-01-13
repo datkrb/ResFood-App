@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +46,7 @@ fun AddToCart(
         ) {
             Text(
                 text = "%,dđ".format(totalPrice),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
             )
@@ -58,7 +59,7 @@ fun AddToCart(
                     onClick = onDecrease,
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.size(30.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Icon(
@@ -70,7 +71,7 @@ fun AddToCart(
 
                 Text(
                     text = quantity.toString(),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 )
@@ -79,7 +80,7 @@ fun AddToCart(
                     onClick = onIncrease,
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
                     modifier = Modifier.size(30.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Icon(
@@ -96,7 +97,7 @@ fun AddToCart(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6))
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

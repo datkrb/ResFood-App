@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,14 +28,14 @@ fun NameAndPriceFood(food: Food?){
     ) {
         Text(
             text = food?.name ?: "Đang tải...",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 25.sp
         )
         Spacer(modifier = Modifier.height(15.dp))
         Text(
             text = food?.let { "%,dđ".format(it.price) } ?: "--",
-            color = Color(0xFF3B82F6),
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontSize = 25.sp
         )
