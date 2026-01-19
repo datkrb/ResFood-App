@@ -17,14 +17,13 @@ import com.muatrenthenang.resfood.ui.screens.home.header.components.LocationText
 import com.muatrenthenang.resfood.ui.screens.home.header.components.NotificationIcon
 import com.muatrenthenang.resfood.ui.screens.home.header.components.TagRanking
 
-private val HeaderBackground = Color(0xFF0F1923)
 
 @Composable
 fun HeaderSection(user: User?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(HeaderBackground),
+            .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // avatar cua user
@@ -46,7 +45,7 @@ fun HeaderSection(user: User?) {
             // name user
             Text(
                 text = "Chào buổi sáng, ${user?.fullName}!",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )

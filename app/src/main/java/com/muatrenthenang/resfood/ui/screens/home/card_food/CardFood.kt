@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
-import com.muatrenthenang.resfood.ui.theme.bgCardFood
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun CardFood(
@@ -49,10 +49,12 @@ fun CardFood(
             },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
-                .background(bgCardFood)
         ) {
 
             // IMAGE
@@ -73,7 +75,7 @@ fun CardFood(
 
                 Text(
                     text = food.name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,

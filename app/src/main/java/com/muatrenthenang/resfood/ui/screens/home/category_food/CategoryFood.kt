@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun CategoryFood(
@@ -49,7 +50,7 @@ fun CategoryFood(
 
         Text(
             text = categoryFood,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 12.sp
         )
     }

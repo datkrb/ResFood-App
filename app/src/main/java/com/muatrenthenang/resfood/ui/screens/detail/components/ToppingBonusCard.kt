@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +33,7 @@ fun ToppingBonusCard(
         modifier = modifier.fillMaxWidth(),
         shape = CircleShape,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E293B)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
@@ -58,7 +59,7 @@ fun ToppingBonusCard(
             ) {
                 Text(
                     text = topping.name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -76,7 +77,7 @@ fun ToppingBonusCard(
                 onClick = onSelect,
                 colors = RadioButtonDefaults.colors(
                     selectedColor = PrimaryColor,
-                    unselectedColor = Color.Gray
+                    unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
