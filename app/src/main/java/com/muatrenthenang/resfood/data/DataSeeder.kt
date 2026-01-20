@@ -77,10 +77,108 @@ class DataSeeder {
         // Check for ANY customer
         if (ref.whereEqualTo("role", "customer").limit(1).get().await().isEmpty) {
             val users = listOf(
-                User(fullName = "Nguyễn Văn A", email = "vana@gmail.com", phone = "0901234567", address = "123 Lê Lợi, Q1", rank = "Vàng", points = 1500),
-                User(fullName = "Trần Thị B", email = "thib@gmail.com", phone = "0909888777", address = "456 Nguyễn Huệ, Q1", rank = "Bạc", points = 200),
-                User(fullName = "Lê Văn C", email = "vanc@gmail.com", phone = "0912345678", address = "789 Cách Mạng Tháng 8, Q3", rank = "Kim Cương", points = 5000),
-                User(fullName = "Phạm Thị D", email = "thid@gmail.com", phone = "0987654321", address = "101 Điện Biên Phủ, BT", rank = "Bạc", points = 50)
+                User(
+                    fullName = "Nguyễn Văn A",
+                    email = "vana@gmail.com",
+                    phone = "0901234567",
+                    addresses = listOf(
+                        Address(
+                            id = "addr_a1",
+                            label = "Nhà riêng",
+                            addressLine = "123 Lê Lợi",
+                            ward = "Phường Bến Thành",
+                            district = "Quận 1",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Nguyễn Văn A",
+                            phone = "0901234567",
+                            isDefault = true
+                        ),
+                        Address(
+                            id = "addr_a2",
+                            label = "Công ty",
+                            addressLine = "456 Nguyễn Du",
+                            ward = "Phường Bến Nghé",
+                            district = "Quận 1",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Nguyễn Văn A",
+                            phone = "0901234567",
+                            isDefault = false
+                        )
+                    ),
+                    rank = "Vàng",
+                    points = 1500
+                ),
+                User(
+                    fullName = "Trần Thị B",
+                    email = "thib@gmail.com",
+                    phone = "0909888777",
+                    addresses = listOf(
+                        Address(
+                            id = "addr_b1",
+                            label = "Nhà riêng",
+                            addressLine = "456 Nguyễn Huệ",
+                            ward = "Phường Bến Nghé",
+                            district = "Quận 1",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Trần Thị B",
+                            phone = "0909888777",
+                            isDefault = true
+                        )
+                    ),
+                    rank = "Bạc",
+                    points = 200
+                ),
+                User(
+                    fullName = "Lê Văn C",
+                    email = "vanc@gmail.com",
+                    phone = "0912345678",
+                    addresses = listOf(
+                        Address(
+                            id = "addr_c1",
+                            label = "Nhà riêng",
+                            addressLine = "789 Cách Mạng Tháng 8",
+                            ward = "Phường 5",
+                            district = "Quận 3",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Lê Văn C",
+                            phone = "0912345678",
+                            isDefault = true
+                        ),
+                        Address(
+                            id = "addr_c2",
+                            label = "Công ty",
+                            addressLine = "100 Trần Hưng Đạo",
+                            ward = "Phường Cầu Ông Lãnh",
+                            district = "Quận 1",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Lê Văn C",
+                            phone = "0912345678",
+                            isDefault = false
+                        )
+                    ),
+                    rank = "Kim Cương",
+                    points = 5000
+                ),
+                User(
+                    fullName = "Phạm Thị D",
+                    email = "thid@gmail.com",
+                    phone = "0987654321",
+                    addresses = listOf(
+                        Address(
+                            id = "addr_d1",
+                            label = "Nhà riêng",
+                            addressLine = "101 Điện Biên Phủ",
+                            ward = "Phường 15",
+                            district = "Quận Bình Thạnh",
+                            city = "TP. Hồ Chí Minh",
+                            contactName = "Phạm Thị D",
+                            phone = "0987654321",
+                            isDefault = true
+                        )
+                    ),
+                    rank = "Bạc",
+                    points = 50
+                )
             )
             users.forEach { user ->
                 val doc = ref.document() // Auto-ID, no Auth
