@@ -23,6 +23,8 @@ class HomeViewModel (
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val _allFoods = MutableStateFlow<List<Food>>(emptyList())
+
     init {
         loadCategories()
         loadFoods()
@@ -49,13 +51,33 @@ class HomeViewModel (
             try {
                 val result = _foodRepository.getFoods()
                 result.fold(onSuccess = { foods ->
+                    _allFoods.value = foods
                     _uiState.value = _uiState.value.copy(foods = foods, isLoading = false)
                 }, onFailure = {
+                    _allFoods.value = emptyList()
                     _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
                 })
             } catch (e: Exception) {
+                _allFoods.value = emptyList()
                 _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
             }
         }
+    }
+
+    private fun filterFoods(query: String){
+        val filtered = if (query.isBlank()){
+            _allFoods.value
+        }
+        else {
+            _allFoods.value.filter { food ->
+                food.name.contains(query, ignoreCase = true)
+            }
+        }
+        _uiState.value = _uiState.value.copy(foods = filtered)
+    }
+
+    fun setSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+        filterFoods(query)
     }
 }

@@ -153,7 +153,7 @@ fun FoodDetailScreen(
             // favorite
             val isFavorite by viewModel.isFavorite.collectAsState()
             IconButton(
-                onClick = { if (!isFavorite) viewModel.addToFavorites() },
+                onClick = { viewModel.addToFavorites() },
                 modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
             ) {
                 Icon(

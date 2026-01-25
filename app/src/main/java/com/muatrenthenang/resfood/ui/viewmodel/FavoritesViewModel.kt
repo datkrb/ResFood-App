@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 import com.muatrenthenang.resfood.data.repository.CartRepository
+import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesUIState
+import kotlinx.coroutines.flow.update
 
 class FavoritesViewModel(
     private val _repository: FavoritesRepository = FavoritesRepository(),
@@ -27,6 +29,11 @@ class FavoritesViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _uiState = MutableStateFlow(FavoritesUIState())
+    val uiState = _uiState.asStateFlow()
+
+    private var _allFavFoods = listOf<RepoFavoriteItem>()
+
     private val _tag = "FavoritesViewModel"
 
     init {
@@ -40,9 +47,13 @@ class FavoritesViewModel(
             try {
                 val result = _repository.getFavorites()
                 if (result.isSuccess) {
-                    _items.value = result.getOrNull() ?: emptyList()
+                    _allFavFoods = result.getOrNull() ?: emptyList()
+                    _items.value = _allFavFoods
                     _needLogin.value = false
-                    Log.d(_tag, "Loaded ${_items.value.size} favorite items")
+                    Log.d(_tag, "Loaded ${_allFavFoods.size} favorite items")
+                    
+                    // Re-apply filter if there is an existing query
+                    filterFavoriteFood(_uiState.value.searchQuery)
                 } else {
                     if (result.exceptionOrNull()?.message?.contains("chưa đăng nhập", true) == true) {
                         Log.e(_tag, "User not logged in")
@@ -63,8 +74,10 @@ class FavoritesViewModel(
             val result = _repository.removeFavorite(id)
             if (result.isSuccess) {
                 _actionResult.value = "Đã xóa khỏi danh sách yêu thích"
-                // Re-load favorites (loadFavorites will update loading state)
-                loadFavorites()
+                // Remove from local master list immediately for UI responsiveness
+                _allFavFoods = _allFavFoods.filter { it.food.id != id }
+                // Re-apply filter
+                filterFavoriteFood(_uiState.value.searchQuery)
             } else {
                 _actionResult.value = result.exceptionOrNull()?.localizedMessage
             }
@@ -97,4 +110,22 @@ class FavoritesViewModel(
     }
 
     fun clearResult() { _actionResult.value = null }
+
+    fun onSearchTextChanged(query: String){
+        _uiState.update { it.copy(searchQuery = query) }
+        filterFavoriteFood(query)
+    }
+
+    fun filterFavoriteFood(query: String){
+        val filterFavFood = if (query.isBlank()) {
+            _allFavFoods
+        }
+        else {
+            _allFavFoods.filter { favFoods ->
+                favFoods.food.name.contains(query, ignoreCase = true)
+            }
+        }
+        _items.value = filterFavFood
+    }
+
 }

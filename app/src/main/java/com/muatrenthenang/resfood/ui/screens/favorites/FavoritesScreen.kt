@@ -56,6 +56,7 @@ fun FavoritesScreen(
     val result by vm.actionResult.collectAsState()
     val needLogin by vm.needLogin.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
+    val state by vm.uiState.collectAsState()
 
     // Remove confirmation state
     val showRemoveDialog = remember { mutableStateOf(false) }
@@ -133,8 +134,10 @@ fun FavoritesScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)) {
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
+                        value = state.searchQuery,
+                        onValueChange = {newText ->
+                            vm.onSearchTextChanged(newText)
+                        },
                         placeholder = { Text("Tìm kiếm món ăn...", color = Color.Gray) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier

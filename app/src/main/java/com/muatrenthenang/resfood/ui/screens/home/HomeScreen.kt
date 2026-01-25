@@ -67,7 +67,10 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     HeaderSection(userState)
-                    SearchBar()
+                    SearchBar(
+                        searchText = uiState.searchQuery,
+                        onSearchTextChanged = { homeViewModel.setSearchQuery(it) }
+                    )
                     BookingBanner(onClick = {})
                     Row(
                         modifier = Modifier.fillMaxWidth(),
