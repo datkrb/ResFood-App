@@ -20,5 +20,7 @@ data class Food(
     /** Danh sách đánh giá */
     val reviews: List<Review> = emptyList(),
     /** Còn bán hay không */
-    val isAvailable: Boolean = true
+    val isAvailable: Boolean = true,
+    /** Loại món ăn */
+    val category: String = ""
 )

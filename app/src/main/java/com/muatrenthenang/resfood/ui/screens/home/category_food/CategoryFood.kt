@@ -25,8 +25,12 @@ import androidx.compose.material3.MaterialTheme
 fun CategoryFood(
     imgVector: ImageVector,
     categoryFood: String,
+    isSelected: Boolean = false,
     onClick: () -> Unit
 ){
+    val backgroundColor = if (isSelected) PrimaryColor else Color(0xFFF0F0F0)
+    val iconColor = if (isSelected) Color.White else PrimaryColor
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -34,14 +38,14 @@ fun CategoryFood(
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(PrimaryColor)
+                .background(backgroundColor)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ){
             Icon(
                 imageVector = imgVector,
                 contentDescription = null,
-                tint = Color.White,
+                tint = iconColor,
                 modifier = Modifier.size(30.dp)
             )
         }

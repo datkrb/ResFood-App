@@ -67,7 +67,10 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     HeaderSection(userState)
-                    SearchBar()
+                    SearchBar(
+                        searchText = uiState.searchQuery,
+                        onSearchTextChanged = { homeViewModel.setSearchQuery(it) }
+                    )
                     BookingBanner(onClick = {})
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -77,7 +80,8 @@ fun HomeScreen(
                             CategoryFood(
                                 imgVector = category.icon,
                                 categoryFood = category.name,
-                                onClick = {}
+                                isSelected = uiState.selectedCategory == category.name,
+                                onClick = { homeViewModel.selectCategory(category.name) }
                             )
                         }
                     }

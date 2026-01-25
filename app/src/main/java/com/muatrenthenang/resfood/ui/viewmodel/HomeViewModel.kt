@@ -23,6 +23,8 @@ class HomeViewModel (
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val _allFoods = MutableStateFlow<List<Food>>(emptyList())
+
     init {
         loadCategories()
         loadFoods()
@@ -49,13 +51,51 @@ class HomeViewModel (
             try {
                 val result = _foodRepository.getFoods()
                 result.fold(onSuccess = { foods ->
+                    _allFoods.value = foods
                     _uiState.value = _uiState.value.copy(foods = foods, isLoading = false)
                 }, onFailure = {
+                    _allFoods.value = emptyList()
                     _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
                 })
             } catch (e: Exception) {
+                _allFoods.value = emptyList()
                 _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
             }
         }
+    }
+
+    private fun applyFilters() {
+        val query = _uiState.value.searchQuery
+        val category = _uiState.value.selectedCategory
+        
+        var filtered = _allFoods.value
+        
+        // Filter by category if selected
+        if (category != null) {
+            filtered = filtered.filter { it.category == category }
+        }
+        
+        // Filter by search query if not blank
+        if (query.isNotBlank()) {
+            filtered = filtered.filter { food ->
+                food.name.contains(query, ignoreCase = true)
+            }
+        }
+        
+        _uiState.value = _uiState.value.copy(foods = filtered)
+    }
+
+    fun setSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+        applyFilters()
+    }
+
+    fun selectCategory(category: String) {
+        val currentCategory = _uiState.value.selectedCategory
+        // Toggle selection: if clicking same category, deselect it (set to null)
+        val newCategory = if (currentCategory == category) null else category
+        
+        _uiState.value = _uiState.value.copy(selectedCategory = newCategory)
+        applyFilters()
     }
 }

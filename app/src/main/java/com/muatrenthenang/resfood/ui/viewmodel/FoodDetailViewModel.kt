@@ -137,17 +137,28 @@ class FoodDetailViewModel(
         }
     }
 
-    fun addToFavorites(){
+    fun addToFavorites() {
         viewModelScope.launch {
             val foodItem = _food.value ?: return@launch
-            // If already favorite, do nothing
-            if (_isFavorite.value) return@launch
-            val result = _favoritesRepository.addFavorite(foodItem.id ?: return@launch)
-            if (result.isSuccess) {
-                Log.d("FoodDetailViewModel", "Added to favorites successfully")
-                _isFavorite.value = true
+            val foodId = foodItem.id ?: return@launch
+            if (_isFavorite.value) {
+                // Currently favorite, so remove it
+                val result = _favoritesRepository.removeFavorite(foodId)
+                if (result.isSuccess) {
+                    _isFavorite.value = false
+                    Log.d("FoodDetailViewModel", "Removed from favorites")
+                } else {
+                    Log.d("FoodDetailViewModel", "Failed to remove favorite: ${result.exceptionOrNull()?.localizedMessage}")
+                }
             } else {
-                Log.d("FoodDetailViewModel", "Failed to add to favorites: ${result.exceptionOrNull()?.localizedMessage}")
+                // Not a favorite, so add it
+                val result = _favoritesRepository.addFavorite(foodId)
+                if (result.isSuccess) {
+                    _isFavorite.value = true
+                    Log.d("FoodDetailViewModel", "Added to favorites")
+                } else {
+                    Log.d("FoodDetailViewModel", "Failed to add favorite: ${result.exceptionOrNull()?.localizedMessage}")
+                }
             }
         }
     }
