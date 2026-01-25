@@ -64,20 +64,38 @@ class HomeViewModel (
         }
     }
 
-    private fun filterFoods(query: String){
-        val filtered = if (query.isBlank()){
-            _allFoods.value
+    private fun applyFilters() {
+        val query = _uiState.value.searchQuery
+        val category = _uiState.value.selectedCategory
+        
+        var filtered = _allFoods.value
+        
+        // Filter by category if selected
+        if (category != null) {
+            filtered = filtered.filter { it.category == category }
         }
-        else {
-            _allFoods.value.filter { food ->
+        
+        // Filter by search query if not blank
+        if (query.isNotBlank()) {
+            filtered = filtered.filter { food ->
                 food.name.contains(query, ignoreCase = true)
             }
         }
+        
         _uiState.value = _uiState.value.copy(foods = filtered)
     }
 
     fun setSearchQuery(query: String) {
         _uiState.value = _uiState.value.copy(searchQuery = query)
-        filterFoods(query)
+        applyFilters()
+    }
+
+    fun selectCategory(category: String) {
+        val currentCategory = _uiState.value.selectedCategory
+        // Toggle selection: if clicking same category, deselect it (set to null)
+        val newCategory = if (currentCategory == category) null else category
+        
+        _uiState.value = _uiState.value.copy(selectedCategory = newCategory)
+        applyFilters()
     }
 }

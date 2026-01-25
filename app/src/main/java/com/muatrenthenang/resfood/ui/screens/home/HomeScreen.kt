@@ -80,7 +80,8 @@ fun HomeScreen(
                             CategoryFood(
                                 imgVector = category.icon,
                                 categoryFood = category.name,
-                                onClick = {}
+                                isSelected = uiState.selectedCategory == category.name,
+                                onClick = { homeViewModel.selectCategory(category.name) }
                             )
                         }
                     }
