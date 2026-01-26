@@ -42,6 +42,9 @@ import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
+import com.muatrenthenang.resfood.ui.screens.me.MeScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
@@ -244,6 +247,42 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // Màn hình Tôi (Me)
+                        composable("me") {
+                            MeScreen(
+                                onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToNotifications = { /* TODO: Notification Screen */ },
+                                onNavigateToEditProfile = { navController.navigate("profile_details") },
+                                onNavigateToOrders = { status ->
+                                    // TODO: User Order List Screen (Future Implementation)
+                                },
+                                onNavigateToReferral = { navController.navigate("referral") },
+                                onNavigateToVouchers = { /* TODO: Vouchers Screen */ },
+                                onNavigateToAddresses = { navController.navigate("profile_addresses") },
+                                onNavigateToHelpCenter = { /* TODO: Help Center */ },
+                                onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        // Referral Routes
+                        composable("referral") {
+                            ReferralScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToHistory = { navController.navigate("referral_history") }
+                            )
+                        }
+                        
+                        composable("referral_history") {
+                            ReferralHistoryScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
                         // Trang Setting
                         composable("settings") {
                             SettingScreen(
@@ -255,7 +294,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToProfile = {
-                                    navController.navigate("account_center")
+                                    // Từ Settings xem Profile (giống MeScreen nhưng có thể khác ngữ cảnh)
+                                    navController.navigate("me") {
+                                        popUpTo("home")
+                                    }
                                 },
                                 paddingValuesFromParent = innerPadding,
                                 userViewModel = userViewModel
