@@ -1,6 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.order
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +39,7 @@ import java.util.Locale
 fun OrderListScreen(
     status: String,
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit = {},
     viewModel: OrderListViewModel = viewModel()
 ) {
     LaunchedEffect(status) {
@@ -70,7 +72,7 @@ fun OrderListScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(orders) { order ->
-                OrderCard(order = order, viewModel = viewModel)
+                OrderCard(order = order, viewModel = viewModel, onClick = { onNavigateToDetail(order.id) })
             }
         }
     }
@@ -108,13 +110,14 @@ fun OrderListTopBar(title: String, onBack: () -> Unit) {
 }
 
 @Composable
-fun OrderCard(order: Order, viewModel: OrderListViewModel) {
+fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
     
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp,
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {

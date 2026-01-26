@@ -47,6 +47,7 @@ import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
 import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
 import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
+import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
 import androidx.navigation.navArgument
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
@@ -300,6 +301,18 @@ class MainActivity : ComponentActivity() {
                             val status = backStackEntry.arguments?.getString("status") ?: "all"
                             OrderListScreen(
                                 status = status,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") }
+                            )
+                        }
+
+                        composable(
+                            route = "order_detail/{orderId}",
+                            arguments = listOf(navArgument("orderId") { defaultValue = "" })
+                        ) { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            UserOrderDetailScreen(
+                                orderId = orderId,
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }

@@ -35,6 +35,10 @@ class OrderListViewModel : ViewModel() {
         }
     }
 
+    fun getOrder(orderId: String): Order? {
+        return _orders.value.find { it.id == orderId }
+    }
+
     private fun generateMockOrders(): List<Order> {
         val calendar = Calendar.getInstance()
         
@@ -42,7 +46,10 @@ class OrderListViewModel : ViewModel() {
         val order1 = Order(
             id = "RF2849",
             status = "PENDING",
-            total = 125000,
+            total = 135000,
+            subtotal = 120000,
+            deliveryFee = 15000,
+            discount = 0,
             items = listOf(
                 OrderItem(
                     foodName = "Phở Thìn Lò Đúc - Đặc biệt",
@@ -54,7 +61,7 @@ class OrderListViewModel : ViewModel() {
                     foodName = "Quẩy giòn",
                     foodImage = "", // Placeholder
                     quantity = 5,
-                    price = 7000
+                    price = 6000
                 )
             ),
             createdAt = Timestamp.now()
@@ -64,7 +71,10 @@ class OrderListViewModel : ViewModel() {
         val order2 = Order(
             id = "RF2901",
             status = "PROCESSING",
-            total = 350000,
+            total = 380000,
+            subtotal = 350000,
+            deliveryFee = 30000,
+            discount = 0,
             items = listOf(
                 OrderItem(
                     foodName = "Combo Sushi Tình Yêu",
@@ -81,7 +91,10 @@ class OrderListViewModel : ViewModel() {
         val order3 = Order(
             id = "RF1102",
             status = "COMPLETED",
-            total = 210000,
+            total = 225000,
+            subtotal = 210000,
+            deliveryFee = 15000,
+            discount = 0,
             items = listOf(
                 OrderItem(
                     foodName = "Pizza Hải Sản Phô Mai",
@@ -93,24 +106,38 @@ class OrderListViewModel : ViewModel() {
             createdAt = Timestamp(calendar.time)
         )
         
-        // Order 4: Delivering - Bún Chả
-        val order4 = Order(
-            id = "RF3005",
+        // Order 5: Delivering - Bun Bo Hue (HTML Data)
+        val order5 = Order(
+            id = "RES-10293",
             status = "DELIVERING",
-            total = 85000,
-             items = listOf(
+            total = 135000,
+            subtotal = 135000,
+            deliveryFee = 15000,
+            discount = 15000,
+            items = listOf(
                 OrderItem(
-                    foodName = "Bún Chả Hà Nội",
-                    foodImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuBC2bB2-tP5tHqG2fS1wJ7g0tL6xO8zN3vW9lM5oP4qR0yK1uE7iF8jC2aD3bX4eY5fH6iJ7kL8mN9oP0qR1sT2uU3dV4wX5yZ6A7bC8dE9fG0hI1jK2lM3nP4oQ5rS6tU7vW8xY9zB1cE2fG3hJ4iK5lM6nP7oQ8rS9tU0vW1xY2zB3cE4fG5hJ6iK7lM8nP9oQ0rS1tU2vW3xY4zB5cE6fG7hJ8iK9lM0nP1oQ2rS3tU4vW5xY6zB7cE8fG9", // Placeholder if specific unavailable
+                    foodName = "Bún Bò Huế Đặc Biệt",
+                    foodImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuDr__mHrN-ONr2yuiHWrTWP2fNv6TD5HBX-538mOGNnqHsxgH7x9nN2wKndku8XjKzHZngaNdG5cNpX3H5HvvVLqYvyXlcz6TwSYFYX0VtpeLsHRjHrOMv1yc842P9kJGnqVR5zrs0iTlslyzbm757Fkw7LwPMcL5ByRnLc431Zw1dKU2lsGYZf65ePwiBy14pfxGjzPIFiSOMl5dmkrRkYnB1Ydm7OJKoTGAjQkELyL2p2789LB1H7VtwWne2ZF1cj6mZNfOiqSjI",
+                    quantity = 1,
+                    price = 55000,
+                    note = "Không hành, nhiều ớt sa tế"
+                ),
+                OrderItem(
+                    foodName = "Trà Tắc Khổng Lồ",
+                    foodImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuAhy73oKM9yTm7N7PxrDFds8Euzsvu6_EvA1WJaXVXBfHc9jn9JahtAIlQQFTURde3RDw0uFYg471FqfalstBeW8u3ORhMWY2yFIn7har0g7AyPscFsfyYtL1MoIQNagbBVZJvJqQ43kYEhEiBJ6T06js28snvOyIjEghaWzsOQ1O2msx4cz5xkjNGGqUyATNbg7LlMGuM4Tu_Vmv3bGTdWw3eAmIk_2NZxuBE0O1C9mPYtNhnzHhXnv1ivAMfEdgt2u3h4LOqweY8",
                     quantity = 2,
-                    price = 42500
+                    price = 40000,
+                    note = "50% đường, 100% đá"
                 )
             ),
             createdAt = Timestamp.now()
         )
+        
+        return listOf(order1, order2, order3, order5)
+    }
 
-
-        return listOf(order1, order2, order3, order4)
+    fun callRestaurant(orderId: String) {
+        // Logic to make a call
     }
 
     fun cancelOrder(orderId: String) {
