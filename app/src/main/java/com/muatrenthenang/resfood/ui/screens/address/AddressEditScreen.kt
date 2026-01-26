@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.ui.screens.address
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,10 +16,12 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,71 +34,65 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Address
 import com.muatrenthenang.resfood.data.model.AddressLabels
+import androidx.compose.ui.viewinterop.AndroidView
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
+import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddressEditScreen(
     addressId: String? = null,
     onNavigateBack: () -> Unit,
+    onNavigateToMap: (Double?, Double?) -> Unit = { _, _ -> },
     onSaveSuccess: () -> Unit,
+    savedStateHandle: androidx.lifecycle.SavedStateHandle? = null,
     vm: AddressViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val isEditing = addressId != null
     val actionResult by vm.actionResult.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
+    
+    // Form state from ViewModel
+    val formState by vm.formState.collectAsState()
 
-    // Form state
-    var label by remember { mutableStateOf("Nhà riêng") }
-    var addressLine by remember { mutableStateOf("") }
-    var ward by remember { mutableStateOf("") }
-    var district by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var contactName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var isDefault by remember { mutableStateOf(false) }
-
-    // Dropdown state
+    // Dropdown state (UI only)
     var showLabelDropdown by remember { mutableStateOf(false) }
 
-    // Validation errors
+    // Validation errors (UI only)
     var addressLineError by remember { mutableStateOf<String?>(null) }
     var contactNameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
     var cityError by remember { mutableStateOf<String?>(null) }
 
-    // Flag to track if address has been loaded
-    var addressLoaded by remember { mutableStateOf(false) }
-
-    // Load existing address if editing
+    // Initialize form on first composition
     LaunchedEffect(addressId) {
-        if (addressId != null && !addressLoaded) {
-            // First try to get from ViewModel cache
-            var address = vm.getAddressById(addressId)
+        if (addressId != null) {
+            vm.loadAddressForEdit(addressId)
+        } else {
+            vm.initNewAddressForm()
+        }
+    }
+
+    // Handle Map Result from SavedStateHandle
+    val pickedLatResult = savedStateHandle?.getLiveData<Double>("picked_lat")?.observeAsState()
+    val pickedLngResult = savedStateHandle?.getLiveData<Double>("picked_lng")?.observeAsState()
+
+    LaunchedEffect(pickedLatResult?.value, pickedLngResult?.value) {
+        val lat = pickedLatResult?.value
+        val lng = pickedLngResult?.value
+        if (lat != null && lng != null) {
+            // Update location in ViewModel
+            vm.updateLocation(lat, lng)
             
-            // If not in cache, the ViewModel should have loaded it
-            // Wait a moment and try again if addresses are still loading
-            if (address == null) {
-                vm.loadAddresses()
-                // Short delay to allow reload
-                kotlinx.coroutines.delay(500)
-                address = vm.getAddressById(addressId)
-            }
-            
-            address?.let { addr ->
-                label = addr.label
-                addressLine = addr.addressLine
-                ward = addr.ward
-                district = addr.district
-                city = addr.city
-                contactName = addr.contactName
-                phone = addr.phone
-                isDefault = addr.isDefault
-                addressLoaded = true
-            }
+            // Clear saved state
+            savedStateHandle?.remove<Double>("picked_lat")
+            savedStateHandle?.remove<Double>("picked_lng")
         }
     }
 
@@ -117,48 +114,33 @@ fun AddressEditScreen(
         phoneError = null
         cityError = null
 
-        // Validate
+        // Validate using formState
         var hasError = false
 
-        if (addressLine.isBlank()) {
+        if (formState.addressLine.isBlank()) {
             addressLineError = "Vui lòng nhập địa chỉ"
             hasError = true
         }
-        if (contactName.isBlank()) {
+        if (formState.contactName.isBlank()) {
             contactNameError = "Vui lòng nhập tên người nhận"
             hasError = true
         }
-        if (phone.isBlank()) {
+        if (formState.phone.isBlank()) {
             phoneError = "Vui lòng nhập số điện thoại"
             hasError = true
-        } else if (!phone.matches(Regex("^[0-9+\\s]{10,15}$"))) {
+        } else if (!formState.phone.matches(Regex("^[0-9+\\s]{10,15}$"))) {
             phoneError = "Số điện thoại không hợp lệ"
             hasError = true
         }
-        if (city.isBlank()) {
+        if (formState.city.isBlank()) {
             cityError = "Vui lòng nhập thành phố"
             hasError = true
         }
 
         if (hasError) return
 
-        val address = Address(
-            id = addressId ?: "",
-            label = label,
-            addressLine = addressLine.trim(),
-            ward = ward.trim(),
-            district = district.trim(),
-            city = city.trim(),
-            contactName = contactName.trim(),
-            phone = phone.trim(),
-            isDefault = isDefault
-        )
-
-        if (isEditing) {
-            vm.updateAddress(address)
-        } else {
-            vm.addAddress(address)
-        }
+        // Save using ViewModel
+        vm.saveAddressFromForm()
     }
 
     Scaffold(
@@ -252,12 +234,12 @@ fun AddressEditScreen(
                     onExpandedChange = { showLabelDropdown = it }
                 ) {
                     OutlinedTextField(
-                        value = label,
+                        value = formState.label,
                         onValueChange = {},
                         readOnly = true,
                         leadingIcon = {
                             Icon(
-                                imageVector = when (label) {
+                                imageVector = when (formState.label) {
                                     "Nhà riêng" -> Icons.Default.Home
                                     "Công ty" -> Icons.Default.Work
                                     else -> Icons.Default.LocationOn
@@ -296,17 +278,54 @@ fun AddressEditScreen(
                                             else -> Icons.Default.LocationOn
                                         },
                                         contentDescription = null,
-                                        tint = if (label == option) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        tint = if (formState.label == option) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                     )
                                 },
                                 onClick = {
-                                    label = option
+                                    vm.updateFormField(label = option)
                                     showLabelDropdown = false
                                 }
                             )
                         }
                     }
                 }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+
+                // Contact section (Moved up)
+                Text(
+                    text = "Thông tin người nhận",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                FormTextField(
+                    value = formState.contactName,
+                    onValueChange = {
+                        vm.updateFormField(contactName = it)
+                        contactNameError = null
+                    },
+                    label = "Họ và tên *",
+                    placeholder = "Nhập họ và tên",
+                    icon = Icons.Default.Person,
+                    error = contactNameError,
+                    imeAction = ImeAction.Next
+                )
+
+                FormTextField(
+                    value = formState.phone,
+                    onValueChange = {
+                        vm.updateFormField(phone = it)
+                        phoneError = null
+                    },
+                    label = "Số điện thoại *",
+                    placeholder = "Nhập số điện thoại",
+                    icon = Icons.Default.Phone,
+                    error = phoneError,
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                )
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
@@ -319,9 +338,9 @@ fun AddressEditScreen(
                 )
 
                 FormTextField(
-                    value = addressLine,
+                    value = formState.addressLine,
                     onValueChange = {
-                        addressLine = it
+                        vm.updateFormField(addressLine = it)
                         addressLineError = null
                     },
                     label = "Địa chỉ chi tiết *",
@@ -336,8 +355,8 @@ fun AddressEditScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     FormTextField(
-                        value = ward,
-                        onValueChange = { ward = it },
+                        value = formState.ward,
+                        onValueChange = { vm.updateFormField(ward = it) },
                         label = "Phường/Xã",
                         placeholder = "Nhập phường/xã",
                         icon = Icons.Default.Place,
@@ -346,8 +365,8 @@ fun AddressEditScreen(
                     )
 
                     FormTextField(
-                        value = district,
-                        onValueChange = { district = it },
+                        value = formState.district,
+                        onValueChange = { vm.updateFormField(district = it) },
                         label = "Quận/Huyện",
                         placeholder = "Nhập quận/huyện",
                         icon = Icons.Default.Place,
@@ -357,9 +376,9 @@ fun AddressEditScreen(
                 }
 
                 FormTextField(
-                    value = city,
+                    value = formState.city,
                     onValueChange = {
-                        city = it
+                        vm.updateFormField(city = it)
                         cityError = null
                     },
                     label = "Thành phố/Tỉnh *",
@@ -371,40 +390,89 @@ fun AddressEditScreen(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
-                // Contact section
-                Text(
-                    text = "Thông tin người nhận",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                // Mini Map Preview
+                if (formState.latitude != null && formState.longitude != null && formState.latitude != 0.0 && formState.longitude != 0.0) {
+                    Log.d("AddressEditScreen", "Latitude: ${formState.latitude}, Longitude: ${formState.longitude}")
 
-                FormTextField(
-                    value = contactName,
-                    onValueChange = {
-                        contactName = it
-                        contactNameError = null
-                    },
-                    label = "Họ và tên *",
-                    placeholder = "Nhập họ và tên",
-                    icon = Icons.Default.Person,
-                    error = contactNameError,
-                    imeAction = ImeAction.Next
-                )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(14.dp))
+                    ) {
+                        // Initialize osm config if needed (safe to call multiple times)
+                        Configuration.getInstance().userAgentValue = context.packageName
+                        
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { ctx ->
+                                MapView(ctx).apply {
+                                    setTileSource(TileSourceFactory.MAPNIK)
+                                    setMultiTouchControls(false) // Disable interaction on mini map
+                                    controller.setZoom(15.0)
+                                    
+                                    // Disable touch to allow clicking the parent Box
+                                    setOnTouchListener { _, _ -> true } 
+                                }
+                            },
+                            update = { mapView ->
+                                val geoPoint = GeoPoint(formState.latitude!!, formState.longitude!!)
+                                mapView.controller.setCenter(geoPoint)
+                                
+                                // Clean existing markers
+                                mapView.overlays.clear()
+                                // Add simple marker centered
+                                val marker = org.osmdroid.views.overlay.Marker(mapView)
+                                marker.position = geoPoint
+                                marker.setAnchor(org.osmdroid.views.overlay.Marker.ANCHOR_CENTER, org.osmdroid.views.overlay.Marker.ANCHOR_BOTTOM)
+                                mapView.overlays.add(marker)
+                                mapView.invalidate()
+                            }
+                        )
+                        
+                        // Clickable overlay to navigate to map
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Transparent)
+                                .clickable { onNavigateToMap(formState.latitude, formState.longitude) }
+                        )
 
-                FormTextField(
-                    value = phone,
-                    onValueChange = {
-                        phone = it
-                        phoneError = null
-                    },
-                    label = "Số điện thoại *",
-                    placeholder = "Nhập số điện thoại",
-                    icon = Icons.Default.Phone,
-                    error = phoneError,
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Done
-                )
+                        // Expand/Edit Button Overlay
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surface,
+                            shadowElevation = 4.dp,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(12.dp)
+                        ) {
+                            IconButton(onClick = { onNavigateToMap(formState.latitude, formState.longitude) }) {
+                                Icon(Icons.Default.Fullscreen, contentDescription = "Full map", tint = PrimaryColor)
+                            }
+                        }
+                    }
+                } else {
+                    // Placeholder when no location selected
+                    OutlinedButton(
+                        onClick = { onNavigateToMap(null, null) },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = PrimaryColor
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryColor.copy(alpha = 0.5f))
+                    ) {
+                        Icon(Icons.Outlined.LocationOn, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Chọn vị trí trên bản đồ",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
@@ -418,7 +486,7 @@ fun AddressEditScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { isDefault = !isDefault }
+                            .clickable { vm.updateFormField(isDefault = !formState.isDefault) }
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -429,7 +497,7 @@ fun AddressEditScreen(
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
-                                        if (isDefault) SuccessGreen.copy(alpha = 0.15f)
+                                        if (formState.isDefault) SuccessGreen.copy(alpha = 0.15f)
                                         else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                                     ),
                                 contentAlignment = Alignment.Center
@@ -437,7 +505,7 @@ fun AddressEditScreen(
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = if (isDefault) SuccessGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                    tint = if (formState.isDefault) SuccessGreen else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -457,8 +525,8 @@ fun AddressEditScreen(
                         }
 
                         Switch(
-                            checked = isDefault,
-                            onCheckedChange = { isDefault = it },
+                            checked = formState.isDefault,
+                            onCheckedChange = { vm.updateFormField(isDefault = it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
                                 checkedTrackColor = SuccessGreen,
@@ -526,7 +594,7 @@ fun FormTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
-            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
             leadingIcon = {
                 Icon(
                     imageVector = icon,

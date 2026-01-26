@@ -51,6 +51,8 @@ import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
 import androidx.navigation.navArgument
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
+import com.muatrenthenang.resfood.ui.screens.address.MapPickerScreen
+import androidx.compose.ui.platform.LocalContext
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
@@ -210,16 +212,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("address_add") {
+                    composable("address_add") { backStackEntry ->
                         val addressViewModel: AddressViewModel = viewModel()
                         AddressEditScreen(
                             addressId = null,
                             onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
                             onSaveSuccess = { 
-                                // Reload will happen in addresses composable via LaunchedEffect
                                 navController.popBackStack() 
                             },
-                            vm = addressViewModel
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
                         )
                     }
 
@@ -232,11 +238,49 @@ class MainActivity : ComponentActivity() {
                         AddressEditScreen(
                             addressId = addressId,
                             onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
                             onSaveSuccess = { 
-                                // Reload will happen in addresses composable via LaunchedEffect
                                 navController.popBackStack() 
                             },
-                            vm = addressViewModel
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
+                        )
+                    }
+
+                    composable(
+                        route = "map_picker?lat={lat}&lng={lng}",
+                        arguments = listOf(
+                            navArgument("lat") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            },
+                            navArgument("lng") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val latStr = backStackEntry.arguments?.getString("lat")
+                        val lngStr = backStackEntry.arguments?.getString("lng")
+                        val lat = latStr?.toDoubleOrNull()
+                        val lng = lngStr?.toDoubleOrNull()
+
+                        MapPickerScreen(
+                            initialLat = lat,
+                            initialLng = lng,
+                            onNavigateBack = { navController.popBackStack() },
+                            onLocationPicked = { pickedLat, pickedLng ->
+                                navController.previousBackStackEntry?.savedStateHandle?.apply {
+                                    set("picked_lat", pickedLat)
+                                    set("picked_lng", pickedLng)
+                                }
+                                navController.popBackStack()
+                            }
                         )
                     }
 
@@ -316,6 +360,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
+
+
 
                         // Trang Setting
                         composable("settings") {

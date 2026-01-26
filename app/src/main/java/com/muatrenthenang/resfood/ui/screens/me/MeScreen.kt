@@ -182,15 +182,16 @@ private fun ProfileHeaderCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 0.dp),
+            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 16.dp),
 
         ) {
-            // Avatar with border
+            // Avatar with border - clickable to edit profile
             Box(
                 modifier = Modifier
                     .size(72.dp)
                     .border(2.dp, PrimaryColor, CircleShape)
                     .padding(4.dp)
+                    .clickable { onEditProfileClick() }
             ) {
                 AsyncImage(
                     model = userProfile.avatarUrl,
@@ -204,12 +205,15 @@ private fun ProfileHeaderCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onEditProfileClick() }
+            ) {
                 Text(
                     text = userProfile.name,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    // color = MaterialTheme.colorScheme.onSurface // Removed to match Checkout
                 )
 
                 Row(
@@ -227,26 +231,6 @@ private fun ProfileHeaderCard(
                         text = userProfile.rankDisplayName,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                TextButton(
-                    onClick = onEditProfileClick,
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = "SỬA HỒ SƠ",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryColor,
-                        letterSpacing = 1.sp
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = PrimaryColor,
-                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
