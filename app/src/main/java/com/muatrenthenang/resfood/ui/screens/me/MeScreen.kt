@@ -178,6 +178,7 @@ private fun ProfileHeaderCard(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
+        shadowElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -369,6 +370,7 @@ private fun ReferralPromoCard(
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = PrimaryColor,
+        shadowElevation = 4.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Box {
