@@ -22,6 +22,20 @@ class MeViewModel : ViewModel() {
     private val _voucherCount = MutableStateFlow(3)
     val voucherCount: StateFlow<Int> = _voucherCount.asStateFlow()
 
+    // Referral Promo content
+    private val _referralPromo = MutableStateFlow(
+        ReferralPromoData(
+            title = "Mời bạn bè, nhận quà!",
+            subtitle = "Tặng voucher 50k cho mỗi lời mời thành công",
+            buttonText = "Mời ngay"
+        )
+    )
+    val referralPromo: StateFlow<ReferralPromoData> = _referralPromo.asStateFlow()
+
+    // Utility Menu Items
+    private val _utilityMenu = MutableStateFlow<List<UtilityMenuOption>>(emptyList())
+    val utilityMenu: StateFlow<List<UtilityMenuOption>> = _utilityMenu.asStateFlow()
+
     init {
         loadMockData()
     }
@@ -42,6 +56,40 @@ class MeViewModel : ViewModel() {
             delivering = 1,
             toReview = 0
         )
+
+        // Mock Utility Menu
+        // Note: In a real app we might update "subtitle" for vouchers dynamically
+        updateUtilityMenu(voucherCount = 3)
+    }
+
+    private fun updateUtilityMenu(voucherCount: Int) {
+        _utilityMenu.value = listOf(
+            UtilityMenuOption(
+                id = "vouchers",
+                title = "Mã giảm giá của tôi",
+                subtitle = "Bạn có $voucherCount mã khả dụng",
+                iconType = UtilityIconType.VOUCHER
+            ),
+            UtilityMenuOption(
+                id = "addresses",
+                title = "Địa chỉ đã lưu",
+                subtitle = "Nhà riêng, Văn phòng...",
+                iconType = UtilityIconType.ADDRESS
+            ),
+            UtilityMenuOption(
+                id = "help",
+                title = "Trung tâm trợ giúp",
+                subtitle = "Giải đáp thắc mắc 24/7",
+                iconType = UtilityIconType.HELP
+            ),
+            UtilityMenuOption(
+                id = "payment",
+                title = "Phương thức thanh toán",
+                subtitle = "Visa, MoMo, ZaloPay",
+                iconType = UtilityIconType.PAYMENT
+            )
+        )
+        _voucherCount.value = voucherCount
     }
 }
 
@@ -64,3 +112,20 @@ data class MeOrderCounts(
     val delivering: Int = 0,   // Đang giao
     val toReview: Int = 0      // Chờ đánh giá
 )
+
+data class ReferralPromoData(
+    val title: String,
+    val subtitle: String,
+    val buttonText: String
+)
+
+data class UtilityMenuOption(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val iconType: UtilityIconType
+)
+
+enum class UtilityIconType {
+    VOUCHER, ADDRESS, HELP, PAYMENT
+}

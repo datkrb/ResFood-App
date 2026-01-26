@@ -39,12 +39,17 @@ import com.muatrenthenang.resfood.ui.screens.me.components.BadgeDot
 import com.muatrenthenang.resfood.ui.screens.me.components.IconCircleButton
 import com.muatrenthenang.resfood.ui.screens.me.components.CircleIcon
 
+import com.muatrenthenang.resfood.ui.viewmodel.UtilityIconType
+import com.muatrenthenang.resfood.ui.viewmodel.UtilityMenuOption
+import com.muatrenthenang.resfood.ui.viewmodel.ReferralPromoData
+
 @Composable
 fun MeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToOrders: (String) -> Unit = {},
+    onNavigateToReferral: () -> Unit = {},
     onNavigateToVouchers: () -> Unit = {},
     onNavigateToAddresses: () -> Unit = {},
     onNavigateToHelpCenter: () -> Unit = {},
@@ -55,7 +60,9 @@ fun MeScreen(
 ) {
     val userProfile by vm.userProfile.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
-    val voucherCount by vm.voucherCount.collectAsState()
+    // val voucherCount by vm.voucherCount.collectAsState() // Not used directly anymore
+    val referralPromo by vm.referralPromo.collectAsState()
+    val utilityMenu by vm.utilityMenu.collectAsState()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -93,16 +100,23 @@ fun MeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             // Referral Promo Card
-            ReferralPromoCard(onInviteClick = { /* Handle invite */ })
+            ReferralPromoCard(
+                promoData = referralPromo,
+                onInviteClick = onNavigateToReferral
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
             // Utilities Menu List
             UtilitiesSection(
-                voucherCount = voucherCount,
-                onVouchersClick = onNavigateToVouchers,
-                onAddressesClick = onNavigateToAddresses,
-                onHelpCenterClick = onNavigateToHelpCenter,
-                onPaymentMethodsClick = onNavigateToPaymentMethods
+                utilityMenu = utilityMenu,
+                onOptionClick = { id ->
+                    when (id) {
+                        "vouchers" -> onNavigateToVouchers()
+                        "addresses" -> onNavigateToAddresses()
+                        "help" -> onNavigateToHelpCenter()
+                        "payment" -> onNavigateToPaymentMethods()
+                    }
+                }
             )
 
 
@@ -348,7 +362,10 @@ private fun OrderStatusItem(
 }
 
 @Composable
-private fun ReferralPromoCard(onInviteClick: () -> Unit) {
+private fun ReferralPromoCard(
+    promoData: ReferralPromoData,
+    onInviteClick: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = PrimaryColor,
@@ -370,13 +387,13 @@ private fun ReferralPromoCard(onInviteClick: () -> Unit) {
                 modifier = Modifier.padding(20.dp)
             ) {
                 Text(
-                    text = "Mời bạn bè, nhận quà!",
+                    text = promoData.title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Text(
-                    text = "Tặng voucher 50k cho mỗi lời mời thành công",
+                    text = promoData.subtitle,
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
@@ -391,7 +408,7 @@ private fun ReferralPromoCard(onInviteClick: () -> Unit) {
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text(
-                        text = "Mời ngay",
+                        text = promoData.buttonText,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -402,11 +419,8 @@ private fun ReferralPromoCard(onInviteClick: () -> Unit) {
 
 @Composable
 private fun UtilitiesSection(
-    voucherCount: Int,
-    onVouchersClick: () -> Unit,
-    onAddressesClick: () -> Unit,
-    onHelpCenterClick: () -> Unit,
-    onPaymentMethodsClick: () -> Unit
+    utilityMenu: List<UtilityMenuOption>,
+    onOptionClick: (String) -> Unit
 ) {
     Column {
         Text(
@@ -423,40 +437,38 @@ private fun UtilitiesSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
-                UtilityMenuItem(
-                    icon = Icons.Default.ConfirmationNumber,
-                    iconColor = Color(0xFF3B82F6), // Blue
-                    title = "Mã giảm giá của tôi",
-                    subtitle = "Bạn có $voucherCount mã khả dụng",
-                    onClick = onVouchersClick,
-                    showDivider = true
-                )
-                UtilityMenuItem(
-                    icon = Icons.Default.LocationOn,
-                    iconColor = SuccessGreen,
-                    title = "Địa chỉ đã lưu",
-                    subtitle = "Nhà riêng, Văn phòng...",
-                    onClick = onAddressesClick,
-                    showDivider = true
-                )
-                UtilityMenuItem(
-                    icon = Icons.Default.HelpCenter,
-                    iconColor = Color(0xFF8B5CF6), // Purple
-                    title = "Trung tâm trợ giúp",
-                    subtitle = "Giải đáp thắc mắc 24/7",
-                    onClick = onHelpCenterClick,
-                    showDivider = true
-                )
-                UtilityMenuItem(
-                    icon = Icons.Default.Payment,
-                    iconColor = Color(0xFFF97316), // Orange
-                    title = "Phương thức thanh toán",
-                    subtitle = "Visa, MoMo, ZaloPay",
-                    onClick = onPaymentMethodsClick,
-                    showDivider = false
-                )
+                utilityMenu.forEachIndexed { index, option ->
+                    UtilityMenuItem(
+                        icon = getIconForType(option.iconType),
+                        iconColor = getColorForType(option.iconType),
+                        title = option.title,
+                        subtitle = option.subtitle,
+                        onClick = { onOptionClick(option.id) },
+                        showDivider = index < utilityMenu.size - 1
+                    )
+                }
             }
         }
+    }
+}
+
+// Helper to map enum to Vector
+private fun getIconForType(type: UtilityIconType): androidx.compose.ui.graphics.vector.ImageVector {
+    return when (type) {
+        UtilityIconType.VOUCHER -> Icons.Default.ConfirmationNumber
+        UtilityIconType.ADDRESS -> Icons.Default.LocationOn
+        UtilityIconType.HELP -> Icons.Default.HelpCenter
+        UtilityIconType.PAYMENT -> Icons.Default.Payment
+    }
+}
+
+// Helper to map enum to Color
+private fun getColorForType(type: UtilityIconType): Color {
+    return when (type) {
+        UtilityIconType.VOUCHER -> Color(0xFF3B82F6) // Blue
+        UtilityIconType.ADDRESS -> SuccessGreen
+        UtilityIconType.HELP -> Color(0xFF8B5CF6) // Purple
+        UtilityIconType.PAYMENT -> Color(0xFFF97316) // Orange
     }
 }
 
