@@ -46,6 +46,8 @@ import com.muatrenthenang.resfood.ui.screens.me.MeScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
 import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
+import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
+import androidx.navigation.navArgument
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
@@ -255,7 +257,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToNotifications = { /* TODO: Notification Screen */ },
                                 onNavigateToEditProfile = { navController.navigate("profile_details") },
                                 onNavigateToOrders = { status ->
-                                    // TODO: User Order List Screen (Future Implementation)
+                                    navController.navigate("orders/$status")
                                 },
 
                                 onNavigateToReferral = { navController.navigate("referral") },
@@ -287,6 +289,17 @@ class MainActivity : ComponentActivity() {
 
                         composable("vouchers") {
                             VoucherScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(
+                            route = "orders/{status}",
+                            arguments = listOf(navArgument("status") { defaultValue = "all" })
+                        ) { backStackEntry ->
+                            val status = backStackEntry.arguments?.getString("status") ?: "all"
+                            OrderListScreen(
+                                status = status,
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
