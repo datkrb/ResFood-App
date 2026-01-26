@@ -45,6 +45,7 @@ import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
 import com.muatrenthenang.resfood.ui.screens.me.MeScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
+import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
@@ -256,8 +257,9 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToOrders = { status ->
                                     // TODO: User Order List Screen (Future Implementation)
                                 },
+
                                 onNavigateToReferral = { navController.navigate("referral") },
-                                onNavigateToVouchers = { /* TODO: Vouchers Screen */ },
+                                onNavigateToVouchers = { navController.navigate("vouchers") },
                                 onNavigateToAddresses = { navController.navigate("profile_addresses") },
                                 onNavigateToHelpCenter = { /* TODO: Help Center */ },
                                 onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
@@ -279,6 +281,12 @@ class MainActivity : ComponentActivity() {
                         
                         composable("referral_history") {
                             ReferralHistoryScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("vouchers") {
+                            VoucherScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
