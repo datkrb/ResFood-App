@@ -60,6 +60,7 @@ fun SettingScreen(
             AccountCenterCard(
                 name = user.fullName,  // Dữ liệu từ Firebase
                 rank = "Thành viên ${user.rank}",
+                avatarUrl = user.avatarUrl, // Truyền avatarUrl
                 onProfileClick = onNavigateToProfile
             )
 
@@ -148,7 +149,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
 }
 
 @Composable
-fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
+fun AccountCenterCard(name: String, rank: String, avatarUrl: String? = null, onProfileClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface // Màu card động
@@ -160,21 +161,24 @@ fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar (Placeholder)
-            Box(
+            // Avatar - Load từ local path hoặc URL
+            val imageModel = avatarUrl?.let { path ->
+                if (path.startsWith("/")) {
+                    java.io.File(path)
+                } else {
+                    path
+                }
+            }
+            
+            coil.compose.AsyncImage(
+                model = imageModel,
+                contentDescription = "Avatar",
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                // Thay bằng Image thật khi có resource
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background), // Dùng tạm icon mặc định
-                    contentDescription = "Avatar",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
+                    .background(Color.Gray)
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 

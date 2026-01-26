@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.data.repository
 
+import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
@@ -143,5 +144,89 @@ class AuthRepository {
     // Hàm lấy ID người dùng hiện tại
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
+    }
+
+    // Hàm cập nhật thông tin user
+    suspend fun updateUser(user: User): Result<Boolean> {
+        return try {
+            val userId = getCurrentUserId() ?: throw Exception("Người dùng chưa đăng nhập")
+            val currentUser = auth.currentUser ?: throw Exception("Người dùng chưa đăng nhập")
+            
+            // Kiểm tra nếu email thay đổi
+            if (user.email != currentUser.email) {
+                // Kiểm tra email mới đã tồn tại chưa
+                val emailExists = checkEmailExists(user.email)
+                if (emailExists) {
+                    throw Exception("Email này đã được sử dụng bởi tài khoản khác")
+                }
+            }
+            
+            val userMap = hashMapOf<String, Any>(
+                "fullName" to user.fullName,
+                "email" to user.email
+            )
+            
+            // Chỉ thêm phone nếu không null
+            user.phone?.let { userMap["phone"] = it }
+            
+            // Chỉ thêm avatarUrl nếu không null
+            user.avatarUrl?.let { userMap["avatarUrl"] = it }
+            
+            db.collection("users").document(userId).update(userMap).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Hàm kiểm tra email đã tồn tại chưa
+    suspend fun checkEmailExists(email: String): Boolean {
+        return try {
+            val currentUserId = getCurrentUserId()
+            val querySnapshot = db.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .await()
+            
+            // Nếu tìm thấy email và không phải của user hiện tại
+            querySnapshot.documents.any { it.id != currentUserId }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // Hàm lưu avatar vào Local Storage
+    suspend fun uploadAvatar(imageUri: Uri, context: android.content.Context): Result<String> {
+        return try {
+            val userId = getCurrentUserId() ?: throw Exception("Người dùng chưa đăng nhập")
+            
+            // Đọc ảnh từ URI
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+                ?: throw Exception("Không thể đọc ảnh")
+            
+            // Tạo file trong Internal Storage
+            val fileName = "avatar_$userId.jpg"
+            val file = java.io.File(context.filesDir, fileName)
+            
+            // Copy ảnh vào Internal Storage
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            
+            // Lấy đường dẫn tuyệt đối
+            val localPath = file.absolutePath
+            
+            // Cập nhật đường dẫn local vào Firestore
+            db.collection("users")
+                .document(userId)
+                .update("avatarUrl", localPath)
+                .await()
+            
+            Result.success(localPath)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

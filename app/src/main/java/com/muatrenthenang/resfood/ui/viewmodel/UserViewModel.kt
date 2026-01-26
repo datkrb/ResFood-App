@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.ui.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.User
@@ -42,6 +43,34 @@ class UserViewModel : ViewModel() {
             authRepository.logout()
             _userState.value = null // Xóa dữ liệu user khỏi bộ nhớ
             onLogoutSuccess()
+        }
+    }
+
+    // Hàm cập nhật thông tin user
+    suspend fun updateUser(user: User): Result<Boolean> {
+        return try {
+            val result = authRepository.updateUser(user)
+            if (result.isSuccess) {
+                // Cập nhật lại state sau khi lưu thành công
+                _userState.value = user
+            }
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Hàm upload avatar
+    suspend fun uploadAvatar(imageUri: Uri, context: android.content.Context): Result<String> {
+        return try {
+            val result = authRepository.uploadAvatar(imageUri, context)
+            if (result.isSuccess) {
+                // Refresh user data để lấy avatarUrl mới
+                fetchUserProfile()
+            }
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
