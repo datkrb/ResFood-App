@@ -60,6 +60,8 @@ class UserRepository {
                     contactName = map["contactName"] as? String ?: "",
                     phone = map["phone"] as? String ?: "",
                     isDefault = map["isDefault"] as? Boolean ?: false,
+                    latitude = map["latitude"] as? Double,
+                    longitude = map["longitude"] as? Double,
                     createdAt = (map["createdAt"] as? Long) ?: System.currentTimeMillis()
                 )
             }
@@ -69,6 +71,7 @@ class UserRepository {
             Result.failure(e)
         }
     }
+    
 
     /**
      * Thêm địa chỉ mới
@@ -233,7 +236,7 @@ class UserRepository {
     /**
      * Chuyển Address object thành Map để lưu Firestore
      */
-    private fun addressToMap(address: Address): Map<String, Any> {
+    private fun addressToMap(address: Address): Map<String, Any?> {
         return mapOf(
             "id" to address.id,
             "label" to address.label,
@@ -244,6 +247,8 @@ class UserRepository {
             "contactName" to address.contactName,
             "phone" to address.phone,
             "isDefault" to address.isDefault,
+            "latitude" to address.latitude,
+            "longitude" to address.longitude,
             "createdAt" to address.createdAt
         )
     }

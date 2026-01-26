@@ -15,6 +15,8 @@ data class Address(
     val contactName: String = "",
     val phone: String = "",
     val isDefault: Boolean = false,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     val createdAt: Long = System.currentTimeMillis()
 ) {
     /**
