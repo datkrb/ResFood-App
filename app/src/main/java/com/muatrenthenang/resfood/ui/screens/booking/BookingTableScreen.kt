@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.screens.booking
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,7 +48,7 @@ fun BookingTableScreen(
     viewModel: BookingTableViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val branches = viewModel.branches
+    val branches by viewModel.branches.collectAsState()
     val selectedBranch by viewModel.selectedBranch.collectAsState()
     
     val dates by viewModel.dates.collectAsState()
@@ -63,6 +64,23 @@ fun BookingTableScreen(
     
     val availableHours = viewModel.availableHours
     val availableMinutes = viewModel.availableMinutes
+
+    val bookingState by viewModel.bookingState.collectAsState()
+
+    LaunchedEffect(bookingState) {
+        when (val state = bookingState) {
+            is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Success -> {
+                android.widget.Toast.makeText(context, "Đặt bàn thành công! Mã: ${state.reservationId}", android.widget.Toast.LENGTH_LONG).show()
+                viewModel.resetBookingState()
+                onNavigateBack()
+            }
+            is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Error -> {
+                android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                viewModel.resetBookingState()
+            }
+            else -> {}
+        }
+    }
 
     // Main Container
     Box(
@@ -146,7 +164,7 @@ fun BookingTableScreen(
                                 )
                                 if (selectedBranch != null) {
                                     Text(
-                                        selectedBranch!!.address,
+                                        selectedBranch!!.address.getFullAddress(),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                         maxLines = 1
@@ -173,11 +191,11 @@ fun BookingTableScreen(
                         }
                     }
                     
-                    // Map Button
+                    // Map Button (Updated intent usage with let just to be safe, logic remains same)
                     IconButton(
                         onClick = {
                             selectedBranch?.let { branch ->
-                                val uri = Uri.parse("geo:${branch.lat},${branch.lng}?q=${branch.lat},${branch.lng}(${branch.name})")
+                                val uri = Uri.parse("geo:${branch.address.latitude},${branch.address.longitude}?q=${branch.address.latitude},${branch.address.longitude}(${branch.name})")
                                 val mapIntent = Intent(Intent.ACTION_VIEW, uri)
                                 mapIntent.setPackage("com.google.android.apps.maps")
                                 context.startActivity(mapIntent)
@@ -372,7 +390,7 @@ fun BookingTableScreen(
             // 5. Note Field
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    "Ghi chú (Tùy chọn)",
+                    "Ghi chú",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -434,19 +452,23 @@ fun BookingTableScreen(
                 }
                 
                 Button(
-                    onClick = { /* Handle confirm */ },
+                    onClick = { viewModel.confirmBooking() },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = selectedBranch != null
+                    enabled = selectedBranch != null && bookingState !is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Loading
                 ) {
-                    Text(
-                        "XÁC NHẬN ĐẶT BÀN",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                    if (bookingState is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Loading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text(
+                            "XÁC NHẬN ĐẶT BÀN",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                    }
                 }
             }
         }

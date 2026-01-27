@@ -2,24 +2,38 @@ package com.muatrenthenang.resfood.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
+import com.muatrenthenang.resfood.data.model.Address
+import com.muatrenthenang.resfood.data.model.Branch
+import com.muatrenthenang.resfood.data.model.TableReservation
+import com.muatrenthenang.resfood.data.repository.AuthRepository
+import com.muatrenthenang.resfood.data.repository.ReservationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.util.Date
+
+sealed class BookingState {
+    object Idle : BookingState()
+    object Loading : BookingState()
+    data class Success(val reservationId: String) : BookingState()
+    data class Error(val message: String) : BookingState()
+}
 
 class BookingTableViewModel : ViewModel() {
 
-    // --- State Mock Data ---
+    private val reservationRepository = ReservationRepository()
+    private val authRepository = AuthRepository()
+    private val branchRepository = com.muatrenthenang.resfood.data.repository.BranchRepository()
 
-    // 1. Branches
-    // 1. Branches
-    val branches = listOf(
-        Branch("1", "ResFood Quận 1 - Bitexco", "2 Hải Triều, Bến Nghé, Q.1", 10.771576, 106.704987),
-        Branch("2", "ResFood Thảo Điền", "12 Quốc Hương, Thảo Điền, Q.2", 10.801648, 106.736932),
-        Branch("3", "ResFood Landmark 81", "720A Điện Biên Phủ, Q.Bình Thạnh", 10.795079, 106.721798)
-    )
+    // 1. Branches State
+    private val _branches = MutableStateFlow<List<Branch>>(emptyList())
+    val branches: StateFlow<List<Branch>> = _branches.asStateFlow()
 
     // 2. Dates (Next 14 days)
     private val _dates = MutableStateFlow<List<LocalDate>>(emptyList())
@@ -52,8 +66,21 @@ class BookingTableViewModel : ViewModel() {
     private val _note = MutableStateFlow("")
     val note: StateFlow<String> = _note.asStateFlow()
 
+    private val _bookingState = MutableStateFlow<BookingState>(BookingState.Idle)
+    val bookingState: StateFlow<BookingState> = _bookingState.asStateFlow()
+
     init {
         generateDates()
+        loadBranches()
+    }
+
+    private fun loadBranches() {
+        viewModelScope.launch {
+            // Fetch list
+            branchRepository.getBranches().onSuccess { list ->
+                _branches.value = list
+            }
+        }
     }
 
     private fun generateDates() {
@@ -64,8 +91,6 @@ class BookingTableViewModel : ViewModel() {
         }
         _dates.value = dateList
     }
-
-
 
     // --- Actions ---
 
@@ -99,8 +124,76 @@ class BookingTableViewModel : ViewModel() {
     fun updateNote(text: String) {
         _note.value = text
     }
+
+    fun confirmBooking() {
+        val branch = _selectedBranch.value
+        val userId = authRepository.getCurrentUserId()
+
+        if (userId == null) {
+            _bookingState.value = BookingState.Error("Vui lòng đăng nhập để đặt bàn!")
+            return
+        }
+
+        if (branch == null) {
+            _bookingState.value = BookingState.Error("Vui lòng chọn chi nhánh!")
+            return
+        }
+
+        _bookingState.value = BookingState.Loading
+
+        viewModelScope.launch {
+            try {
+                // Construct Date Time
+                val dateTime = LocalDateTime.of(_selectedDate.value, LocalTime.of(_selectedHour.value, _selectedMinute.value))
+                val date = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant())
+                val timestamp = Timestamp(date)
+
+                val totalGuests = _guestCountAdult.value + _guestCountChild.value
+
+                // 1. Check Availability
+                val availabilityResult = reservationRepository.checkAvailability(
+                    branchId = branch.id,
+                    requestedTime = timestamp,
+                    requestedGuests = totalGuests,
+                    maxCapacity = branch.maxCapacity
+                )
+
+                if (availabilityResult.isFailure) {
+                    val error = availabilityResult.exceptionOrNull()
+                    _bookingState.value = BookingState.Error("Lỗi kiểm tra bàn: ${error?.message}")
+                    return@launch
+                }
+
+                if (availabilityResult.getOrNull() == true) {
+                    // 2. Create Reservation
+                    val reservation = TableReservation(
+                        userId = userId,
+                        branchId = branch.id,
+                        branchName = branch.name,
+                        timeSlot = timestamp,
+                        guestCountAdult = _guestCountAdult.value,
+                        guestCountChild = _guestCountChild.value,
+                        note = _note.value
+                    )
+
+                    val createResult = reservationRepository.createReservation(reservation)
+                    
+                    if (createResult.isSuccess) {
+                        _bookingState.value = BookingState.Success(createResult.getOrNull() ?: "")
+                    } else {
+                        _bookingState.value = BookingState.Error("Lỗi tạo đặt bàn: ${createResult.exceptionOrNull()?.message}")
+                    }
+                } else {
+                    _bookingState.value = BookingState.Error("Xin lỗi, chi nhánh đã hết bàn vào khung giờ này!")
+                }
+
+            } catch (e: Exception) {
+                _bookingState.value = BookingState.Error("Lỗi không xác định: ${e.message}")
+            }
+        }
+    }
+    
+    fun resetBookingState() {
+        _bookingState.value = BookingState.Idle
+    }
 }
-
-// --- Models ---
-
-data class Branch(val id: String, val name: String, val address: String, val lat: Double, val lng: Double)
