@@ -80,7 +80,16 @@ class AuthRepository {
             val doc = db.collection("users").document(userId).get().await()
             val user = doc.toObject(User::class.java)
             if (user != null) {
-                Result.success(user)
+                // Tự động tính lại Rank dựa trên Spending để đảm bảo đồng bộ
+                val correctRank = com.muatrenthenang.resfood.data.model.Rank.getRankFromSpending(user.totalSpending).displayName
+                val finalUser = if (user.rank != correctRank) {
+                    // Nếu lệch, cập nhật lại DB (chạy ngầm) và trả về object đã sửa
+                    db.collection("users").document(userId).update("rank", correctRank)
+                    user.copy(rank = correctRank)
+                } else {
+                    user
+                }
+                Result.success(finalUser)
             } else {
                 Result.failure(Exception("User không tồn tại"))
             }

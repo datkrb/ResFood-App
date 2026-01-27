@@ -330,7 +330,15 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 paddingValuesFromParent = innerPadding,
+                                onNavigateToMembership = { navController.navigate("membership") },
                                 vm = userViewModel
+                            )
+                        }
+
+                        // Màn hình Hạng thành viên
+                        composable("membership") {
+                            com.muatrenthenang.resfood.ui.screens.me.MembershipScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 
