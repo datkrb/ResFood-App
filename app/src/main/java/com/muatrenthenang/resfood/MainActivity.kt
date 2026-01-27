@@ -40,6 +40,7 @@ import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
 import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesScreen
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
+import com.muatrenthenang.resfood.ui.screens.booking.BookingTableScreen
 
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
 import com.muatrenthenang.resfood.ui.screens.me.MeScreen
@@ -122,7 +123,9 @@ class MainActivity : ComponentActivity() {
                                 onFoodClick = { food ->
                                     navController.navigate("detail/${food.id}")
                                 },
-
+                                onNavigateToBooking = {
+                                    navController.navigate("booking_table")
+                                },
                                 paddingValues = innerPadding
                             )
                         }
@@ -338,6 +341,13 @@ class MainActivity : ComponentActivity() {
                         // Màn hình Hạng thành viên
                         composable("membership") {
                             com.muatrenthenang.resfood.ui.screens.me.MembershipScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // Màn hình Đặt bàn
+                        composable("booking_table") {
+                            BookingTableScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
