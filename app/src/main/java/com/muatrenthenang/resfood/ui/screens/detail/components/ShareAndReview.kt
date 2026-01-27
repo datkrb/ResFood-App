@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ShareAndReview(){
+fun ShareAndReview(
+    onShareClick: () -> Unit
+){
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround,
@@ -47,7 +49,7 @@ fun ShareAndReview(){
             sizeIcon = 24.dp,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            onClick = {}
+            onClick = onShareClick
         )
     }
 }

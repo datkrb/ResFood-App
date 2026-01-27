@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import com.muatrenthenang.resfood.ui.layout.AppLayout
+import androidx.navigation.navDeepLink
 import com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen
@@ -418,7 +419,8 @@ class MainActivity : ComponentActivity() {
 
                         composable(
                             route = "detail/{foodId}",
-                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
+                            deepLinks = listOf(navDeepLink { uriPattern = "resfood://food/{foodId}" })
                         ) { backStackEntry ->
                             val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
                             FoodDetailScreen(
