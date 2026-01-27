@@ -1,7 +1,10 @@
 package com.muatrenthenang.resfood.ui.screens.address
 
+import android.Manifest
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.location.LocationServices
 import com.muatrenthenang.resfood.data.model.Address
 import com.muatrenthenang.resfood.data.model.AddressLabels
 import androidx.compose.ui.viewinterop.AndroidView
@@ -63,6 +67,50 @@ fun AddressEditScreen(
 
     // Dropdown state (UI only)
     var showLabelDropdown by remember { mutableStateOf(false) }
+
+    // GPS location
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var isGettingLocation by remember { mutableStateOf(false) }
+    
+    // Permission launcher for GPS
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            // Permission granted, get location
+            isGettingLocation = true
+            try {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    isGettingLocation = false
+                    location?.let {
+                        vm.updateLocation(it.latitude, it.longitude)
+                        Toast.makeText(context, "Đã lấy vị trí GPS", Toast.LENGTH_SHORT).show()
+                    } ?: run {
+                        Toast.makeText(context, "Không thể lấy vị trí. Vui lòng bật GPS.", Toast.LENGTH_SHORT).show()
+                    }
+                }.addOnFailureListener {
+                    isGettingLocation = false
+                    Toast.makeText(context, "Lỗi lấy vị trí: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: SecurityException) {
+                isGettingLocation = false
+                Toast.makeText(context, "Không có quyền truy cập vị trí", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Cần quyền truy cập vị trí", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    // Function to get GPS location
+    fun getGpsLocation() {
+        locationPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
+    }
 
     // Validation errors (UI only)
     var addressLineError by remember { mutableStateOf<String?>(null) }
@@ -440,37 +488,92 @@ fun AddressEditScreen(
                                 .clickable { onNavigateToMap(formState.latitude, formState.longitude) }
                         )
 
-                        // Expand/Edit Button Overlay
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 4.dp,
+                        // Action buttons overlay (GPS + Fullscreen)
+                        Row(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(12.dp)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            IconButton(onClick = { onNavigateToMap(formState.latitude, formState.longitude) }) {
-                                Icon(Icons.Default.Fullscreen, contentDescription = "Full map", tint = PrimaryColor)
+                            // GPS Button
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface,
+                                shadowElevation = 4.dp
+                            ) {
+                                IconButton(
+                                    onClick = { getGpsLocation() },
+                                    enabled = !isGettingLocation
+                                ) {
+                                    if (isGettingLocation) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            strokeWidth = 2.dp,
+                                            color = SuccessGreen
+                                        )
+                                    } else {
+                                        Icon(Icons.Default.MyLocation, contentDescription = "Lấy vị trí GPS", tint = SuccessGreen)
+                                    }
+                                }
+                            }
+                            
+                            // Fullscreen Button
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface,
+                                shadowElevation = 4.dp
+                            ) {
+                                IconButton(onClick = { onNavigateToMap(formState.latitude, formState.longitude) }) {
+                                    Icon(Icons.Default.Fullscreen, contentDescription = "Full map", tint = PrimaryColor)
+                                }
                             }
                         }
                     }
                 } else {
-                    // Placeholder when no location selected
-                    OutlinedButton(
-                        onClick = { onNavigateToMap(null, null) },
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = PrimaryColor
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryColor.copy(alpha = 0.5f))
+                    // Placeholder when no location selected - Row with Map Picker and GPS buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(Icons.Outlined.LocationOn, contentDescription = null, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Chọn vị trí trên bản đồ",
-                            fontWeight = FontWeight.Bold
-                        )
+                        OutlinedButton(
+                            onClick = { onNavigateToMap(null, null) },
+                            modifier = Modifier.weight(1f).height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = PrimaryColor
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryColor.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Outlined.LocationOn, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Chọn vị trí trên bản đồ",
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                        }
+                        
+                        // GPS Button
+                        OutlinedButton(
+                            onClick = { getGpsLocation() },
+                            modifier = Modifier.height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = SuccessGreen
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, SuccessGreen.copy(alpha = 0.5f)),
+                            enabled = !isGettingLocation
+                        ) {
+                            if (isGettingLocation) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = SuccessGreen
+                                )
+                            } else {
+                                Icon(Icons.Default.MyLocation, contentDescription = "Lấy vị trí GPS", modifier = Modifier.size(20.dp))
+                            }
+                        }
                     }
                 }
 
