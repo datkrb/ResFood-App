@@ -61,7 +61,6 @@ fun MeScreen(
 ) {
     val userState by vm.userState.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
-    // val voucherCount by vm.voucherCount.collectAsState() // Not used directly anymore
     val referralPromo by vm.referralPromo.collectAsState()
     val utilityMenu by vm.utilityMenu.collectAsState()
 
@@ -84,7 +83,7 @@ fun MeScreen(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Profile Header Section
+            // Profile Header Section - Dùng dữ liệu thật từ UserViewModel
             ProfileHeaderCard(
                 user = userState,
                 onEditProfileClick = onNavigateToEditProfile

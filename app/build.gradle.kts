@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -20,6 +22,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Read API key from local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
+        }
+        
+        // Expose ImgBB API key via BuildConfig
+        buildConfigField("String", "IMGBB_API_KEY", "\"${localProperties.getProperty("imgbb.api.key", "YOUR_IMGBB_API_KEY_HERE")}\"")
     }
 
     buildTypes {
@@ -40,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -89,6 +102,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
     implementation("com.cloudinary:cloudinary-android:3.1.2")
+    
+    // Retrofit for ImgBB API
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     
     // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.18")

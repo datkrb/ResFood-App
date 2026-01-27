@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.User
@@ -158,6 +159,35 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Hàm cập nhật thông tin user
+    suspend fun updateUser(fullName: String, phone: String?, email: String): Result<Boolean> {
+        return try {
+            val userId = authRepository.getCurrentUserId() ?: throw Exception("Chưa đăng nhập")
+            val result = authRepository.updateUser(userId, fullName, phone, email)
+            if (result.isSuccess) {
+                // Refresh user data sau khi cập nhật
+                fetchUserProfile()
+            }
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Hàm upload avatar
+    suspend fun uploadAvatar(imageUri: Uri, context: android.content.Context): Result<String> {
+        return try {
+            val result = authRepository.uploadAvatar(imageUri, context)
+            if (result.isSuccess) {
+                // Refresh user data để lấy avatarUrl mới
+                fetchUserProfile()
+            }
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
     // Hàm chuyển đổi theme
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
@@ -191,4 +221,9 @@ data class UtilityMenuOption(
 
 enum class UtilityIconType {
     VOUCHER, ADDRESS, HELP, PAYMENT
+    
+    // Hàm đổi mật khẩu
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Boolean> {
+        return authRepository.changePassword(currentPassword, newPassword)
+    }
 }
