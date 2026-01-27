@@ -70,7 +70,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         if (userId != null) {
             viewModelScope.launch {
                 // Fetch User Details
-                val result = authRepository.getUserDetails(userId)
+                val result = authRepository.getUserProfile(userId)
                 result.onSuccess { user ->
                     _userState.value = user
                 }
@@ -187,6 +187,11 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             Result.failure(e)
         }
     }
+
+    // Hàm đổi mật khẩu
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Boolean> {
+        return authRepository.changePassword(currentPassword, newPassword)
+    }
     
     // Hàm chuyển đổi theme
     fun toggleTheme(isDark: Boolean) {
@@ -221,9 +226,4 @@ data class UtilityMenuOption(
 
 enum class UtilityIconType {
     VOUCHER, ADDRESS, HELP, PAYMENT
-    
-    // Hàm đổi mật khẩu
-    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Boolean> {
-        return authRepository.changePassword(currentPassword, newPassword)
-    }
 }
