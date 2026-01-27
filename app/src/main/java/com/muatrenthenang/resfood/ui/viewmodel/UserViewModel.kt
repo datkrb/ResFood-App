@@ -130,6 +130,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 iconType = UtilityIconType.RANK
             ),
             UtilityMenuOption(
+                id = "spending_statistics",
+                title = "Thống kê chi tiêu",
+                subtitle = "Xem chi tiêu theo danh mục",
+                iconType = UtilityIconType.STATISTICS
+            ),
+            UtilityMenuOption(
                 id = "vouchers",
                 title = "Mã giảm giá của tôi",
                 subtitle = if (voucherCount > 0) "Bạn có $voucherCount mã khả dụng" else "Chưa có mã nào",
@@ -226,5 +232,5 @@ data class UtilityMenuOption(
 )
 
 enum class UtilityIconType {
-    VOUCHER, ADDRESS, HELP, PAYMENT, RANK
+    VOUCHER, ADDRESS, HELP, PAYMENT, RANK, STATISTICS
 }
