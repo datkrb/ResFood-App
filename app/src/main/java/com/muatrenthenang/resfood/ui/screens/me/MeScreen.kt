@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,6 +56,7 @@ fun MeScreen(
     onNavigateToAddresses: () -> Unit = {},
     onNavigateToHelpCenter: () -> Unit = {},
     onNavigateToPaymentMethods: () -> Unit = {},
+    onNavigateToMembership: () -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
     vm: UserViewModel = viewModel()
@@ -63,67 +65,86 @@ fun MeScreen(
     val orderCounts by vm.orderCounts.collectAsState()
     val referralPromo by vm.referralPromo.collectAsState()
     val utilityMenu by vm.utilityMenu.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            MeTopBar(
-                onSettingsClick = onNavigateToSettings,
-                onNotificationsClick = onNavigateToNotifications
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(bottom = paddingValuesFromParent.calculateBottomPadding())
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(4.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                MeTopBar(
+                    onSettingsClick = onNavigateToSettings,
+                    onNotificationsClick = onNavigateToNotifications
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding())
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
 
-            // Profile Header Section - Dùng dữ liệu thật từ UserViewModel
-            ProfileHeaderCard(
-                user = userState,
-                onEditProfileClick = onNavigateToEditProfile
-            )
+                // Profile Header Section - Dùng dữ liệu thật từ UserViewModel
+                ProfileHeaderCard(
+                    user = userState,
+                    onEditProfileClick = onNavigateToEditProfile
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // Orders Status Section
-            OrdersStatusSection(
-                orderCounts = orderCounts,
-                onViewAll = { onNavigateToOrders("all") },
-                onOrderStatusClick = { status -> onNavigateToOrders(status) }
-            )
+                // Orders Status Section
+                OrdersStatusSection(
+                    orderCounts = orderCounts,
+                    onViewAll = { onNavigateToOrders("all") },
+                    onOrderStatusClick = { status -> onNavigateToOrders(status) }
+                )
 
-            Spacer(modifier = Modifier.height(20.dp))
-            // Referral Promo Card
-            ReferralPromoCard(
-                promoData = referralPromo,
-                onInviteClick = onNavigateToReferral
-            )
+                Spacer(modifier = Modifier.height(20.dp))
+                // Referral Promo Card
+                ReferralPromoCard(
+                    promoData = referralPromo,
+                    onInviteClick = onNavigateToReferral
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
-            // Utilities Menu List
-            UtilitiesSection(
-                utilityMenu = utilityMenu,
-                onOptionClick = { id ->
-                    when (id) {
-                        "vouchers" -> onNavigateToVouchers()
-                        "addresses" -> onNavigateToAddresses()
-                        "help" -> onNavigateToHelpCenter()
-                        "payment" -> onNavigateToPaymentMethods()
+                Spacer(modifier = Modifier.height(12.dp))
+                // Utilities Menu List
+                UtilitiesSection(
+                    utilityMenu = utilityMenu,
+                    onOptionClick = { id ->
+                        when (id) {
+                            "membership" -> onNavigateToMembership()
+                            "vouchers" -> onNavigateToVouchers()
+                            "addresses" -> onNavigateToAddresses()
+                            "help" -> onNavigateToHelpCenter()
+                            "payment" -> onNavigateToPaymentMethods()
+                        }
                     }
-                }
-            )
+                )
 
 
-            Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(100.dp))
+            }
+        }
+        
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryColor)
+            }
         }
     }
 }
+// Remove the original Scaffold block since we wrapped it
+@Composable
+private fun MeTopBarHidden( // Dummy function to avoid compilation error if I delete MeTopBar
+) {}
 
 @Composable
 private fun MeTopBar(
@@ -208,12 +229,12 @@ private fun ProfileHeaderCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onEditProfileClick() }
             ) {
                 Text(
                     text = user?.fullName ?: "Đang tải...",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onEditProfileClick() }
                 )
 
                 Row(
@@ -228,7 +249,7 @@ private fun ProfileHeaderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = user?.rank ?: "Thành viên",
+                        text = "Thành viên ${user?.rank}",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -441,6 +462,7 @@ private fun UtilitiesSection(
 // Helper to map enum to Vector
 private fun getIconForType(type: UtilityIconType): androidx.compose.ui.graphics.vector.ImageVector {
     return when (type) {
+        UtilityIconType.RANK -> Icons.Default.Star // Or WorkspacePremium
         UtilityIconType.VOUCHER -> Icons.Default.ConfirmationNumber
         UtilityIconType.ADDRESS -> Icons.Default.LocationOn
         UtilityIconType.HELP -> Icons.Default.HelpCenter
@@ -451,6 +473,7 @@ private fun getIconForType(type: UtilityIconType): androidx.compose.ui.graphics.
 // Helper to map enum to Color
 private fun getColorForType(type: UtilityIconType): Color {
     return when (type) {
+        UtilityIconType.RANK -> Color(0xFFF2B90D) // Gold
         UtilityIconType.VOUCHER -> Color(0xFF3B82F6) // Blue
         UtilityIconType.ADDRESS -> SuccessGreen
         UtilityIconType.HELP -> Color(0xFF8B5CF6) // Purple
