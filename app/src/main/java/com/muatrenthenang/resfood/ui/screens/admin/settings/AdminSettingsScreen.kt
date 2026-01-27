@@ -3,16 +3,24 @@ package com.muatrenthenang.resfood.ui.screens.admin.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +43,13 @@ fun AdminSettingsScreen(
     onNavigateToAnalytics: () -> Unit,
     onNavigateToOrders: () -> Unit
 ) {
+    // State
+    var showProfileDialog by remember { mutableStateOf(false) }
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(true) }
+    var darkModeEnabled by remember { mutableStateOf(true) } // Default for Admin
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -45,7 +60,7 @@ fun AdminSettingsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -61,26 +76,20 @@ fun AdminSettingsScreen(
                 onFabClick = onNavigateToOrders
             )
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            val context = androidx.compose.ui.platform.LocalContext.current
-            
             // Account Section
             Text("Tài khoản", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
             SettingsItem(
                 icon = Icons.Default.Person, 
                 title = "Thông tin cá nhân", 
-                onClick = { 
-                     android.widget.Toast.makeText(context, "Chức năng đang phát triển", android.widget.Toast.LENGTH_SHORT).show() 
-                }
+                onClick = { showProfileDialog = true }
             )
             SettingsItem(
                 icon = Icons.Default.Security, 
                 title = "Đổi mật khẩu", 
-                onClick = { 
-                    android.widget.Toast.makeText(context, "Chức năng đang phát triển", android.widget.Toast.LENGTH_SHORT).show() 
-                }
+                onClick = { showChangePasswordDialog = true }
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -90,10 +99,33 @@ fun AdminSettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Notifications, 
                 title = "Thông báo", 
-                onClick = { 
-                    android.widget.Toast.makeText(context, "Chức năng đang phát triển", android.widget.Toast.LENGTH_SHORT).show() 
-                }, 
-                showBadge = true
+                onClick = { notificationsEnabled = !notificationsEnabled },
+                trailing = {
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { notificationsEnabled = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                        )
+                    )
+                }
+            )
+            
+             SettingsItem(
+                icon = Icons.Default.DarkMode, 
+                title = "Giao diện tối", 
+                onClick = { darkModeEnabled = !darkModeEnabled },
+                trailing = {
+                    Switch(
+                        checked = darkModeEnabled,
+                        onCheckedChange = { darkModeEnabled = it },
+                         colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                        )
+                    )
+                }
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -101,18 +133,212 @@ fun AdminSettingsScreen(
             // Logout
             Button(
                 onClick = onLogout,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3038)),
+                colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Logout, contentDescription = null, tint = Color(0xFFFF5252))
+                    Icon(Icons.Default.Logout, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.LightRed)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Đăng xuất", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                    Text("Đăng xuất", color = com.muatrenthenang.resfood.ui.theme.LightRed, fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
+    
+    if (showProfileDialog) {
+        ProfileEditDialog(onDismiss = { showProfileDialog = false })
+    }
+    
+    if (showChangePasswordDialog) {
+        ChangePasswordDialog(onDismiss = { showChangePasswordDialog = false })
+    }
+}
+
+@Composable
+fun ProfileEditDialog(onDismiss: () -> Unit) {
+    var name by remember { mutableStateOf("Admin User") }
+    var email by remember { mutableStateOf("admin@resfood.com") }
+    var phone by remember { mutableStateOf("0909000111") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard,
+        titleContentColor = Color.White,
+        textContentColor = Color.White,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Person, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cập nhật thông tin")
+            }
+        },
+        text = {
+            Column {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker, CircleShape)
+                            .clickable { /* Pick Image */ },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor, modifier = Modifier.size(32.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Họ tên") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = Color.Gray,
+                        disabledBorderColor = Color.DarkGray,
+                        disabledLabelColor = Color.DarkGray
+                    ),
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Số điện thoại") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray) }
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor)) {
+                Text("Lưu", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy", color = Color.Gray)
+            }
+        }
+    )
+}
+
+@Composable
+fun ChangePasswordDialog(onDismiss: () -> Unit) {
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard,
+        titleContentColor = Color.White,
+        textContentColor = Color.White,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default. Lock, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Đổi mật khẩu")
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it },
+                    label = { Text("Mật khẩu hiện tại") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = { Text("Mật khẩu mới") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                     leadingIcon = { Icon(Icons.Default.VpnKey, contentDescription = null, tint = Color.Gray) }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    label = { Text("Xác nhận mật khẩu mới") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                        unfocusedLabelColor = Color.Gray
+                    ),
+                     leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.Gray) }
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss, // Mock logic
+                colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor),
+                enabled = currentPassword.isNotEmpty() && newPassword.isNotEmpty() && newPassword == confirmPassword
+            ) {
+                Text("Đổi mật khẩu", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy", color = Color.Gray)
+            }
+        }
+    )
 }
 
 @Composable
@@ -120,12 +346,13 @@ fun SettingsItem(
     icon: ImageVector, 
     title: String, 
     onClick: () -> Unit,
-    showBadge: Boolean = false
+    showBadge: Boolean = false,
+    trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2C3038), RoundedCornerShape(12.dp))
+            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -141,7 +368,11 @@ fun SettingsItem(
                 Box(modifier = Modifier.size(8.dp).background(Color.Red, androidx.compose.foundation.shape.CircleShape))
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Icon(Icons.Default.ArrowForwardIos, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+            if (trailing != null) {
+                trailing()
+            } else {
+                Icon(Icons.Default.ArrowForwardIos, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+            }
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
