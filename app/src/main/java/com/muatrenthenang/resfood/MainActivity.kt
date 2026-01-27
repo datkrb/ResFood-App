@@ -8,12 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import com.muatrenthenang.resfood.ui.layout.AppLayout
 import com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen
@@ -38,8 +42,21 @@ import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
+import com.muatrenthenang.resfood.ui.screens.me.MeScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
+import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
+import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
+import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
+import androidx.navigation.navArgument
+import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
+import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
+import com.muatrenthenang.resfood.ui.screens.address.MapPickerScreen
+import androidx.compose.ui.platform.LocalContext
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.CheckoutViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 
@@ -52,114 +69,302 @@ class MainActivity : ComponentActivity() {
             // Lấy trạng thái theme từ ViewModel
             val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
             // Áp dụng Theme
-            ResFoodTheme (darkTheme = isDarkTheme) {
+            ResFoodTheme(darkTheme = isDarkTheme) {
                 // Tạo bộ điều hướng
                 val navController = rememberNavController()
 
-                // Khai báo các màn hình và đường dẫn
-                NavHost(navController = navController, startDestination = "splash") {
+                // AppLayout bao bọc toàn bộ NavHost
+                AppLayout(navController = navController) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "splash",
+                        modifier = Modifier
+                    ) {
 
-                    // 0. Màn hình Chờ (Splash)
-                    composable("splash") {
-                        SplashScreen(
-                            onAuthSuccess = { isAdmin ->
-                                val destination = if (isAdmin) "admin_dashboard" else "home"
-                                navController.navigate(destination) {
-                                    popUpTo("splash") { inclusive = true }
+                        // 0. Màn hình Chờ (Splash)
+                        composable("splash") {
+                            SplashScreen(
+                                onAuthSuccess = { isAdmin ->
+                                    val destination = if (isAdmin) "admin_dashboard" else "home"
+                                    navController.navigate(destination) {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                },
+                                onGoLogin = {
+                                    navController.navigate("login") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
                                 }
-                            },
-                            onGoLogin = {
-                                navController.navigate("login") {
-                                    popUpTo("splash") { inclusive = true }
+                            )
+                        }
+                        // 1. Màn hình Đăng Nhập
+                        composable("login") {
+                            LoginScreen(
+                                onLoginSuccess = { isAdmin ->
+                                    // Khi login thành công -> Chuyển sang Home hoặc Dashboard và xóa Login khỏi lịch sử back
+                                    val destination = if (isAdmin) "admin_dashboard" else "home"
+                                    navController.navigate(destination) {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToRegister = {
+                                    navController.navigate("register")
+                                },
+                                onNavigateToForgotPassword = {
+                                    navController.navigate("forgot_password")
                                 }
-                            }
-                        )
-                    }
-                    // 1. Màn hình Đăng Nhập
-                    composable("login") {
-                        LoginScreen(
-                            onLoginSuccess = { isAdmin ->
-                                // Khi login thành công -> Chuyển sang Home hoặc Dashboard và xóa Login khỏi lịch sử back
-                                val destination = if (isAdmin) "admin_dashboard" else "home"
-                                navController.navigate(destination) {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                            },
-                            onNavigateToRegister = {
-                                navController.navigate("register")
-                            },
-                            onNavigateToForgotPassword = {
-                                navController.navigate("forgot_password")
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    // 2. Màn hình Trang Chủ (Đã thay bằng màn hình thật)
-                    composable("home") {
-                        AppLayout(navController = navController) { padding ->
+                        // 2. Màn hình Trang Chủ
+                        composable("home") {
                             HomeScreen(
                                 onFoodClick = { food ->
                                     navController.navigate("detail/${food.id}")
                                 },
-                                paddingValues = padding
+
+                                paddingValues = innerPadding
                             )
                         }
+
+                        // 3. Màn hình Đăng Ký
+                        composable("register") {
+                            RegisterScreen(
+                                onRegisterSuccess = {
+                                    // Đăng ký thành công -> Quay lại màn hình Login
+                                    navController.popBackStack()
+                                },
+                                onNavigateBack = {
+                                    // Bấm nút Back -> Quay lại màn hình Login
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        // 4. Quên mật khẩu
+                        composable("forgot_password") {
+                            ForgotPasswordScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("cart") {
+                            CartScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onProceedToCheckout = { navController.navigate("checkout") },
+                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
+
+                                paddingValuesFromParent = innerPadding
+                            )
+                        }
+
+                    composable("checkout"){ backStackEntry ->
+                        val checkoutViewModel: CheckoutViewModel = viewModel()
+                        
+                        // Listen for selected address from AddressListScreen
+                        LaunchedEffect(backStackEntry) {
+                            backStackEntry.savedStateHandle.getStateFlow<String?>("selected_address_id", null)
+                                .collect { addressId ->
+                                    addressId?.let { id ->
+                                        // Load the selected address by ID
+                                        val addresses = checkoutViewModel.getAddressesFromRepo()
+                                        addresses.find { it.id == id }?.let { address ->
+                                            checkoutViewModel.setAddress(address)
+                                        }
+                                        // Clear the saved state
+                                        backStackEntry.savedStateHandle.remove<String>("selected_address_id")
+                                    }
+                                }
+                        }
+                        
+                        CheckoutScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToAddresses = { navController.navigate("addresses") },
+                            onPaymentConfirmed = {},
+                            vm = checkoutViewModel
+                        )
                     }
 
-                    // 3. Màn hình Đăng Ký
-                    composable("register") {
-                        RegisterScreen(
-                            onRegisterSuccess = {
-                                // Đăng ký thành công -> Quay lại màn hình Login
+                    // Address management routes
+                    composable("addresses") {
+                        val addressViewModel: AddressViewModel = viewModel()
+                        
+                        // Reload addresses when this screen becomes visible
+                        LaunchedEffect(Unit) {
+                            addressViewModel.loadAddresses()
+                        }
+                        
+                        AddressListScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEdit = { addressId ->
+                                if (addressId != null) {
+                                    navController.navigate("address_edit/$addressId")
+                                } else {
+                                    navController.navigate("address_add")
+                                }
+                            },
+                            onAddressSelected = { address ->
+                                // Pass the selected address ID back to checkout via savedStateHandle
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selected_address_id", address.id)
                                 navController.popBackStack()
                             },
-                            onNavigateBack = {
-                                // Bấm nút Back -> Quay lại màn hình Login
+                            vm = addressViewModel
+                        )
+                    }
+
+                    composable("address_add") { backStackEntry ->
+                        val addressViewModel: AddressViewModel = viewModel()
+                        AddressEditScreen(
+                            addressId = null,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
+                            onSaveSuccess = { 
+                                navController.popBackStack() 
+                            },
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
+                        )
+                    }
+
+                    composable(
+                        route = "address_edit/{addressId}",
+                        arguments = listOf(navArgument("addressId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val addressId = backStackEntry.arguments?.getString("addressId")
+                        val addressViewModel: AddressViewModel = viewModel()
+                        AddressEditScreen(
+                            addressId = addressId,
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
+                            onSaveSuccess = { 
+                                navController.popBackStack() 
+                            },
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
+                        )
+                    }
+
+                    composable(
+                        route = "map_picker?lat={lat}&lng={lng}",
+                        arguments = listOf(
+                            navArgument("lat") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            },
+                            navArgument("lng") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val latStr = backStackEntry.arguments?.getString("lat")
+                        val lngStr = backStackEntry.arguments?.getString("lng")
+                        val lat = latStr?.toDoubleOrNull()
+                        val lng = lngStr?.toDoubleOrNull()
+
+                        MapPickerScreen(
+                            initialLat = lat,
+                            initialLng = lng,
+                            onNavigateBack = { navController.popBackStack() },
+                            onLocationPicked = { pickedLat, pickedLng ->
+                                navController.previousBackStackEntry?.savedStateHandle?.apply {
+                                    set("picked_lat", pickedLat)
+                                    set("picked_lng", pickedLng)
+                                }
                                 navController.popBackStack()
                             }
                         )
                     }
 
-                    // 4. Quên mật khẩu
-                    composable("forgot_password") {
-                        ForgotPasswordScreen(
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("cart"){
-                        AppLayout(navController = navController) { padding ->
-                            CartScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                onProceedToCheckout = { navController.navigate("checkout") },
-                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
-                                paddingValuesFromParent = padding
-                            )
-                        }
-                    }
-
-                    composable("checkout"){
-                        CheckoutScreen(
-                            onNavigateBack = { navController.popBackStack() },
-                            onPaymentConfirmed = {}
-                        )
-                    }
-
-                    // Favorites route
-                    composable("favorites"){
-                        AppLayout(navController = navController) { padding ->
+                        // Favorites route
+                        composable("favorites") {
                             FavoritesScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onAddToCart = {},
                                 onLogin = { navController.navigate("login") },
-                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") }
+                                onOpenFoodDetail = { id -> navController.navigate("detail/$id") },
+                                paddingValuesFromParent = innerPadding
                             )
                         }
-                    }
 
-                    // Trang Setting
-                    composable("settings") {
-                        AppLayout(navController = navController) { _ ->
+                        // Màn hình Tôi (Me)
+                        composable("me") {
+                            MeScreen(
+                                onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToNotifications = { /* TODO: Notification Screen */ },
+                                onNavigateToEditProfile = { navController.navigate("profile_details") },
+                                onNavigateToOrders = { status ->
+                                    navController.navigate("orders/$status")
+                                },
+
+                                onNavigateToReferral = { navController.navigate("referral") },
+                                onNavigateToVouchers = { navController.navigate("vouchers") },
+                                onNavigateToAddresses = { navController.navigate("profile_addresses") },
+                                onNavigateToHelpCenter = { /* TODO: Help Center */ },
+                                onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        // Referral Routes
+                        composable("referral") {
+                            ReferralScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToHistory = { navController.navigate("referral_history") }
+                            )
+                        }
+                        
+                        composable("referral_history") {
+                            ReferralHistoryScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("vouchers") {
+                            VoucherScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(
+                            route = "orders/{status}",
+                            arguments = listOf(navArgument("status") { defaultValue = "all" })
+                        ) { backStackEntry ->
+                            val status = backStackEntry.arguments?.getString("status") ?: "all"
+                            OrderListScreen(
+                                status = status,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") }
+                            )
+                        }
+
+                        composable(
+                            route = "order_detail/{orderId}",
+                            arguments = listOf(navArgument("orderId") { defaultValue = "" })
+                        ) { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            UserOrderDetailScreen(
+                                orderId = orderId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+
+
+                        // Trang Setting
+                        composable("settings") {
                             SettingScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToLogin = {
@@ -169,205 +374,429 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToProfile = {
-                                    navController.navigate("account_center")
+                                    // Từ Settings xem Profile (giống MeScreen nhưng có thể khác ngữ cảnh)
+                                    navController.navigate("me") {
+                                        popUpTo("home")
+                                    }
+                                },
+                                paddingValuesFromParent = innerPadding,
+                                userViewModel = userViewModel
+                            )
+                        }
+
+                        // Màn hình Trung tâm tài khoản
+                        composable("account_center") {
+                            AccountCenterScreen(
+                                onBack = { navController.popBackStack() },
+                                onNavigateToDetails = {
+                                    // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
+                                    navController.navigate("profile_details")
                                 },
                                 userViewModel = userViewModel
                             )
                         }
-                    }
 
-                    // Màn hình Trung tâm tài khoản
-                    composable("account_center") {
-                        AccountCenterScreen(
-                            onBack = { navController.popBackStack() },
-                            onNavigateToDetails = {
-                                // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
-                                navController.navigate("profile_details")
-                            },
-                            userViewModel = userViewModel
-                        )
-                    }
+                        // Màn hình Hồ sơ cá nhân chi tiết
+                        composable("profile_details") {
+                            ProfileScreen(
+                                onBack = { navController.popBackStack() },
+                                userViewModel = userViewModel
+                            )
+                        }
 
-                    // Màn hình Hồ sơ cá nhân chi tiết
-                    composable("profile_details") {
-                        ProfileScreen(
-                            onBack = { navController.popBackStack() },
-                            userViewModel = userViewModel
-                        )
-                    }
+                        composable(
+                            route = "detail/{foodId}",
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                            FoodDetailScreen(
+                                foodId = foodId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
 
-                composable(
-                        route = "detail/{foodId}",
-                        arguments = listOf(navArgument("foodId") { type = NavType.StringType })
-                    ) { backStackEntry ->
-                        val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
-                        FoodDetailScreen(
-                            foodId = foodId,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
+                        // Admin Routes
+                        composable("admin_dashboard") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AdminDashboardScreen(
+                                viewModel = adminViewModel,
+                                onNavigateToFoodManagement = {
+                                    navController.navigate("admin_food_management")
+                                },
+                                onNavigateToMenu = {
+                                    // For now just keep it simple or navigate back to home if "Menu" means User Menu
+                                    navController.navigate("home")
+                                },
+                                onNavigateToAnalytics = {
+                                    navController.navigate("admin_analytics")
+                                },
+                                onNavigateToSettings = {
+                                    navController.navigate("admin_settings")
+                                },
+                                onNavigateToOrders = {
+                                    navController.navigate("admin_orders")
+                                },
+                                onNavigateToCustomers = {
+                                    navController.navigate("admin_customers")
+                                },
+                                onNavigateToPromo = {
+                                    navController.navigate("admin_promotions")
+                                },
+                                onNavigateToTables = {
+                                    navController.navigate("admin_tables")
+                                }
+                            )
+                        }
 
-                    // Admin Routes
-                    composable("admin_dashboard") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        AdminDashboardScreen(
-                            viewModel = adminViewModel,
-                            onNavigateToFoodManagement = {
-                                navController.navigate("admin_food_management")
-                            },
-                            onNavigateToMenu = {
-                                // For now just keep it simple or navigate back to home if "Menu" means User Menu
-                                navController.navigate("home")
-                            },
-                            onNavigateToAnalytics = {
-                                navController.navigate("admin_analytics")
-                            },
-                            onNavigateToSettings = {
-                                navController.navigate("admin_settings")
-                            },
-                            onNavigateToOrders = {
-                                navController.navigate("admin_orders")
-                            },
-                            onNavigateToCustomers = {
-                                navController.navigate("admin_customers")
-                            },
-                            onNavigateToPromo = {
-                                navController.navigate("admin_promotions")
-                            },
-                            onNavigateToTables = {
-                                navController.navigate("admin_tables")
+                        composable("admin_promotions") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            PromotionManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                            )
+                        }
+
+
+                        composable("admin_food_management") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            FoodManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToEdit = { foodId ->
+                                    if (foodId != null) {
+                                        navController.navigate("admin_food_edit/$foodId")
+                                    } else {
+                                        navController.navigate("admin_food_edit_new")
+                                    }
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToSettings = { navController.navigate("admin_settings") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+
+                        composable(
+                            route = "admin_food_edit/{foodId}",
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId")
+                            FoodEditScreen(
+                                foodId = foodId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+
+                        composable("admin_food_edit_new") {
+                            FoodEditScreen(
+                                foodId = null,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // New Admin Screens
+                        composable("admin_orders") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            OrderManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
+                            )
+                        }
+
+                        composable("admin_order_detail/{orderId}") { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            OrderDetailScreen(
+                                orderId = orderId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_customers") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            CustomerManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_promotion_add") {
+                            PromotionAddScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_tables") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            TableManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_analytics") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AnalyticsScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToSettings = { navController.navigate("admin_settings") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+
+                        composable("admin_settings") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AdminSettingsScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onLogout = {
+                                    // Clear backstack and go to login
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+
+                        // Màn hình Trung tâm tài khoản
+                        composable("account_center") {
+                            AccountCenterScreen(
+                                onBack = { navController.popBackStack() },
+                                onNavigateToDetails = {
+                                    // Bấm "Thông tin chi tiết" -> Chuyển sang Hồ sơ cá nhân (ProfileScreen)
+                                    navController.navigate("profile_details")
+                                },
+                                userViewModel = userViewModel
+                            )
+                        }
+
+                        // Màn hình Hồ sơ cá nhân chi tiết
+                        composable("profile_details") {
+                            ProfileScreen(
+                                onBack = { navController.popBackStack() },
+                                onNavigateToAddresses = { navController.navigate("profile_addresses") },
+                                userViewModel = userViewModel
+                            )
+                        }
+
+                        // Quản lý địa chỉ từ Profile
+                        composable("profile_addresses") {
+                            val addressViewModel: AddressViewModel = viewModel()
+                            
+                            LaunchedEffect(Unit) {
+                                addressViewModel.loadAddresses()
                             }
-                        )
-                    }
-
-                    composable("admin_promotions") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        PromotionManagementScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToAdd = { navController.navigate("admin_promotion_add") }
-                        )
-                    }
-
-
-                    composable("admin_food_management") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        FoodManagementScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToEdit = { foodId ->
-                                if (foodId != null) {
-                                    navController.navigate("admin_food_edit/$foodId")
-                                } else {
-                                    navController.navigate("admin_food_edit_new")
-                                }
-                            },
-                            onNavigateToHome = {
-                                navController.navigate("admin_dashboard") {
-                                    popUpTo("admin_dashboard") { inclusive = true }
-                                }
-                            },
-                            onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                            onNavigateToSettings = { navController.navigate("admin_settings") },
-                            onNavigateToOrders = { navController.navigate("admin_orders") }
-                        )
-                    }
+                            
+                            AddressListScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToEdit = { addressId ->
+                                    if (addressId != null) {
+                                        navController.navigate("address_edit/$addressId")
+                                    } else {
+                                        navController.navigate("address_add")
+                                    }
+                                },
+                                onAddressSelected = { 
+                                    // Không làm gì khi chọn địa chỉ từ profile, chỉ để xem
+                                    navController.popBackStack()
+                                },
+                                vm = addressViewModel
+                            )
+                        }
 
                     composable(
-                        route = "admin_food_edit/{foodId}",
-                        arguments = listOf(navArgument("foodId") { type = NavType.StringType })
-                    ) { backStackEntry ->
-                        val foodId = backStackEntry.arguments?.getString("foodId")
-                        FoodEditScreen(
-                            foodId = foodId,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
+                            route = "detail/{foodId}",
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                            FoodDetailScreen(
+                                foodId = foodId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
 
-
-                    composable("admin_food_edit_new") {
-                        FoodEditScreen(
-                            foodId = null,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    // New Admin Screens
-                    composable("admin_orders") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        OrderManagementScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
-                        )
-                    }
-
-                    composable("admin_order_detail/{orderId}") { backStackEntry ->
-                        val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
-                        OrderDetailScreen(
-                            orderId = orderId, 
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("admin_customers") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        CustomerManagementScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("admin_promotion_add") {
-                        PromotionAddScreen(
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("admin_tables") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        TableManagementScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("admin_analytics") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        AnalyticsScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToHome = {
-                                navController.navigate("admin_dashboard") {
-                                    popUpTo("admin_dashboard") { inclusive = true }
+                        // Admin Routes
+                        composable("admin_dashboard") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AdminDashboardScreen(
+                                viewModel = adminViewModel,
+                                onNavigateToFoodManagement = {
+                                    navController.navigate("admin_food_management")
+                                },
+                                onNavigateToMenu = {
+                                    // For now just keep it simple or navigate back to home if "Menu" means User Menu
+                                    navController.navigate("home")
+                                },
+                                onNavigateToAnalytics = {
+                                    navController.navigate("admin_analytics")
+                                },
+                                onNavigateToSettings = {
+                                    navController.navigate("admin_settings")
+                                },
+                                onNavigateToOrders = {
+                                    navController.navigate("admin_orders")
+                                },
+                                onNavigateToCustomers = {
+                                    navController.navigate("admin_customers")
+                                },
+                                onNavigateToPromo = {
+                                    navController.navigate("admin_promotions")
+                                },
+                                onNavigateToTables = {
+                                    navController.navigate("admin_tables")
                                 }
-                            },
-                            onNavigateToMenu = { navController.navigate("admin_food_management") },
-                            onNavigateToSettings = { navController.navigate("admin_settings") },
-                            onNavigateToOrders = { navController.navigate("admin_orders") }
-                        )
-                    }
+                            )
+                        }
 
-                    composable("admin_settings") {
-                        val adminViewModel: AdminViewModel = viewModel()
-                        AdminSettingsScreen(
-                            viewModel = adminViewModel,
-                            onNavigateBack = { navController.popBackStack() },
-                            onLogout = {
-                                // Clear backstack and go to login
-                                navController.navigate("login") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            },
-                            onNavigateToHome = {
-                                navController.navigate("admin_dashboard") {
-                                    popUpTo("admin_dashboard") { inclusive = true }
-                                }
-                            },
-                            onNavigateToMenu = { navController.navigate("admin_food_management") },
-                            onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                            onNavigateToOrders = { navController.navigate("admin_orders") }
-                        )
+                        composable("admin_promotions") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            PromotionManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                            )
+                        }
+
+
+                        composable("admin_food_management") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            FoodManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToEdit = { foodId ->
+                                    if (foodId != null) {
+                                        navController.navigate("admin_food_edit/$foodId")
+                                    } else {
+                                        navController.navigate("admin_food_edit_new")
+                                    }
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToSettings = { navController.navigate("admin_settings") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+
+                        composable(
+                            route = "admin_food_edit/{foodId}",
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId")
+                            FoodEditScreen(
+                                foodId = foodId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+
+                        composable("admin_food_edit_new") {
+                            FoodEditScreen(
+                                foodId = null,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // New Admin Screens
+                        composable("admin_orders") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            OrderManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
+                            )
+                        }
+
+                        composable("admin_order_detail/{orderId}") { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            OrderDetailScreen(
+                                orderId = orderId, 
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_customers") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            CustomerManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_promotion_add") {
+                            PromotionAddScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_tables") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            TableManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_analytics") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AnalyticsScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToSettings = { navController.navigate("admin_settings") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+
+                        composable("admin_settings") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            AdminSettingsScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onLogout = {
+                                    // Clear backstack and go to login
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
                     }
                 }
             }

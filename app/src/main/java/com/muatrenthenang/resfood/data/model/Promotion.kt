@@ -13,5 +13,5 @@ data class Promotion(
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
     val isActive: Boolean = true,
-    val applyFor: String = "ALL" // ALL, FOOD_ID
+    val applyFor: String = "ALL" // ALL, FOOD_ID, SHIP
 )

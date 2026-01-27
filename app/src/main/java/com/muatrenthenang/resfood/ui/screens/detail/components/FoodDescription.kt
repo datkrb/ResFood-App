@@ -3,6 +3,7 @@ package com.muatrenthenang.resfood.ui.screens.detail.components
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,13 +16,13 @@ import com.muatrenthenang.resfood.data.model.Food
 fun FoodDescription(food: Food?){
     Text(
         text = "Mô tả",
-        color = Color.White,
+        color = MaterialTheme.colorScheme.onBackground,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp
     )
     Text(
         text = food?.description ?: "Đang tải...",
-        color = Color.White,
+        color = MaterialTheme.colorScheme.onBackground,
         fontSize = 16.sp
     )
 }

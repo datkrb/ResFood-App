@@ -19,13 +19,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun CategoryFood(
     imgVector: ImageVector,
     categoryFood: String,
+    isSelected: Boolean = false,
     onClick: () -> Unit
 ){
+    val backgroundColor = if (isSelected) PrimaryColor else Color(0xFFF0F0F0)
+    val iconColor = if (isSelected) Color.White else PrimaryColor
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -33,14 +38,14 @@ fun CategoryFood(
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(PrimaryColor)
+                .background(backgroundColor)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ){
             Icon(
                 imageVector = imgVector,
                 contentDescription = null,
-                tint = Color.White,
+                tint = iconColor,
                 modifier = Modifier.size(30.dp)
             )
         }
@@ -49,7 +54,7 @@ fun CategoryFood(
 
         Text(
             text = categoryFood,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontSize = 12.sp
         )
     }

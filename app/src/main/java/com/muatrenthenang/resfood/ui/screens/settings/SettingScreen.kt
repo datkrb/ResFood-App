@@ -34,6 +34,7 @@ fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToProfile: () -> Unit, // Chức năng xem hồ sơ
+    paddingValuesFromParent: PaddingValues = PaddingValues(),
     userViewModel: UserViewModel
 ) {
     val userState by userViewModel.userState.collectAsState()
@@ -49,6 +50,7 @@ fun SettingScreen(
         Column(
             modifier = Modifier
                 .padding(paddingValues)
+                .padding(bottom = paddingValuesFromParent.calculateBottomPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),

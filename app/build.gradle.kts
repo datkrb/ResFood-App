@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.animation.core.lint)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
+    implementation("androidx.compose.runtime:runtime-livedata")
     implementation(libs.androidx.benchmark.traceprocessor)
     implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
@@ -86,6 +87,10 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore") // Thư viện Database
     implementation("com.google.firebase:firebase-storage")   // Thư viện Ảnh
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
     implementation("com.cloudinary:cloudinary-android:3.1.2")
+    
+    // OpenStreetMap
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

@@ -3,6 +3,7 @@ package com.muatrenthenang.resfood.ui.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
@@ -24,7 +25,7 @@ fun NavigationBottom(
     onNavigateToHome: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToMe: () -> Unit = {}
 ) {
     val itemColors = NavigationBarItemDefaults.colors(
         indicatorColor = Color.Transparent,
@@ -60,10 +61,10 @@ fun NavigationBottom(
             colors = itemColors
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Cài đặt") },
-            label = { Text("Cài đặt") },
-            selected = currentRoute == "settings",
-            onClick = onNavigateToSettings,
+            icon = { Icon(Icons.Default.Person, contentDescription = "Tôi") },
+            label = { Text("Tôi") },
+            selected = currentRoute == "me",
+            onClick = onNavigateToMe,
             colors = itemColors
         )
     }

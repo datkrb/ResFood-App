@@ -47,6 +47,7 @@ fun FavoritesScreen(
     onAddToCart: (String) -> Unit = {},
     onLogin: () -> Unit = {},
     onOpenFoodDetail: (String) -> Unit = {},
+    paddingValuesFromParent: PaddingValues = PaddingValues(),
     vm: FavoritesViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -55,6 +56,7 @@ fun FavoritesScreen(
     val result by vm.actionResult.collectAsState()
     val needLogin by vm.needLogin.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
+    val state by vm.uiState.collectAsState()
 
     // Remove confirmation state
     val showRemoveDialog = remember { mutableStateOf(false) }
@@ -98,7 +100,8 @@ fun FavoritesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding()),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -113,7 +116,8 @@ fun FavoritesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding()),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -122,15 +126,18 @@ fun FavoritesScreen(
             Column(modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-                .padding(paddingValues)) {
+                .padding(paddingValues)
+                .padding(bottom = paddingValuesFromParent.calculateBottomPadding())) {
 
                 // Search bar (sticky mimic: placed at top of scroll content)
                 Column(modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)) {
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
+                        value = state.searchQuery,
+                        onValueChange = {newText ->
+                            vm.onSearchTextChanged(newText)
+                        },
                         placeholder = { Text("Tìm kiếm món ăn...", color = Color.Gray) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier
