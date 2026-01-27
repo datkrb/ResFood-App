@@ -213,6 +213,7 @@ class AddressViewModel(
      * Khởi tạo form cho chế độ thêm mới
      */
     fun initNewAddressForm() {
+        if (_formState.value.isLoaded && _formState.value.id.isEmpty()) return
         _formState.value = AddressFormState(isLoaded = true)
     }
 
@@ -220,6 +221,9 @@ class AddressViewModel(
      * Load địa chỉ để chỉnh sửa vào form
      */
     fun loadAddressForEdit(addressId: String) {
+        // Nếu đã load đúng ID này rồi thì không load lại để giữ các thay đổi local
+        if (_formState.value.isLoaded && _formState.value.id == addressId) return
+
         viewModelScope.launch {
             // Thử lấy từ cache trước
             var address = getAddressById(addressId)
