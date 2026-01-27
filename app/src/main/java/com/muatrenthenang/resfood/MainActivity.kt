@@ -183,22 +183,14 @@ class MainActivity : ComponentActivity() {
                             CheckoutScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToAddresses = { navController.navigate("addresses") },
-                                onPaymentConfirmed = {},
+                                onPaymentConfirmed = {
+                                    navController.navigate("orders/pending") {
+                                        popUpTo("home")
+                                    }
+                                },
                                 vm = checkoutViewModel
                             )
                         }
-                        
-                        CheckoutScreen(
-                            onNavigateBack = { navController.popBackStack() },
-                            onNavigateToAddresses = { navController.navigate("addresses") },
-                            onPaymentConfirmed = { 
-                                navController.navigate("orders/pending") {
-                                    popUpTo("home")
-                                }
-                            },
-                            vm = checkoutViewModel
-                        )
-                    }
 
                         // Address management routes
                         composable("addresses") {
