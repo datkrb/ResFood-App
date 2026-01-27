@@ -309,7 +309,7 @@ fun DeliveryInfoCard(order: Order) {
                  )
              }
              Text(
-                 if (order.address.isNotEmpty()) order.address else "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
+                 if (order.address.getFullAddress().isNotEmpty()) order.address.getFullAddress() else "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
                  fontSize = 13.sp,
                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                  lineHeight = 18.sp

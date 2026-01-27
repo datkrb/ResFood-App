@@ -1,19 +1,20 @@
 package com.muatrenthenang.resfood.data.model
 
 import com.google.firebase.Timestamp
+import com.muatrenthenang.resfood.data.model.Address
 
 data class Order(
     val id: String = "",
     val userId: String = "",
     val userName: String = "",
     val userPhone: String = "",
-    val address: String = "",
+    val address: Address = Address(),
     val items: List<OrderItem> = emptyList(),
     val subtotal: Int = 0,
     val discount: Int = 0, // Tổng giảm = productDiscount + shippingDiscount
     val deliveryFee: Int = 0,
     val total: Int = 0,
-    val status: String = "PENDING", // PENDING, PROCESSING, COMPLETED, CANCELLED, REJECTED
+    val status: String = "PENDING", // PENDING, PROCESSING, DELIVERING, COMPLETED, CANCELLED, REJECTED
     val paymentMethod: String = "COD",
     val createdAt: Timestamp = Timestamp.now(),
     

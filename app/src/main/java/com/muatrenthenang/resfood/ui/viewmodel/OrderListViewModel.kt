@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.data.model.OrderItem
 import com.google.firebase.Timestamp
+import com.muatrenthenang.resfood.data.model.Address
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -64,7 +65,15 @@ class OrderListViewModel : ViewModel() {
                     price = 6000
                 )
             ),
-            createdAt = Timestamp.now()
+            createdAt = Timestamp.now(),
+            address = Address(
+                addressLine = "123 Lê Văn Sỹ",
+                ward = "Phường 13",
+                district = "Quận Phú Nhuận",
+                city = "TP. Hồ Chí Minh",
+                contactName = "Nguyễn Văn A",
+                phone = "0901234567"
+            )
         )
 
         // Order 2: Processing - Sushi
@@ -83,10 +92,18 @@ class OrderListViewModel : ViewModel() {
                      price = 350000
                 )
             ),
-             createdAt = Timestamp.now()
+            createdAt = Timestamp.now(),
+            address = Address(
+                addressLine = "456 Nguyễn Thị Minh Khai",
+                ward = "Phường 5",
+                district = "Quận 3",
+                city = "TP. Hồ Chí Minh",
+                contactName = "Trần Thị B",
+                phone = "0909000999"
+            )
         )
 
-         // Order 3: Completed - Pizza
+        // Order 3: Completed - Pizza
         calendar.add(Calendar.DAY_OF_YEAR, -2)
         val order3 = Order(
             id = "RF1102",
@@ -103,7 +120,15 @@ class OrderListViewModel : ViewModel() {
                     price = 210000
                 )
             ),
-            createdAt = Timestamp(calendar.time)
+            createdAt = Timestamp(calendar.time),
+            address = Address(
+                addressLine = "789 Điện Biên Phủ",
+                ward = "Phường 25",
+                district = "Quận Bình Thạnh",
+                city = "TP. Hồ Chí Minh",
+                contactName = "Lê Văn C",
+                phone = "0912345678"
+            )
         )
         
         // Order 5: Delivering - Bun Bo Hue (HTML Data)
@@ -130,7 +155,15 @@ class OrderListViewModel : ViewModel() {
                     note = "50% đường, 100% đá"
                 )
             ),
-            createdAt = Timestamp.now()
+            createdAt = Timestamp.now(),
+            address = Address(
+                addressLine = "12/3 Đường Số 5",
+                ward = "Phường Linh Trung",
+                district = "Quận Thủ Đức",
+                city = "TP. Hồ Chí Minh",
+                contactName = "User 123",
+                phone = "0123456789"
+            )
         )
         
         return listOf(order1, order2, order3, order5)

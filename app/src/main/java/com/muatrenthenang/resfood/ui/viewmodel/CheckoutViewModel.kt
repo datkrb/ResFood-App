@@ -270,7 +270,7 @@ class CheckoutViewModel(
                     userId = userId,
                     userName = currentAddress.contactName,
                     userPhone = currentAddress.phone,
-                    address = currentAddress.getFullAddress(),
+                    address = currentAddress,
                     items = orderItems,
                     subtotal = subTotal().toInt(),
                     discount = totalDiscount().toInt(),

@@ -228,7 +228,7 @@ class DataSeeder {
             return Order(
                 userName = "Khách Seed",
                 userPhone = "090xxxxxxx",
-                address = "Địa chỉ Mock",
+                address = Address(addressLine = "Địa chỉ Mock", contactName = "Khách Seed", phone = "090xxxxxxx"),
                 items = listOf(item),
                 total = total,
                 subtotal = total,
