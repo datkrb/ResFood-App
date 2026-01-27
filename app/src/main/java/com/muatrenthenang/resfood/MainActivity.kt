@@ -353,6 +353,7 @@ class MainActivity : ComponentActivity() {
                         // Màn hình Đặt bàn
                         composable("booking_table") {
                             BookingTableScreen(
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }  
                         
