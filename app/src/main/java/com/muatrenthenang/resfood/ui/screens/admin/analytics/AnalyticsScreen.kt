@@ -59,7 +59,7 @@ fun AnalyticsScreen(
                     
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -75,7 +75,7 @@ fun AnalyticsScreen(
                 onFabClick = onNavigateToOrders
             )
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isLoading,
@@ -160,7 +160,7 @@ fun AnalyticsScreen(
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                         Text("Món ăn bán chạy", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Spacer(modifier = Modifier.height(12.dp))
-                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038))) {
+                        Card(colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard)) {
                             Column {
                                 if(analyticsState.topProducts.isEmpty()) {
                                     Text("Chưa có dữ liệu", color = Color.Gray, modifier = Modifier.padding(16.dp))
@@ -188,7 +188,7 @@ fun AnalyticsScreen(
 @Composable
 fun AnalyticSummaryCard(title: String, value: String, subtitle: String, color: Color, modifier: Modifier = Modifier) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(16.dp),
         modifier = modifier
     ) {

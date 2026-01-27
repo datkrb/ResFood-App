@@ -95,14 +95,14 @@ fun OrderManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126), // Dark bg match dashboard
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker, // Dark bg match dashboard
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isLoading,
@@ -174,7 +174,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
             .fillMaxWidth()
             .padding(16.dp)
             .height(50.dp)
-            .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
+            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -256,7 +256,7 @@ fun DateFilterTabs(selected: String, onSelect: (String) -> Unit) {
 @Composable
 fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.clickable { onClick() }
     ) {

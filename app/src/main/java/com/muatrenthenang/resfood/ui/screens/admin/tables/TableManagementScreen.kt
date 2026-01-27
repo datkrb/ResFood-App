@@ -63,7 +63,7 @@ fun TableManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -80,13 +80,13 @@ fun TableManagementScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             // Tabs
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF1E2126),
+                containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                 contentColor = Color.White,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
@@ -218,7 +218,7 @@ fun TableItem(table: Table, onClick: () -> Unit) {
     }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.aspectRatio(1f).clickable { onClick() }
     ) {
@@ -323,7 +323,7 @@ fun TableEditDialog(
 @Composable
 fun ReservationItem(reservation: Reservation) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth()
     ) {

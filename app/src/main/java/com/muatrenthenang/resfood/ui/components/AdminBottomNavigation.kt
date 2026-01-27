@@ -47,7 +47,7 @@ fun AdminBottomNavigation(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp)
-                .background(Color(0xFF1E2126)) // Dark background
+                .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker) // Dark background
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically

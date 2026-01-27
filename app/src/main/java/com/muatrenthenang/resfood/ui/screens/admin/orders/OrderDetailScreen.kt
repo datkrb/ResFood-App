@@ -50,13 +50,13 @@ fun OrderDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF1E2126),
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
         bottomBar = {
             if (order != null && order.status == "PENDING") {
                 BottomActionBar(
@@ -260,7 +260,7 @@ fun BottomActionBar(onReject: () -> Unit, onApprove: () -> Unit) {
 @Composable
 fun OrderItemRow(name: String, price: String, qty: String, note: String?) {
     Card(
-         colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+         colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
          shape = RoundedCornerShape(12.dp)
     ) {
         Row(

@@ -52,14 +52,14 @@ fun PromotionManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isLoading,

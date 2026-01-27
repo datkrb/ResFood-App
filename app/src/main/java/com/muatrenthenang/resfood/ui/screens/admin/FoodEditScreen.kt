@@ -84,14 +84,18 @@ fun FoodEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditMode) "Cập nhật món ăn" else "Thêm món ăn mới") },
+                title = { Text(if (isEditMode) "Cập nhật món ăn" else "Thêm món ăn mới", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+                )
             )
-        }
+        },
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -105,11 +109,22 @@ fun FoodEditScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                val textFieldColors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                    unfocusedLabelColor = Color.Gray,
+                    focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                )
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Tên món ăn") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = textFieldColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -118,7 +133,8 @@ fun FoodEditScreen(
                     onValueChange = { price = it },
                     label = { Text("Giá (VNĐ)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = textFieldColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -127,7 +143,8 @@ fun FoodEditScreen(
                     onValueChange = { description = it },
                     label = { Text("Mô tả") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
+                    colors = textFieldColors
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -135,13 +152,14 @@ fun FoodEditScreen(
                     value = imageUrl,
                     onValueChange = { imageUrl = it },
                     label = { Text("Link ảnh") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = textFieldColors
                 )
                 
                 // Image Preview
                 if (imageUrl.isNotBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Xem trước ảnh:", style = MaterialTheme.typography.labelMedium)
+                    Text("Xem trước ảnh:", style = MaterialTheme.typography.labelMedium, color = Color.White)
                     Spacer(modifier = Modifier.height(8.dp))
                     coil.compose.AsyncImage(
                         model = imageUrl,
@@ -157,7 +175,7 @@ fun FoodEditScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Đang bán", modifier = Modifier.weight(1f))
+                    Text("Đang bán", modifier = Modifier.weight(1f), color = Color.White)
                     Switch(checked = isAvailable, onCheckedChange = { isAvailable = it })
                 }
                 Spacer(modifier = Modifier.height(24.dp))

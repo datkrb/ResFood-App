@@ -358,7 +358,7 @@ fun FoodItemCard(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 0.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (food.isAvailable) Color(0xFF00C853) else Color(0xFFD32F2F))
+                    .background(if (food.isAvailable) com.muatrenthenang.resfood.ui.theme.SuccessGreen else com.muatrenthenang.resfood.ui.theme.LightRed)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(

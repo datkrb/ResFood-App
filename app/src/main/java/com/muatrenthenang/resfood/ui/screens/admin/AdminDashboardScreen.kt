@@ -137,6 +137,8 @@ fun TopAppBarSection() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker)
+            .padding(bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

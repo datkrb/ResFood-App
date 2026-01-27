@@ -74,13 +74,13 @@ fun CustomerManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
+                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
             )
         },
-        containerColor = Color(0xFF1E2126)
+        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isLoading,
@@ -121,7 +121,7 @@ fun CustomerManagementScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp)
-                        .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
+                        .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
@@ -209,7 +209,7 @@ fun StatCard(modifier: Modifier = Modifier, title: String, value: String, badge:
 fun Chip(text: String, isSelected: Boolean) {
     Box(
         modifier = Modifier
-            .background(if(isSelected) Color.White else Color(0xFF2C3038), RoundedCornerShape(20.dp))
+            .background(if(isSelected) Color.White else com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(20.dp))
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(text, color = if(isSelected) Color.Black else Color.Gray, fontWeight = FontWeight.Medium)

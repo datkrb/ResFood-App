@@ -45,7 +45,7 @@ fun DateRangeSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(8.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -223,10 +223,10 @@ fun OrderStatusPieChart(
 
     val total = data.values.sum().toFloat()
     val colors = listOf(
-        Color(0xFF4CAF50), // Green - Completed
-        Color(0xFFF44336), // Red - Cancelled
-        Color(0xFFFFC107), // Yellow - Pending/Processing
-        Color(0xFF2196F3)  // Blue - Other
+        com.muatrenthenang.resfood.ui.theme.SuccessGreen, // Green - Completed
+        com.muatrenthenang.resfood.ui.theme.LightRed, // Red - Cancelled
+        com.muatrenthenang.resfood.ui.theme.AccentOrange, // Yellow - Pending/Processing
+        com.muatrenthenang.resfood.ui.theme.PrimaryColor  // Blue - Other
     )
     
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
