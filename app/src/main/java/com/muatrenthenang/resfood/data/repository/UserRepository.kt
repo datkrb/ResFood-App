@@ -30,6 +30,22 @@ class UserRepository {
             Result.failure(e)
         }
     }
+    
+    /**
+     * Lấy thông tin user đang đăng nhập
+     */
+    suspend fun getCurrentUser(): Result<User?> {
+        return try {
+            val userId = getCurrentUserId() 
+                ?: return Result.failure(Exception("Chưa đăng nhập"))
+            
+            val doc = usersRef.document(userId).get().await()
+            val user = doc.toObject(User::class.java)
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     // ==================== ADDRESS CRUD OPERATIONS ====================
 

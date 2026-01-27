@@ -1,81 +1,64 @@
 package com.muatrenthenang.resfood.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.muatrenthenang.resfood.data.model.Promotion
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import com.muatrenthenang.resfood.data.model.Promotion
+import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Date
 
 class VoucherViewModel : ViewModel() {
+
+    private val repository = PromotionRepository()
+    private val auth = FirebaseAuth.getInstance()
+    
+    // Expose userId để UI dùng tính số lượng còn lại
+    val currentUserId: String? get() = auth.currentUser?.uid
 
     private val _promotions = MutableStateFlow<List<Promotion>>(emptyList())
     val promotions: StateFlow<List<Promotion>> = _promotions.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     init {
-        loadMockData()
+        loadPromotions()
     }
 
-    private fun loadMockData() {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, 30) // Expires in 30 days
-        val endDate = Timestamp(calendar.time)
+    fun loadPromotions() {
+        val userId = currentUserId
+        if (userId == null) {
+            _error.value = "Bạn cần đăng nhập để xem mã giảm giá"
+            return
+        }
 
-        val mockList = listOf(
-            Promotion(
-                id = "1",
-                name = "Giảm 50k cho đơn từ 200k",
-                code = "GIAM50K",
-                discountType = 1, // Amount
-                discountValue = 50000,
-                minOrderValue = 200000,
-                startDate = Timestamp.now(),
-                endDate = endDate,
-                isActive = true,
-                applyFor = "SHIP"
-            ),
-            Promotion(
-                id = "2",
-                name = "Miễn phí vận chuyển",
-                code = "FREESHIP",
-                discountType = 1,
-                discountValue = 15000,
-                minOrderValue = 0,
-                startDate = Timestamp.now(),
-                endDate = endDate,
-                isActive = true,
-                applyFor = "SHIP"
-            ),
-            Promotion(
-                id = "3",
-                name = "Giảm 20% toàn hệ thống",
-                code = "ALL20",
-                discountType = 0, // Percent
-                discountValue = 20,
-                minOrderValue = 100000,
-                maxDiscountValue = 50000,
-                startDate = Timestamp.now(),
-                endDate = endDate,
-                isActive = true,
-                applyFor = "ALL"
-            ),
-             Promotion(
-                id = "4",
-                name = "Giảm 15% tại quán Coffee House",
-                code = "COFFEE15",
-                discountType = 0, // Percent
-                discountValue = 15,
-                minOrderValue = 50000,
-                maxDiscountValue = 30000,
-                startDate = Timestamp.now(),
-                endDate = endDate,
-                isActive = true,
-                applyFor = "FOOD_ID" 
-            )
-        )
-        _promotions.value = mockList
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            repository.getPromotionsForUser(userId)
+                .onSuccess { promos ->
+                    _promotions.value = promos
+                    Log.d("VoucherViewModel", "Loaded ${promos.size} promotions")
+                }
+                .onFailure { e ->
+                    _error.value = e.message ?: "Lỗi tải mã giảm giá"
+                }
+
+            _isLoading.value = false
+        }
     }
 
+    fun clearError() {
+        _error.value = null
+    }
 }

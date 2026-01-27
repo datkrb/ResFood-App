@@ -10,6 +10,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,6 +51,7 @@ fun UserOrderDetailScreen(
 
     val orders by viewModel.orders.collectAsState()
     val order = orders.find { it.id == orderId }
+    var showCancelDialog by remember { mutableStateOf(false) }
 
     if (order == null) {
         // Loading or not found state
@@ -54,6 +59,31 @@ fun UserOrderDetailScreen(
             CircularProgressIndicator(color = PrimaryColor)
         }
         return
+    }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Xác nhận hủy đơn") },
+            text = { Text("Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.cancelOrder(order.id)
+                        showCancelDialog = false
+                    }
+                ) {
+                    Text("Đồng ý", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Hủy bỏ", color = MaterialTheme.colorScheme.onSurface)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        )
     }
 
     Scaffold(
@@ -90,7 +120,7 @@ fun UserOrderDetailScreen(
             
             if (order.status == "PENDING") {
                  OutlinedButton(
-                    onClick = { viewModel.cancelOrder(order.id) },
+                    onClick = { showCancelDialog = true },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
@@ -242,83 +272,92 @@ fun OrderStatusCard(order: Order) {
 
 @Composable
 fun DeliveryInfoCard(order: Order) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(top = 4.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryColor)
-            )
-            Box(
-                modifier = Modifier
-                    .width(2.dp)
-                    .height(60.dp) // Extended height for more content
-                    .background(PrimaryColor.copy(alpha = 0.5f))
-            )
-             Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .border(2.dp, PrimaryColor, CircleShape)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-             Text(
-                "Nhà hàng",
-                fontSize = 12.sp, 
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
-             )
-             Text(
-                 "ResFood Restaurant",
-                 fontWeight = FontWeight.Bold,
-                 fontSize = 14.sp
-             )
-             Text(
-                 "12 Đường Chùa Bộc, Đống Đa, Hà Nội",
-                 fontSize = 13.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant
-             )
-             
-             Spacer(modifier = Modifier.height(16.dp))
-             
-             Text(
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
                 "Địa chỉ nhận hàng",
-                fontSize = 12.sp, 
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
-             )
-             // User Info row
-             Row(verticalAlignment = Alignment.CenterVertically) {
-                 Text(
-                     if (order.userName.isNotEmpty()) order.userName else "Nguyễn Văn A", // Mock if empty
-                     fontWeight = FontWeight.Bold,
-                     fontSize = 14.sp
-                 )
-                 Text(
-                     " • " + (if (order.userPhone.isNotEmpty()) order.userPhone else "0987654321"), // Mock if empty
-                     fontSize = 14.sp,
-                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                 )
-             }
-             Text(
-                 if (order.address.isNotEmpty()) order.address else "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
-                 fontSize = 13.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                 lineHeight = 18.sp
-             )
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(PrimaryColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = PrimaryColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (order.address.label.isNotEmpty()) order.address.label else "Nhà riêng",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (order.address.getFullAddress().isNotEmpty()) order.address.getFullAddress() else "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+
+            // Contact Info Row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (order.userName.isNotEmpty()) order.userName else "Nguyễn Văn A",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (order.userPhone.isNotEmpty()) order.userPhone else "0987654321",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
-
-
 
 @Composable
 fun OrderItemsList(order: Order) {
@@ -390,7 +429,6 @@ fun OrderItemRow(item: OrderItem) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )
-            // Mock original price slightly higher
              Text(
                 String.format("%,dđ", (item.price * item.quantity * 1.2).toInt()).replace(',', '.'),
                 fontWeight = FontWeight.Normal,
@@ -416,18 +454,51 @@ fun PaymentDetailsCard(order: Order) {
             PaymentRow("Tổng tiền món (${order.items.size} món)", order.subtotal)
             PaymentRow("Phí giao hàng", order.deliveryFee)
             
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Giảm giá", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Surface(color = PrimaryColor.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
-                        Text("VOUCHER", fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
-                    }
-                 }
-                 Text("-${String.format("%,dđ", order.discount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = PrimaryColor)
+            if (order.productDiscount > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Giảm giá món", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
+                     }
+                     Text("-${String.format("%,dđ", order.productDiscount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = SuccessGreen)
+                }
+            }
+
+            if (order.shippingDiscount > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Giảm phí ship", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(imageVector = Icons.Default.LocalShipping, contentDescription = null, tint = Color(0xFF0097A7), modifier = Modifier.size(14.dp))
+                     }
+                     Text("-${String.format("%,dđ", order.shippingDiscount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0097A7))
+                }
+            }
+            
+            // Legacy fall back if individual discounts are 0 but total discount > 0 (for old orders)
+            if (order.productDiscount == 0 && order.shippingDiscount == 0 && order.discount > 0) {
+                 Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Giảm giá", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(color = PrimaryColor.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
+                            Text("VOUCHER", fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                        }
+                     }
+                     Text("-${String.format("%,dđ", order.discount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = PrimaryColor)
+                }
             }
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -477,20 +548,53 @@ fun PaymentMethodCard(order: Order) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Mock Payment Icon (ZaloPay usually blue)
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF0068FF),
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("Zalo\nPay", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                // Determine icon based on payment method
+                when (order.paymentMethod) {
+                    "ZALOPAY" -> {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF0068FF),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("Zalo\nPay", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+                    }
+                    "MOMO" -> {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFA50064),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("Mo\nMo", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+                    }
+                    else -> { // COD or Default
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = SuccessGreen,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.MonetizationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                            }
+                        }
                     }
                 }
+                
                 Spacer(modifier = Modifier.width(12.dp))
+                
                 Column {
                     Text("Phương thức thanh toán", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Ví ZaloPay", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    val methodName = when(order.paymentMethod) {
+                        "ZALOPAY" -> "Ví ZaloPay"
+                        "MOMO" -> "Ví MoMo"
+                        else -> "Tiền mặt khi nhận hàng"
+                    }
+                    Text(methodName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

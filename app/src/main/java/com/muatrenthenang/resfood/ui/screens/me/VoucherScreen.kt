@@ -1,6 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.me
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,26 +11,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Promotion
-import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.viewmodel.VoucherViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -40,7 +33,13 @@ fun VoucherScreen(
     viewModel: VoucherViewModel = viewModel()
 ) {
     val promotions by viewModel.promotions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
     var selectedPromotion by remember { mutableStateOf<Promotion?>(null) }
+    var selectedTab by remember { mutableIntStateOf(0) }
+
+    val discountVouchers = promotions.filter { it.applyFor == "ALL" }
+    val shippingVouchers = promotions.filter { it.applyFor == "SHIP" }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -48,18 +47,86 @@ fun VoucherScreen(
             VoucherTopBar(onBack = onNavigateBack)
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            // List
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(promotions) { promotion ->
-                    VoucherItemCard(promotion = promotion, onClick = { selectedPromotion = promotion })
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Tabs
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    indicator = { tabPositions ->
+                        if (selectedTab < tabPositions.size) {
+                            TabRowDefaults.SecondaryIndicator(
+                                Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("Mã giảm giá", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text("Mã vận chuyển", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                } else if (error != null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = error ?: "Đã có lỗi xảy ra", color = MaterialTheme.colorScheme.error)
+                            Button(onClick = { viewModel.loadPromotions() }) { Text("Thử lại") }
+                        }
+                    }
+                } else {
+                    val currentList = if (selectedTab == 0) discountVouchers else shippingVouchers
+                    
+                    if (currentList.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.ConfirmationNumber,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Bạn chưa có mã nào",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(currentList) { promotion ->
+                                VoucherItemCard(
+                                    promotion = promotion,
+                                    onClick = { selectedPromotion = promotion }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -69,6 +136,104 @@ fun VoucherScreen(
                 promotion = selectedPromotion!!,
                 onDismiss = { selectedPromotion = null }
             )
+        }
+    }
+}
+
+@Composable
+fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
+    val isShip = promotion.applyFor == "SHIP"
+    val cardColor = MaterialTheme.colorScheme.surface
+    val contentColor = MaterialTheme.colorScheme.onSurface
+    
+    // Theme-aware colors
+    val iconContainerColor = if (isShip) 
+        Color(0xFFE3F2FD)
+    else 
+        Color(0xFFFFF7ED)
+        
+    val iconColor = if (isShip)
+        Color(0xFF2196F3)
+    else 
+        Color(0xFFF97316)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max)
+        ) {
+            // Left Side (Icon/Image)
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .fillMaxHeight()
+                    .background(iconContainerColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = if (isShip) Icons.Default.LocalShipping else Icons.Default.ConfirmationNumber,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (isShip) "FREESHIP" else "RESFOOD",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = iconColor
+                    )
+                }
+            }
+
+            // Right Side (Details)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = promotion.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    maxLines = 2,
+                    color = contentColor
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                if (promotion.minOrderValue > 0) {
+                    Text(
+                        text = "Đơn tối thiểu ${formatK(promotion.minOrderValue)}",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "HSD: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(promotion.endDate.toDate())}",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "Chi tiết",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
         }
     }
 }
@@ -88,7 +253,7 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("Mã:", color = Color.Gray)
-                    Text(promotion.code, fontWeight = FontWeight.Bold, color = PrimaryColor)
+                    Text(promotion.code, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -108,7 +273,6 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
                     Text("Áp dụng:", color = Color.Gray)
                     Text(when(promotion.applyFor) {
                         "SHIP" -> "Giao hàng"
-                        "FOOD_ID" -> "Tại quán"
                         else -> "Toàn hệ thống"
                     }, fontWeight = FontWeight.Medium)
                 }
@@ -145,130 +309,37 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
 
 @Composable
 fun VoucherTopBar(onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(
-            onClick = onBack,
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Row(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface, CircleShape)
-                .size(40.dp)
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onSurface
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface, CircleShape)
+                    .size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "Kho Voucher của tôi",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = "Kho Voucher của tôi",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
     }
 }
 
-
-
-@Composable
-fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
-    val (icon, color, label) = when (promotion.applyFor) {
-        "SHIP" -> Triple(Icons.Default.LocalShipping, Color(0xFFF97316), "Giao hàng") // Orange
-        "FOOD_ID" -> Triple(Icons.Default.Restaurant, Color(0xFF10B981), "Tại quán") // Green
-        else -> Triple(Icons.Default.ConfirmationNumber, PrimaryColor, "Toàn hệ thống") // ALL
-    }
-
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 4.dp, // Added shadow
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Left Content
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Icon Box
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = color.copy(alpha = 0.1f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f)),
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = color,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Text Content
-                Column(verticalArrangement = Arrangement.Center) {
-                    // Tag
-                    Surface(
-                        color = color.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(4.dp),
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    ) {
-                        Text(
-                            text = label.uppercase(),
-                            color = color,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                    
-                    Text(
-                        text = promotion.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
-                    Row(
-                        modifier = Modifier.padding(top = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                         Icon(
-                            imageVector = Icons.Default.Schedule,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        val dateStr = dateFormat.format(promotion.endDate.toDate())
-                        Text(
-                            text = "HSD: $dateStr",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-        }
-    }
+private fun formatK(value: Int): String {
+    return if (value >= 1000) "${value/1000}k" else "${value}đ"
 }

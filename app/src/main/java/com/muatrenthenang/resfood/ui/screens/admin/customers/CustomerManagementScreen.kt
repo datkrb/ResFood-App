@@ -54,8 +54,7 @@ fun CustomerManagementScreen(
     // For now assuming 10% are new if no date field easily accessible or verify createdAt
     val newCustomers = customers.filter { 
         // Simple check: Created within last 30 days. 
-        // If createdAt is missing or old type, defaulting to 0 or mock.
-        // Assuming createdAt is Long timestamp
+        // createdAt is Long timestamp
         val diff = System.currentTimeMillis() - it.createdAt
         diff < 30L * 24 * 60 * 60 * 1000
     }.size

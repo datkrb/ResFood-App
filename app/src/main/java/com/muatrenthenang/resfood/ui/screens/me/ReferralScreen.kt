@@ -1,6 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.me
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,8 +13,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +36,7 @@ import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.viewmodel.ReferralViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.ReferralStep
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
@@ -44,8 +48,24 @@ fun ReferralScreen(
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-    val referralCode by viewModel.referralCode.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val inputCode by viewModel.inputCode.collectAsState()
     val referralSteps by viewModel.referralSteps.collectAsState()
+
+    // Show toast for success/error messages
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearSuccessMessage()
+        }
+    }
+    
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -152,7 +172,19 @@ fun ReferralScreen(
                     fontSize = 14.sp
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // === NHẬP MÃ GIỚI THIỆU (chỉ hiện nếu còn trong 24h) ===
+                if (uiState.canEnterCode) {
+                    EnterReferralCodeCard(
+                        inputCode = inputCode,
+                        remainingHours = uiState.remainingHours,
+                        isLoading = uiState.isLoading,
+                        onCodeChange = { viewModel.updateInputCode(it) },
+                        onApply = { viewModel.applyReferralCode() }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
 
                 // Referral Code Card
                 Surface(
@@ -187,7 +219,7 @@ fun ReferralScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = referralCode,
+                                text = uiState.referralCode,
                                 modifier = Modifier
                                     .padding(start = 16.dp)
                                     .weight(1f),
@@ -199,7 +231,7 @@ fun ReferralScreen(
                             )
 
                             Button(
-                                onClick = { /* Copy Logic */ },
+                                onClick = { viewModel.copyReferralCode(context) },
                                 shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
@@ -213,6 +245,17 @@ fun ReferralScreen(
                                 Text("Sao chép", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
+                        
+                        // Số người đã mời
+                        if (uiState.totalReferred > 0) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Bạn đã mời ${uiState.totalReferred} người thành công!",
+                                fontSize = 13.sp,
+                                color = PrimaryColor,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 
@@ -223,7 +266,7 @@ fun ReferralScreen(
                     onClick = {
                         val sendIntent: Intent = Intent().apply {
                             action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, "Tải ngay ResFood và nhập mã $referralCode để nhận voucher 50k! Link: https://resfood.com")
+                            putExtra(Intent.EXTRA_TEXT, "Tải ngay ResFood và nhập mã ${uiState.referralCode} để nhận voucher 50k! Link: https://resfood.com")
                             type = "text/plain"
                         }
                         val shareIntent = Intent.createChooser(sendIntent, null)
@@ -244,6 +287,88 @@ fun ReferralScreen(
 
                 // Steps
                 ReferralSteps(steps = referralSteps)
+            }
+        }
+    }
+}
+
+@Composable
+fun EnterReferralCodeCard(
+    inputCode: String,
+    remainingHours: Int,
+    isLoading: Boolean,
+    onCodeChange: (String) -> Unit,
+    onApply: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryColor.copy(alpha = 0.3f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.CardGiftcard,
+                    contentDescription = null,
+                    tint = PrimaryColor,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Bạn có mã giới thiệu?",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = "Còn $remainingHours giờ để nhập mã",
+                fontSize = 12.sp,
+                color = PrimaryColor
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = inputCode,
+                    onValueChange = onCodeChange,
+                    placeholder = { Text("Nhập mã 10 ký tự") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    enabled = !isLoading
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Button(
+                    onClick = onApply,
+                    enabled = inputCode.length == 10 && !isLoading,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Áp dụng", fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -295,7 +420,7 @@ fun ReferralTopBar(onBack: () -> Unit) {
 }
 
 @Composable
-fun ReferralSteps(steps: List<com.muatrenthenang.resfood.ui.viewmodel.ReferralStep>) {
+fun ReferralSteps(steps: List<ReferralStep>) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
