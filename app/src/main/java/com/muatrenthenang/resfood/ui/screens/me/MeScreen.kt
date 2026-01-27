@@ -57,6 +57,7 @@ fun MeScreen(
     onNavigateToHelpCenter: () -> Unit = {},
     onNavigateToPaymentMethods: () -> Unit = {},
     onNavigateToMembership: () -> Unit = {},
+    onNavigateToSpendingStatistics: () -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
     vm: UserViewModel = viewModel()
@@ -116,6 +117,7 @@ fun MeScreen(
                     onOptionClick = { id ->
                         when (id) {
                             "membership" -> onNavigateToMembership()
+                            "spending_statistics" -> onNavigateToSpendingStatistics()
                             "vouchers" -> onNavigateToVouchers()
                             "addresses" -> onNavigateToAddresses()
                             "help" -> onNavigateToHelpCenter()
@@ -467,6 +469,7 @@ private fun getIconForType(type: UtilityIconType): androidx.compose.ui.graphics.
         UtilityIconType.ADDRESS -> Icons.Default.LocationOn
         UtilityIconType.HELP -> Icons.Default.HelpCenter
         UtilityIconType.PAYMENT -> Icons.Default.Payment
+        UtilityIconType.STATISTICS -> Icons.Default.PieChart
     }
 }
 
@@ -478,6 +481,7 @@ private fun getColorForType(type: UtilityIconType): Color {
         UtilityIconType.ADDRESS -> SuccessGreen
         UtilityIconType.HELP -> Color(0xFF8B5CF6) // Purple
         UtilityIconType.PAYMENT -> Color(0xFFF97316) // Orange
+        UtilityIconType.STATISTICS -> Color(0xFF10B981) // Emerald Green
     }
 }
 

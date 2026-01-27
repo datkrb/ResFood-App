@@ -47,6 +47,7 @@ import com.muatrenthenang.resfood.ui.screens.me.MeScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
 import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
+import com.muatrenthenang.resfood.ui.screens.me.SpendingStatisticsScreen
 import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
 import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
 import androidx.navigation.navArgument
@@ -102,6 +103,9 @@ class MainActivity : ComponentActivity() {
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = { isAdmin ->
+                                    // Refresh user profile after login
+                                    userViewModel.fetchUserProfile()
+                                    
                                     // Khi login thành công -> Chuyển sang Home hoặc Dashboard và xóa Login khỏi lịch sử back
                                     val destination = if (isAdmin) "admin_dashboard" else "home"
                                     navController.navigate(destination) {
@@ -334,6 +338,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 paddingValuesFromParent = innerPadding,
                                 onNavigateToMembership = { navController.navigate("membership") },
+                                onNavigateToSpendingStatistics = { navController.navigate("spending_statistics") },
                                 vm = userViewModel
                             )
                         }
@@ -348,6 +353,12 @@ class MainActivity : ComponentActivity() {
                         // Màn hình Đặt bàn
                         composable("booking_table") {
                             BookingTableScreen(
+                            )
+                        }  
+                        
+                        // Màn hình Thống kê chi tiêu
+                        composable("spending_statistics") {
+                            SpendingStatisticsScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
