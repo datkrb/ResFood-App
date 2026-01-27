@@ -22,6 +22,7 @@ import com.muatrenthenang.resfood.ui.layout.AppLayout
 import com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.ManagementHubScreen
 import com.muatrenthenang.resfood.ui.screens.admin.analytics.AnalyticsScreen
 import com.muatrenthenang.resfood.ui.screens.admin.customers.CustomerManagementScreen
 import com.muatrenthenang.resfood.ui.screens.admin.marketing.PromotionAddScreen
@@ -420,6 +421,24 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // Admin Routes
+                        composable("admin_management") {
+                            ManagementHubScreen(
+                                onNavigateToFoodManagement = { navController.navigate("admin_food_management") },
+                                onNavigateToCategory = { navController.navigate("admin_food_management") }, // Point to Food for now
+                                onNavigateToPromo = { navController.navigate("admin_promotions") },
+                                onNavigateToCustomers = { navController.navigate("admin_customers") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") },
+                                onNavigateToTables = { navController.navigate("admin_tables") },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToSettings = { navController.navigate("admin_settings") }
+                            )
+                        }
+
                         composable("admin_dashboard") {
                             val adminViewModel: AdminViewModel = viewModel()
                             AdminDashboardScreen(
@@ -428,8 +447,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("admin_food_management")
                                 },
                                 onNavigateToMenu = {
-                                    // For now just keep it simple or navigate back to home if "Menu" means User Menu
-                                    navController.navigate("home")
+                                    navController.navigate("admin_management")
                                 },
                                 onNavigateToAnalytics = {
                                     navController.navigate("admin_analytics")
@@ -479,6 +497,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
                                 onNavigateToSettings = { navController.navigate("admin_settings") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
@@ -576,7 +595,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
-                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
                             )
@@ -699,6 +718,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
                                 onNavigateToSettings = { navController.navigate("admin_settings") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
@@ -774,7 +794,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
-                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToSettings = { navController.navigate("admin_settings") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
                             )
@@ -796,7 +816,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
-                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
                             )

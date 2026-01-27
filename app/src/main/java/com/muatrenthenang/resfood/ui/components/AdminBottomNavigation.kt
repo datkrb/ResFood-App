@@ -8,6 +8,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Settings
@@ -56,9 +59,9 @@ fun AdminBottomNavigation(
                 onClick = onHomeClick
             )
             NavIcon(
-                icon = Icons.Default.RestaurantMenu,
-                label = "Menu",
-                isSelected = currentRoute == "admin_food_management",
+                icon = Icons.Default.Apps,
+                label = "Management",
+                isSelected = currentRoute == "admin_management" || currentRoute == "admin_food_management", // Keep sub-routes highlighted if desired, or strictly check
                 onClick = onMenuClick
             )
             Spacer(modifier = Modifier.width(48.dp)) // Space for FAB

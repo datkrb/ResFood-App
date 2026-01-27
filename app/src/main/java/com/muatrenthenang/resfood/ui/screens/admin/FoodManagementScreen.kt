@@ -74,6 +74,7 @@ fun FoodManagementScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String?) -> Unit, // Null for Add, ID for Edit
     onNavigateToHome: () -> Unit,
+    onNavigateToMenu: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToOrders: () -> Unit
@@ -124,7 +125,7 @@ fun FoodManagementScreen(
              AdminBottomNavigation(
                 currentRoute = "admin_food_management",
                 onHomeClick = onNavigateToHome,
-                onMenuClick = { /* Already here */ },
+                onMenuClick = onNavigateToMenu,
                 onAnalyticsClick = onNavigateToAnalytics,
                 onSettingsClick = onNavigateToSettings,
                 onFabClick = onNavigateToOrders
