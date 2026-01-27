@@ -157,7 +157,7 @@ fun OrderDetailScreen(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(order.userName.ifEmpty { "Khách lẻ" }, color = Color.White, fontWeight = FontWeight.Bold)
-                                Text(order.address, color = Color.Gray, fontSize = 12.sp)
+                                Text(order.address.getFullAddress(), color = Color.Gray, fontSize = 12.sp)
                                 if (order.userPhone.isNotEmpty()) {
                                     Row(
                                         modifier = Modifier
