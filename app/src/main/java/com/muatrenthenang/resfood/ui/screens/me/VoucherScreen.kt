@@ -157,14 +157,20 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
     else 
         Color(0xFFF97316)
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
+    // Logic hiển thị badge số lượng
+    val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    val isPrivate = !promotion.isPublic()
+    val quantity = if (isPrivate) promotion.getRemainingQuantity(userId) else 0
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = cardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,6 +242,24 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
             }
         }
     }
+
+    // Badge số lượng (chỉ hiện cho voucher cá nhân từ 1 trở lên)
+    if (isPrivate && quantity > 0) {
+        Surface(
+            color = MaterialTheme.colorScheme.error,
+            shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Text(
+                text = "x$quantity",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            )
+        }
+    }
+}
 }
 
 @Composable
