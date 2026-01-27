@@ -15,6 +15,8 @@ import com.muatrenthenang.resfood.data.repository.AuthRepository
 import com.muatrenthenang.resfood.data.repository.CheckoutRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
+import com.muatrenthenang.resfood.data.model.Promotion
+import com.muatrenthenang.resfood.data.repository.PromotionRepository
 
 enum class PaymentMethod { ZALOPAY, MOMO, COD }
 
@@ -24,6 +26,8 @@ class CheckoutViewModel(
     private val _orderRepository: OrderRepository = OrderRepository(),
     private val _authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
+    private val _promotionRepository: PromotionRepository = PromotionRepository()
+
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
 
@@ -44,12 +48,15 @@ class CheckoutViewModel(
     private val _paymentMethod = MutableStateFlow(PaymentMethod.COD)
     val paymentMethod = _paymentMethod.asStateFlow()
 
-    private val _promoInput = MutableStateFlow("")
-    val promoInput = _promoInput.asStateFlow()
+    // --- VOUCHER STATES ---
+    private val _availablePromotions = MutableStateFlow<List<Promotion>>(emptyList())
+    val availablePromotions = _availablePromotions.asStateFlow()
 
-    // Applied promo code
-    private val _appliedPromo = MutableStateFlow<String?>(null)
-    val appliedPromo = _appliedPromo.asStateFlow()
+    private val _selectedProductVoucher = MutableStateFlow<Promotion?>(null)
+    val selectedProductVoucher = _selectedProductVoucher.asStateFlow()
+
+    private val _selectedShippingVoucher = MutableStateFlow<Promotion?>(null)
+    val selectedShippingVoucher = _selectedShippingVoucher.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -62,6 +69,26 @@ class CheckoutViewModel(
     init {
         loadSelectedCartItems()
         loadDefaultAddress()
+        loadPromotions()
+    }
+
+    /**
+     * Load promotions user can use
+     */
+    fun loadPromotions() {
+        viewModelScope.launch {
+            val userId = _authRepository.getCurrentUserId() ?: return@launch
+            val result = _promotionRepository.getPromotionsForUser(userId)
+            _availablePromotions.value = result.getOrNull() ?: emptyList()
+        }
+    }
+
+    /**
+     * Set selected vouchers
+     */
+    fun setVouchers(productVoucher: Promotion?, shippingVoucher: Promotion?) {
+        _selectedProductVoucher.value = productVoucher
+        _selectedShippingVoucher.value = shippingVoucher
     }
 
     /**
@@ -138,30 +165,67 @@ class CheckoutViewModel(
     }
 
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
-    fun setPromoInput(s: String) { _promoInput.value = s }
     fun setAddress(a: Address) { _address.value = a }
 
     fun subTotal(): Long = _items.value.sumOf { it.food.price.toLong() * it.quantity }
-    fun discount(): Long = if (_appliedPromo.value?.trim()?.uppercase() == "NNDAI") 10000L else 0L
-    fun total(): Long = subTotal() + _shippingFee - discount()
 
-    fun applyPromo() {
-        viewModelScope.launch {
-            val code = _promoInput.value.trim().uppercase()
-            if (code.isEmpty()) {
-                _actionResult.value = "Vui lòng nhập mã"
-                return@launch
-            }
+    // Tính toán discount từ Product Voucher
+    fun productDiscount(): Long {
+        val voucher = _selectedProductVoucher.value ?: return 0L
+        val subtotal = subTotal()
 
-            if (code == "NNDAI") {
-                _appliedPromo.value = code
-                _actionResult.value = "Mã khuyến mãi đã được áp dụng"
+        if (subtotal < voucher.minOrderValue) return 0L
+
+        var discount = if (voucher.discountType == 1) { // Amount
+            voucher.discountValue.toLong()
+        } else { // Percent check (assuming 0 is percent)
+            // Logic percent here if supported, current logic mainly supports amount based on previous code
+            // Assuming discountValue is percent if type 0? Or maybe fixed amount only for now?
+            // Existing model says: discountType: Int = 0, // 0: %, 1: Amount
+            if (voucher.discountType == 0) {
+                (subtotal * voucher.discountValue) / 100
             } else {
-                _appliedPromo.value = null
-                _actionResult.value = "Mã không hợp lệ"
+                voucher.discountValue.toLong()
             }
         }
+        
+        // Cap at max discount if set
+        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
+            discount = voucher.maxDiscountValue.toLong()
+        }
+
+        return discount
     }
+
+    // Tính toán discount từ Shipping Voucher
+    fun shippingDiscount(): Long {
+        val voucher = _selectedShippingVoucher.value ?: return 0L
+        val subtotal = subTotal()
+        
+        if (subtotal < voucher.minOrderValue) return 0L
+
+        var discount = if (voucher.discountType == 1) {
+             voucher.discountValue.toLong()
+        } else {
+            // Percent of shipping fee
+             if (voucher.discountType == 0) {
+                (_shippingFee * voucher.discountValue) / 100
+            } else {
+                voucher.discountValue.toLong()
+            }
+        }
+        
+        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
+            discount = voucher.maxDiscountValue.toLong()
+        }
+        
+        // Cannot exceed shipping fee
+        return minOf(discount, _shippingFee)
+    }
+
+    fun totalDiscount(): Long = productDiscount() + shippingDiscount()
+
+    fun total(): Long = maxOf(0L, subTotal() + _shippingFee - totalDiscount())
 
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
@@ -200,7 +264,7 @@ class CheckoutViewModel(
                     )
                 }
 
-                // Create Order object
+                // Create Order object with Vouchers
                 val order = Order(
                     id = "",
                     userId = userId,
@@ -209,7 +273,7 @@ class CheckoutViewModel(
                     address = currentAddress.getFullAddress(),
                     items = orderItems,
                     subtotal = subTotal().toInt(),
-                    discount = discount().toInt(),
+                    discount = totalDiscount().toInt(),
                     deliveryFee = _shippingFee.toInt(),
                     total = total().toInt(),
                     status = "PENDING",
@@ -218,13 +282,29 @@ class CheckoutViewModel(
                         PaymentMethod.MOMO -> "MOMO"
                         PaymentMethod.ZALOPAY -> "ZALOPAY"
                     },
-                    createdAt = Timestamp.now()
+                    createdAt = Timestamp.now(),
+                    
+                    // Voucher info
+                    productVoucherCode = _selectedProductVoucher.value?.code,
+                    productVoucherId = _selectedProductVoucher.value?.id,
+                    shippingVoucherCode = _selectedShippingVoucher.value?.code,
+                    shippingVoucherId = _selectedShippingVoucher.value?.id,
+                    productDiscount = productDiscount().toInt(),
+                    shippingDiscount = shippingDiscount().toInt()
                 )
 
                 // Save order to Firebase
                 val result = _orderRepository.createOrder(order)
                 
                 if (result.isSuccess) {
+                    // Use vouchers (deduct quantity)
+                    _selectedProductVoucher.value?.let { 
+                        _promotionRepository.useVoucher(it.id, userId)
+                    }
+                    _selectedShippingVoucher.value?.let {
+                        _promotionRepository.useVoucher(it.id, userId)
+                    }
+
                     // Remove selected items from cart
                     _repository.removeSelectedItems()
                     _actionResult.value = "Đặt hàng thành công"

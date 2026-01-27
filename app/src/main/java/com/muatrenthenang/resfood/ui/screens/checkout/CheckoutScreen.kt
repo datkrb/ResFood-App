@@ -56,15 +56,36 @@ fun CheckoutScreen(
     val address by vm.address.collectAsState()
     val items by vm.items.collectAsState()
     val paymentMethod by vm.paymentMethod.collectAsState()
-    val promo by vm.promoInput.collectAsState()
-    val appliedPromo by vm.appliedPromo.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val result by vm.actionResult.collectAsState()
 
     // Compute totals from collected state so UI reacts immediately
-    val subtotalValue = items.sumOf { it.food.price.toLong() * it.quantity }
-    val discountValue = if (appliedPromo?.trim()?.uppercase() == "NNDAI") 10000L else 0L
-    val totalValue = subtotalValue + 15000L - discountValue
+    // State to toggle Voucher Selection Screen
+    var showVoucherSelection by remember { mutableStateOf(false) }
+
+    val availablePromotions by vm.availablePromotions.collectAsState()
+    val productVoucher by vm.selectedProductVoucher.collectAsState()
+    val shippingVoucher by vm.selectedShippingVoucher.collectAsState()
+
+    // Calculated values
+    val subTotal = vm.subTotal()
+    val productDiscount = vm.productDiscount()
+    val shippingDiscount = vm.shippingDiscount()
+    val total = vm.total()
+
+    if (showVoucherSelection) {
+        VoucherSelectionScreen(
+            currentProductVoucher = productVoucher,
+            currentShippingVoucher = shippingVoucher,
+            promotions = availablePromotions,
+            onApplyVouchers = { pV, sV ->
+                vm.setVouchers(pV, sV)
+                showVoucherSelection = false
+            },
+            onNavigateBack = { showVoucherSelection = false }
+        )
+        return
+    }
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -117,7 +138,7 @@ fun CheckoutScreen(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text(text = "Tổng thanh toán", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
-                            Text(text = vm.formatCurrency(totalValue), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(text = vm.formatCurrency(total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Button(
                             onClick = { vm.confirmPayment() },
@@ -237,52 +258,79 @@ fun CheckoutScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = vm.formatCurrency(subtotalValue), fontWeight = FontWeight.Medium)
+                                Text(text = vm.formatCurrency(subTotal), fontWeight = FontWeight.Medium)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = vm.formatCurrency(15000L), fontWeight = FontWeight.Medium)
                             }
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "Giảm giá", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                    Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(16.dp))
+                            
+                            if (productDiscount > 0) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(text = "Giảm giá món", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
+                                    }
+                                    Text(text = "-${vm.formatCurrency(productDiscount)}", color = SuccessGreen, fontWeight = FontWeight.Medium)
                                 }
-                                Text(text = if (discountValue > 0) "-" + vm.formatCurrency(discountValue) else vm.formatCurrency(0), color = if (discountValue>0) SuccessGreen else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                             }
+
+                            if (shippingDiscount > 0) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(text = "Giảm phí ship", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(imageVector = Icons.Default.LocalShipping, contentDescription = null, tint = Color(0xFF0097A7), modifier = Modifier.size(14.dp))
+                                    }
+                                    Text(text = "-${vm.formatCurrency(shippingDiscount)}", color = Color(0xFF0097A7), fontWeight = FontWeight.Medium)
+                                }
+                            }
+
                             Divider()
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
-                                Text(text = vm.formatCurrency(totalValue), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
+                                Text(text = vm.formatCurrency(total), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
                             }
                         }
                     }
                 }
             }
 
-            // Promo (match CartScreen exactly)
+            // Voucher Selection Section
             Column(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = promo,
-                    onValueChange = { vm.setPromoInput(it) },
-                    placeholder = { Text("Nhập mã khuyến mãi", color = Color.Gray) },
-                    leadingIcon = { Icon(imageVector = Icons.Filled.ConfirmationNumber, contentDescription = null, tint = Color.Gray) },
-                    trailingIcon = {
-                        TextButton(onClick = { vm.applyPromo() }) {
-                            Text(text = "Áp dụng", color = PrimaryColor, fontWeight = FontWeight.Medium)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
+                Surface(
+                    onClick = { showVoucherSelection = true },
                     shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.outline,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                    )
-                )
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.5f)),
+                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.ConfirmationNumber, contentDescription = null, tint = PrimaryColor)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("ResFood Voucher", fontWeight = FontWeight.Medium)
+                        }
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            val count = (if (productVoucher != null) 1 else 0) + (if (shippingVoucher != null) 1 else 0)
+                            if (count > 0) {
+                                Text("Đã chọn $count", color = PrimaryColor, fontWeight = FontWeight.Bold)
+                            } else {
+                                Text("Chọn hoặc nhập mã", color = Color.Gray, fontSize = 12.sp)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
             }
 
             // Payment methods
