@@ -42,8 +42,17 @@ import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
+import com.muatrenthenang.resfood.ui.screens.me.MeScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
+import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
+import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
+import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
+import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
+import androidx.navigation.navArgument
 import com.muatrenthenang.resfood.ui.screens.address.AddressListScreen
 import com.muatrenthenang.resfood.ui.screens.address.AddressEditScreen
+import com.muatrenthenang.resfood.ui.screens.address.MapPickerScreen
+import androidx.compose.ui.platform.LocalContext
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
@@ -203,16 +212,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("address_add") {
+                    composable("address_add") { backStackEntry ->
                         val addressViewModel: AddressViewModel = viewModel()
                         AddressEditScreen(
                             addressId = null,
                             onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
                             onSaveSuccess = { 
-                                // Reload will happen in addresses composable via LaunchedEffect
                                 navController.popBackStack() 
                             },
-                            vm = addressViewModel
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
                         )
                     }
 
@@ -225,11 +238,49 @@ class MainActivity : ComponentActivity() {
                         AddressEditScreen(
                             addressId = addressId,
                             onNavigateBack = { navController.popBackStack() },
+                            onNavigateToMap = { lat, lng -> 
+                                val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                navController.navigate(route) 
+                            },
                             onSaveSuccess = { 
-                                // Reload will happen in addresses composable via LaunchedEffect
                                 navController.popBackStack() 
                             },
-                            vm = addressViewModel
+                            vm = addressViewModel,
+                            savedStateHandle = backStackEntry.savedStateHandle
+                        )
+                    }
+
+                    composable(
+                        route = "map_picker?lat={lat}&lng={lng}",
+                        arguments = listOf(
+                            navArgument("lat") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            },
+                            navArgument("lng") { 
+                                type = NavType.StringType 
+                                nullable = true
+                                defaultValue = null
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val latStr = backStackEntry.arguments?.getString("lat")
+                        val lngStr = backStackEntry.arguments?.getString("lng")
+                        val lat = latStr?.toDoubleOrNull()
+                        val lng = lngStr?.toDoubleOrNull()
+
+                        MapPickerScreen(
+                            initialLat = lat,
+                            initialLng = lng,
+                            onNavigateBack = { navController.popBackStack() },
+                            onLocationPicked = { pickedLat, pickedLng ->
+                                navController.previousBackStackEntry?.savedStateHandle?.apply {
+                                    set("picked_lat", pickedLat)
+                                    set("picked_lng", pickedLng)
+                                }
+                                navController.popBackStack()
+                            }
                         )
                     }
 
@@ -244,6 +295,74 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // Màn hình Tôi (Me)
+                        composable("me") {
+                            MeScreen(
+                                onNavigateToSettings = { navController.navigate("settings") },
+                                onNavigateToNotifications = { /* TODO: Notification Screen */ },
+                                onNavigateToEditProfile = { navController.navigate("profile_details") },
+                                onNavigateToOrders = { status ->
+                                    navController.navigate("orders/$status")
+                                },
+
+                                onNavigateToReferral = { navController.navigate("referral") },
+                                onNavigateToVouchers = { navController.navigate("vouchers") },
+                                onNavigateToAddresses = { navController.navigate("profile_addresses") },
+                                onNavigateToHelpCenter = { /* TODO: Help Center */ },
+                                onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
+                                onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        // Referral Routes
+                        composable("referral") {
+                            ReferralScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToHistory = { navController.navigate("referral_history") }
+                            )
+                        }
+                        
+                        composable("referral_history") {
+                            ReferralHistoryScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("vouchers") {
+                            VoucherScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(
+                            route = "orders/{status}",
+                            arguments = listOf(navArgument("status") { defaultValue = "all" })
+                        ) { backStackEntry ->
+                            val status = backStackEntry.arguments?.getString("status") ?: "all"
+                            OrderListScreen(
+                                status = status,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") }
+                            )
+                        }
+
+                        composable(
+                            route = "order_detail/{orderId}",
+                            arguments = listOf(navArgument("orderId") { defaultValue = "" })
+                        ) { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            UserOrderDetailScreen(
+                                orderId = orderId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+
+
                         // Trang Setting
                         composable("settings") {
                             SettingScreen(
@@ -255,7 +374,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToProfile = {
-                                    navController.navigate("account_center")
+                                    // Từ Settings xem Profile (giống MeScreen nhưng có thể khác ngữ cảnh)
+                                    navController.navigate("me") {
+                                        popUpTo("home")
+                                    }
                                 },
                                 paddingValuesFromParent = innerPadding,
                                 userViewModel = userViewModel

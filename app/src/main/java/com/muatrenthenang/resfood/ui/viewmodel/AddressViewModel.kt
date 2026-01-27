@@ -185,5 +185,141 @@ class AddressViewModel(
     fun clearResult() {
         _actionResult.value = null
     }
+
+    // ==================== FORM STATE MANAGEMENT ====================
+
+    /**
+     * State cho form chỉnh sửa địa chỉ
+     */
+    data class AddressFormState(
+        val id: String = "",
+        val label: String = "Nhà riêng",
+        val addressLine: String = "",
+        val ward: String = "",
+        val district: String = "",
+        val city: String = "",
+        val contactName: String = "",
+        val phone: String = "",
+        val isDefault: Boolean = false,
+        val latitude: Double? = null,
+        val longitude: Double? = null,
+        val isLoaded: Boolean = false
+    )
+
+    private val _formState = MutableStateFlow(AddressFormState())
+    val formState = _formState.asStateFlow()
+
+    /**
+     * Khởi tạo form cho chế độ thêm mới
+     */
+    fun initNewAddressForm() {
+        _formState.value = AddressFormState(isLoaded = true)
+    }
+
+    /**
+     * Load địa chỉ để chỉnh sửa vào form
+     */
+    fun loadAddressForEdit(addressId: String) {
+        viewModelScope.launch {
+            // Thử lấy từ cache trước
+            var address = getAddressById(addressId)
+            
+            // Nếu không có trong cache, reload và thử lại
+            if (address == null) {
+                loadAddresses()
+                kotlinx.coroutines.delay(500)
+                address = getAddressById(addressId)
+            }
+            
+            address?.let { addr ->
+                _formState.value = AddressFormState(
+                    id = addr.id,
+                    label = addr.label,
+                    addressLine = addr.addressLine,
+                    ward = addr.ward,
+                    district = addr.district,
+                    city = addr.city,
+                    contactName = addr.contactName,
+                    phone = addr.phone,
+                    isDefault = addr.isDefault,
+                    latitude = addr.latitude,
+                    longitude = addr.longitude,
+                    isLoaded = true
+                )
+            }
+        }
+    }
+
+    /**
+     * Cập nhật từng field trong form
+     */
+    fun updateFormField(
+        label: String? = null,
+        addressLine: String? = null,
+        ward: String? = null,
+        district: String? = null,
+        city: String? = null,
+        contactName: String? = null,
+        phone: String? = null,
+        isDefault: Boolean? = null,
+        latitude: Double? = null,
+        longitude: Double? = null
+    ) {
+        _formState.value = _formState.value.copy(
+            label = label ?: _formState.value.label,
+            addressLine = addressLine ?: _formState.value.addressLine,
+            ward = ward ?: _formState.value.ward,
+            district = district ?: _formState.value.district,
+            city = city ?: _formState.value.city,
+            contactName = contactName ?: _formState.value.contactName,
+            phone = phone ?: _formState.value.phone,
+            isDefault = isDefault ?: _formState.value.isDefault,
+            latitude = latitude ?: _formState.value.latitude,
+            longitude = longitude ?: _formState.value.longitude
+        )
+    }
+
+    /**
+     * Cập nhật tọa độ từ map picker
+     */
+    fun updateLocation(lat: Double, lng: Double) {
+        _formState.value = _formState.value.copy(
+            latitude = lat,
+            longitude = lng
+        )
+    }
+
+    /**
+     * Lưu địa chỉ từ form (thêm mới hoặc cập nhật)
+     */
+    fun saveAddressFromForm() {
+        val form = _formState.value
+        val address = Address(
+            id = form.id,
+            label = form.label,
+            addressLine = form.addressLine.trim(),
+            ward = form.ward.trim(),
+            district = form.district.trim(),
+            city = form.city.trim(),
+            contactName = form.contactName.trim(),
+            phone = form.phone.trim(),
+            isDefault = form.isDefault,
+            latitude = form.latitude,
+            longitude = form.longitude
+        )
+
+        if (form.id.isBlank()) {
+            addAddress(address)
+        } else {
+            updateAddress(address)
+        }
+    }
+
+    /**
+     * Reset form state
+     */
+    fun resetFormState() {
+        _formState.value = AddressFormState()
+    }
 }
 

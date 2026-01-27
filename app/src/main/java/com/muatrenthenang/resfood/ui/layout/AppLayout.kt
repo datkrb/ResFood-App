@@ -17,14 +17,14 @@ fun AppLayout(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
     // Bạn có thể giữ dòng này hoặc xóa đi nếu bottom bar luôn hiển thị trên các màn hình này
-    val showBottom = currentRoute in listOf("home", "cart", "favorites", "settings")
+    // Bạn có thể giữ dòng này hoặc xóa đi nếu bottom bar luôn hiển thị trên các màn hình này
+    val showBottom = currentRoute in listOf("home", "cart", "favorites", "me")
 
     Scaffold(
         bottomBar = {
             if (showBottom) {
                 NavigationBottom(
                     currentRoute = currentRoute,
-                    // --- BẮT ĐẦU THAY ĐỔI ---
                     onNavigateToHome = {
                         navController.navigate("home") {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -52,8 +52,8 @@ fun AppLayout(
                             restoreState = true
                         }
                     },
-                    onNavigateToSettings = {
-                        navController.navigate("settings") {
+                    onNavigateToMe = {
+                        navController.navigate("me") {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
@@ -61,7 +61,6 @@ fun AppLayout(
                             restoreState = true
                         }
                     }
-                    // --- KẾT THÚC THAY ĐỔI ---
                 )
             }
         }
