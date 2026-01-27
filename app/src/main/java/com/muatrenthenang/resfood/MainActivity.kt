@@ -330,7 +330,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 paddingValuesFromParent = innerPadding,
-                                userViewModel = userViewModel
+                                vm = userViewModel
                             )
                         }
 
