@@ -40,6 +40,8 @@ fun VoucherScreen(
     viewModel: VoucherViewModel = viewModel()
 ) {
     val promotions by viewModel.promotions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
     var selectedPromotion by remember { mutableStateOf<Promotion?>(null) }
 
     Scaffold(
@@ -48,18 +50,64 @@ fun VoucherScreen(
             VoucherTopBar(onBack = onNavigateBack)
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            // List
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(promotions) { promotion ->
-                    VoucherItemCard(promotion = promotion, onClick = { selectedPromotion = promotion })
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = PrimaryColor
+                    )
+                }
+                error != null -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = error ?: "Đã có lỗi xảy ra",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(onClick = { viewModel.loadPromotions() }) {
+                            Text("Thử lại")
+                        }
+                    }
+                }
+                promotions.isEmpty() -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ConfirmationNumber,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Bạn chưa có mã giảm giá nào",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(promotions) { promotion ->
+                            VoucherItemCard(
+                                promotion = promotion,
+                                userId = viewModel.currentUserId ?: "",
+                                onClick = { selectedPromotion = promotion }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -177,12 +225,15 @@ fun VoucherTopBar(onBack: () -> Unit) {
 
 
 @Composable
-fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
+fun VoucherItemCard(promotion: Promotion, userId: String, onClick: () -> Unit) {
     val (icon, color, label) = when (promotion.applyFor) {
         "SHIP" -> Triple(Icons.Default.LocalShipping, Color(0xFFF97316), "Giao hàng") // Orange
         "FOOD_ID" -> Triple(Icons.Default.Restaurant, Color(0xFF10B981), "Tại quán") // Green
         else -> Triple(Icons.Default.ConfirmationNumber, PrimaryColor, "Toàn hệ thống") // ALL
     }
+    
+    // Tính số lượng còn lại
+    val remainingQty = promotion.getRemainingQuantity(userId)
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -265,6 +316,23 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        
+                        // Hiển thị số lượng còn lại nếu có giới hạn
+                        if (remainingQty > 0) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Surface(
+                                color = PrimaryColor.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "x$remainingQty",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryColor,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -1,14 +1,21 @@
 package com.muatrenthenang.resfood.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel cho màn hình "Tôi" (Me/Profile Screen)
  */
 class MeViewModel : ViewModel() {
+
+    private val promotionRepository = PromotionRepository()
+    private val auth = FirebaseAuth.getInstance()
 
     // User profile state
     private val _userProfile = MutableStateFlow(MeUserProfile())
@@ -19,7 +26,7 @@ class MeViewModel : ViewModel() {
     val orderCounts: StateFlow<MeOrderCounts> = _orderCounts.asStateFlow()
 
     // Available vouchers count
-    private val _voucherCount = MutableStateFlow(3)
+    private val _voucherCount = MutableStateFlow(0)
     val voucherCount: StateFlow<Int> = _voucherCount.asStateFlow()
 
     // Referral Promo content
@@ -38,6 +45,7 @@ class MeViewModel : ViewModel() {
 
     init {
         loadMockData()
+        loadVoucherCount()
     }
 
     private fun loadMockData() {
@@ -57,9 +65,25 @@ class MeViewModel : ViewModel() {
             toReview = 0
         )
 
-        // Mock Utility Menu
-        // Note: In a real app we might update "subtitle" for vouchers dynamically
-        updateUtilityMenu(voucherCount = 3)
+        // Initial utility menu with 0 vouchers (will be updated after loadVoucherCount)
+        updateUtilityMenu(voucherCount = 0)
+    }
+    
+    /**
+     * Load số lượng voucher thật từ Firestore
+     */
+    private fun loadVoucherCount() {
+        val userId = auth.currentUser?.uid ?: return
+        
+        viewModelScope.launch {
+            promotionRepository.getPromotionsForUser(userId)
+                .onSuccess { promos ->
+                    updateUtilityMenu(voucherCount = promos.size)
+                }
+                .onFailure {
+                    // Giữ giá trị 0 nếu lỗi
+                }
+        }
     }
 
     private fun updateUtilityMenu(voucherCount: Int) {
@@ -67,7 +91,7 @@ class MeViewModel : ViewModel() {
             UtilityMenuOption(
                 id = "vouchers",
                 title = "Mã giảm giá của tôi",
-                subtitle = "Bạn có $voucherCount mã khả dụng",
+                subtitle = if (voucherCount > 0) "Bạn có $voucherCount mã khả dụng" else "Chưa có mã nào",
                 iconType = UtilityIconType.VOUCHER
             ),
             UtilityMenuOption(
