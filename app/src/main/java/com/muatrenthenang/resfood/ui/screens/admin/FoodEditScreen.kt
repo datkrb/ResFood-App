@@ -40,6 +40,11 @@ import androidx.compose.ui.unit.dp
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.repository.FoodRepository
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,6 +137,23 @@ fun FoodEditScreen(
                     label = { Text("Link ảnh") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                // Image Preview
+                if (imageUrl.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Xem trước ảnh:", style = MaterialTheme.typography.labelMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    coil.compose.AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "Preview",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Gray),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -150,7 +172,20 @@ fun FoodEditScreen(
                         scope.launch {
                             isSaving = true
                             error = null
-                            val priceInt = price.toIntOrNull() ?: 0
+                            
+                            // Validation
+                            if (name.isBlank()) {
+                                error = "Tên món ăn không được để trống"
+                                isSaving = false
+                                return@launch
+                            }
+                            
+                            val priceInt = price.toIntOrNull()
+                            if (priceInt == null || priceInt <= 0) {
+                                error = "Giá phải là số lớn hơn 0"
+                                isSaving = false
+                                return@launch
+                            }
                             val food = Food(
                                 id = foodId ?: "",
                                 name = name,

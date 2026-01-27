@@ -116,7 +116,7 @@ fun AdminDashboardScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker),
                 contentPadding = PaddingValues(bottom = 20.dp)
             ) {
                 item { TopAppBarSection() }
@@ -200,7 +200,8 @@ fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) 
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(48.dp)
-            .background(Color(0xFFE0E0E0), RoundedCornerShape(24.dp))
+            .height(48.dp)
+            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -248,7 +249,7 @@ fun StatsHeroSection(
                 .weight(1f)
                 .height(140.dp)
                 .clickable { onNavigateToAnalytics() },
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
@@ -513,7 +514,7 @@ fun OperationsStatusSection(
 fun OperationCard(modifier: Modifier = Modifier, icon: ImageVector, color: Color, title: String, subtitle: String) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -571,7 +572,7 @@ fun RecentActivitySection(activities: List<ActivityItem>) {
 @Composable
 fun ActivityItemRow(item: ActivityItem) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(

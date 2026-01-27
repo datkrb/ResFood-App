@@ -189,7 +189,7 @@ fun CustomerManagementScreen(
 fun StatCard(modifier: Modifier = Modifier, title: String, value: String, badge: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -220,7 +220,7 @@ fun Chip(text: String, isSelected: Boolean) {
 @Composable
 fun CustomerItem(customer: User) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(30.dp) // High rounded corners as per mock
     ) {
         Row(

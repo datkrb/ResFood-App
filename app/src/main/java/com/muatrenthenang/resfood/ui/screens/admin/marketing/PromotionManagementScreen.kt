@@ -87,7 +87,7 @@ fun PromotionManagementScreen(
 @Composable
 fun PromotionItem(promo: Promotion) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(

@@ -4,6 +4,7 @@ import com.muatrenthenang.resfood.data.model.Order
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +29,12 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.ui.theme.SurfaceCard
+import com.muatrenthenang.resfood.ui.theme.AccentOrange
+import com.muatrenthenang.resfood.ui.theme.SuccessGreen
+import com.muatrenthenang.resfood.ui.theme.LightRed
+import androidx.compose.foundation.border
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,23 +47,37 @@ fun OrderManagementScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
     var selectedFilter by remember { mutableStateOf("Tất cả") }
+    var selectedDateFilter by remember { mutableStateOf("Tất cả") }
     var searchQuery by remember { mutableStateOf("") }
     
     // Filter Logic
     val filteredOrders = orders.filter { order ->
-        val matchesFilter = when(selectedFilter) {
+        val matchesStatus = when(selectedFilter) {
              "Tất cả" -> true
              "Mới" -> order.status == "PENDING"
              "Chờ duyệt" -> order.status == "PROCESSING"
-             "Đang giao" -> order.status == "DELIVERING" // Assumed status
+             "Đang giao" -> order.status == "DELIVERING"
              else -> true
         }
+        
+        val matchesDate = when(selectedDateFilter) {
+            "Hôm nay" -> {
+                val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
+                diff < 24 * 60 * 60 * 1000
+            }
+            "Tuần này" -> {
+                val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
+                diff < 7 * 24 * 60 * 60 * 1000
+            }
+            else -> true
+        }
+
         val matchesSearch = if(searchQuery.isBlank()) true else {
             order.id.contains(searchQuery, ignoreCase = true) ||
             order.userName.contains(searchQuery, ignoreCase = true) ||
             order.userPhone.contains(searchQuery)
         }
-        matchesFilter && matchesSearch
+        matchesStatus && matchesDate && matchesSearch
     }.sortedByDescending { it.createdAt }
 
     Scaffold(
@@ -100,7 +121,10 @@ fun OrderManagementScreen(
             )
             
             // Filters
-            FilterTabs(selectedFilter) { selectedFilter = it }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterTabs(selectedFilter) { selectedFilter = it }
+                DateFilterTabs(selectedDateFilter) { selectedDateFilter = it }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -185,8 +209,8 @@ fun FilterTabs(selected: String, onSelect: (String) -> Unit) {
     ) {
         filters.forEach { filter ->
             val isSelected = filter == selected
-            val bgColor = if (isSelected) Color(0xFF2196F3) else Color(0xFF2C3038)
-            val textColor = if (isSelected) Color.White else Color.Gray
+            val bgColor = if (isSelected) PrimaryColor else SurfaceCard
+            val textColor = if (isSelected) Color.White else Color.Gray // TextDark/Light logic could be applied but white/gray is safe on dark
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -195,6 +219,35 @@ fun FilterTabs(selected: String, onSelect: (String) -> Unit) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(filter, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable
+fun DateFilterTabs(selected: String, onSelect: (String) -> Unit) {
+    val filters = listOf("Tất cả", "Hôm nay", "Tuần này")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        filters.forEach { filter ->
+            val isSelected = filter == selected
+            val bgColor = if (isSelected) SurfaceCard.copy(alpha=0.5f) else Color.Transparent
+            val borderColor = if (isSelected) PrimaryColor else Color.Gray
+            val textColor = if (isSelected) PrimaryColor else Color.Gray
+            
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(bgColor)
+                    .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+                    .clickable { onSelect(filter) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(filter, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -230,11 +283,11 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                 
                 // Status Badge
                 val (badgeBg, badgeText) = when(order.status) {
-                    "PENDING" -> Color(0xFF2196F3).copy(alpha = 0.2f) to Color(0xFF2196F3)
-                    "PROCESSING" -> Color(0xFFFF9800).copy(alpha = 0.2f) to Color(0xFFFF9800)
-                    "COMPLETED" -> Color(0xFF4CAF50).copy(alpha = 0.2f) to Color(0xFF4CAF50)
-                    "REJECTED", "CANCELLED" -> Color(0xFFF44336).copy(alpha = 0.2f) to Color(0xFFF44336)
-                    else -> Color(0xFF4CAF50).copy(alpha = 0.2f) to Color(0xFF4CAF50)
+                    "PENDING" -> PrimaryColor.copy(alpha = 0.2f) to PrimaryColor
+                    "PROCESSING" -> AccentOrange.copy(alpha = 0.2f) to AccentOrange
+                    "COMPLETED" -> SuccessGreen.copy(alpha = 0.2f) to SuccessGreen
+                    "REJECTED", "CANCELLED" -> LightRed.copy(alpha = 0.2f) to LightRed
+                    else -> SuccessGreen.copy(alpha = 0.2f) to SuccessGreen
                 }
                 
                 Box(
