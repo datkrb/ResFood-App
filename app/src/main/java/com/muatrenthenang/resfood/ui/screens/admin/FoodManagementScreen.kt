@@ -55,10 +55,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
-import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodFilter
+import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodStatus
 import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodManagementUiState
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
 import com.muatrenthenang.resfood.data.model.Food
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,25 +79,25 @@ fun FoodManagementScreen(
     onNavigateToOrders: () -> Unit
 ) {
     val state by viewModel.foodManagementUiState.collectAsState()
-    val filteredFoods = viewModel.getFilteredFoods()
+    val filteredFoods = state.filteredFoods
     val pullRefreshState = rememberPullToRefreshState()
-    
+
     // Dark theme colors from Theme
     val backgroundColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
     val cardColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard
     val primaryColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
-    
+
     // Group foods logic can be added here if needed
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
-                        "Quản lý món ăn", 
-                        fontWeight = FontWeight.Bold, 
+                        "Quản lý món ăn",
+                        fontWeight = FontWeight.Bold,
                         color = Color.White
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -133,9 +140,20 @@ fun FoodManagementScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (state.error != null) {
+                    Text(
+                        text = "Lỗi: ${state.error}",
+                        color = Color.Red,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             // Search Bar
             OutlinedTextField(
                 value = "",
@@ -155,15 +173,96 @@ fun FoodManagementScreen(
                 )
             )
 
-            // Filters
-            LazyRow(
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            // Filters Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item { FilterChip("Tất cả", state.filter == FoodFilter.ALL, primaryColor) { viewModel.setFoodFilter(FoodFilter.ALL) } }
-                item { FilterChip("Đang bán", state.filter == FoodFilter.AVAILABLE, primaryColor) { viewModel.setFoodFilter(FoodFilter.AVAILABLE) } }
-                item { FilterChip("Hết hàng", state.filter == FoodFilter.OUT_OF_STOCK, primaryColor) { viewModel.setFoodFilter(FoodFilter.OUT_OF_STOCK) } }
-                item { FilterChip("Món chính", false, primaryColor) {} } // Dummy
+                 // Category Filter
+                 Box(modifier = Modifier.weight(1f)) {
+                     var expanded by remember { mutableStateOf(false) }
+                     ExposedDropdownMenuBox(
+                         expanded = expanded,
+                         onExpandedChange = { expanded = !expanded }
+                     ) {
+                         OutlinedTextField(
+                             value = if(state.selectedCategory == "All") "Tất cả" else state.selectedCategory,
+                             onValueChange = {},
+                             readOnly = true,
+                             label = { Text("Danh mục") },
+                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                             modifier = Modifier.menuAnchor().fillMaxWidth(),
+                             colors = OutlinedTextFieldDefaults.colors(
+                                 focusedContainerColor = cardColor,
+                                 unfocusedContainerColor = cardColor,
+                                 focusedBorderColor = Color.Transparent,
+                                 unfocusedBorderColor = Color.Transparent,
+                                 focusedLabelColor = primaryColor,
+                                 unfocusedLabelColor = Color.Gray
+                             )
+                         )
+                         ExposedDropdownMenu(
+                             expanded = expanded,
+                             onDismissRequest = { expanded = false },
+                             modifier = Modifier.background(cardColor)
+                         ) {
+                             state.categories.forEach { category ->
+                                 DropdownMenuItem(
+                                     text = { Text(if(category == "All") "Tất cả" else category, color = Color.White) },
+                                     onClick = {
+                                         viewModel.setCategoryFilter(category)
+                                         expanded = false
+                                     },
+                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                 )
+                             }
+                         }
+                     }
+                 }
+
+                 // Status Filter
+                 Box(modifier = Modifier.weight(1f)) {
+                     var expanded by remember { mutableStateOf(false) }
+                     ExposedDropdownMenuBox(
+                         expanded = expanded,
+                         onExpandedChange = { expanded = !expanded }
+                     ) {
+                         OutlinedTextField(
+                             value = state.selectedStatus.displayName,
+                             onValueChange = {},
+                             readOnly = true,
+                             label = { Text("Trạng thái") },
+                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                             modifier = Modifier.menuAnchor().fillMaxWidth(),
+                             colors = OutlinedTextFieldDefaults.colors(
+                                 focusedContainerColor = cardColor,
+                                 unfocusedContainerColor = cardColor,
+                                 focusedBorderColor = Color.Transparent,
+                                 unfocusedBorderColor = Color.Transparent,
+                                 focusedLabelColor = primaryColor,
+                                 unfocusedLabelColor = Color.Gray
+                             )
+                         )
+                         ExposedDropdownMenu(
+                             expanded = expanded,
+                             onDismissRequest = { expanded = false },
+                             modifier = Modifier.background(cardColor)
+                         ) {
+                             FoodStatus.values().forEach { status ->
+                                 DropdownMenuItem(
+                                     text = { Text(status.displayName, color = Color.White) },
+                                     onClick = {
+                                         viewModel.setStatusFilter(status)
+                                         expanded = false
+                                     },
+                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                 )
+                             }
+                         }
+                     }
+                 }
             }
 
             LazyColumn(
@@ -179,7 +278,7 @@ fun FoodManagementScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-                
+
                 items(filteredFoods) { food ->
                     FoodItemCard(
                         food = food,
@@ -189,10 +288,23 @@ fun FoodManagementScreen(
                     )
                 }
             }
+            } // End Column
+
+            if(state.isLoading) {
+                 Box(
+                     modifier = Modifier
+                         .fillMaxSize()
+                         .background(Color.Black.copy(alpha = 0.3f))
+                         .clickable(enabled = false) {}, // Block clicks
+                     contentAlignment = Alignment.Center
+                 ) {
+                     CircularProgressIndicator(color = primaryColor)
+                 }
+            }
         }
-        }
-    }
-}
+    } // End PullToRefreshBox
+    } // End Scaffold
+} // End Screen
 
 @Composable
 fun FilterChip(text: String, isSelected: Boolean, primaryColor: Color, onClick: () -> Unit) {

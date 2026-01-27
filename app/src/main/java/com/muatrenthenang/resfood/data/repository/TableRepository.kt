@@ -29,6 +29,15 @@ class TableRepository {
         }
     }
 
+    suspend fun updateTable(table: Table): Result<Boolean> {
+        return try {
+            tablesRef.document(table.id).set(table).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun updateTableStatus(tableId: String, newStatus: String): Result<Boolean> {
         return try {
             tablesRef.document(tableId).update("status", newStatus).await()

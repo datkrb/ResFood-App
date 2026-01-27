@@ -21,7 +21,14 @@ class FoodRepository {
     suspend fun getFoods(): Result<List<Food>> {
         return try {
             val snapshot = db.collection("foods").get().await()
-            val items = snapshot.mapNotNull { it.toObject(Food::class.java)?.copy(id = it.id) }
+            val items = snapshot.mapNotNull { 
+                try {
+                    it.toObject(Food::class.java)?.copy(id = it.id)
+                } catch (e: Exception) {
+                    // Debugging: return a placeholder food with the error message
+                    Food(id = it.id, name = "LỖI DATA: ${e.message}", price = 0, isAvailable = false)
+                }
+            }
             Result.success(items)
         } catch (e: Exception) {
             Result.failure(e)

@@ -10,11 +10,14 @@ import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
 import com.muatrenthenang.resfood.data.model.Promotion
+import com.muatrenthenang.resfood.data.model.Reservation
 import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.data.repository.TableRepository
+import com.muatrenthenang.resfood.data.repository.ReservationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 data class DashboardUiState(
@@ -44,12 +47,17 @@ enum class ActivityType {
 data class FoodManagementUiState(
     val isLoading: Boolean = false,
     val foods: List<Food> = emptyList(),
+    val filteredFoods: List<Food> = emptyList(),
     val error: String? = null,
-    val filter: FoodFilter = FoodFilter.ALL
+    val selectedCategory: String = "All",
+    val selectedStatus: FoodStatus = FoodStatus.ALL,
+    val categories: List<String> = listOf("All")
 )
 
-enum class FoodFilter {
-    ALL, AVAILABLE, OUT_OF_STOCK
+enum class FoodStatus(val displayName: String) {
+    ALL("Tất cả"),
+    AVAILABLE("Còn hàng"),
+    OUT_OF_STOCK("Hết hàng")
 }
 
 data class AnalyticsUiState(
@@ -127,17 +135,31 @@ class AdminViewModel(
 
     private suspend fun loadData() {
         _isLoading.value = true
-        loadFoods()
-        loadCustomers()
-        loadPromotions()
-        loadTables()
+        // Load all data in parallel to speed up start time (like Guest Main Page)
+        val jobFoods = viewModelScope.async { loadFoods() }
+        val jobCustomers = viewModelScope.async { loadCustomers() }
+        val jobPromotions = viewModelScope.async { loadPromotions() }
+        val jobTables = viewModelScope.async { loadTables() }
+        
+        // Wait for all to complete
+        jobFoods.await()
+        jobCustomers.await()
+        jobPromotions.await()
+        jobTables.await()
+        
         _isLoading.value = false
     }
 
     private suspend fun loadFoods() {
         _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = true, error = null)
         foodRepository.getFoods().onSuccess { foods ->
-            _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, foods = foods)
+            val categories = listOf("All") + foods.map { it.category }.distinct().filter { it.isNotEmpty() }
+            _foodManagementUiState.value = _foodManagementUiState.value.copy(
+                isLoading = false, 
+                foods = foods,
+                categories = categories
+            )
+            updateFilteredFoods()
             updateDashboardStats()
         }.onFailure {
             _foodManagementUiState.value = _foodManagementUiState.value.copy(isLoading = false, error = it.message)
@@ -355,17 +377,28 @@ class AdminViewModel(
         updateDashboardStats()
     }
 
-    fun setFoodFilter(filter: FoodFilter) {
-        _foodManagementUiState.value = _foodManagementUiState.value.copy(filter = filter)
+    fun setCategoryFilter(category: String) {
+        _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedCategory = category)
+        updateFilteredFoods()
     }
 
-    fun getFilteredFoods(): List<Food> {
+    fun setStatusFilter(status: FoodStatus) {
+        _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedStatus = status)
+        updateFilteredFoods()
+    }
+
+    private fun updateFilteredFoods() {
         val state = _foodManagementUiState.value
-        return when (state.filter) {
-            FoodFilter.ALL -> state.foods
-            FoodFilter.AVAILABLE -> state.foods.filter { it.isAvailable }
-            FoodFilter.OUT_OF_STOCK -> state.foods.filter { !it.isAvailable }
+        val filtered = state.foods.filter { food ->
+            val matchesCategory = state.selectedCategory == "All" || food.category == state.selectedCategory
+            val matchesStatus = when (state.selectedStatus) {
+                FoodStatus.ALL -> true
+                FoodStatus.AVAILABLE -> food.isAvailable
+                FoodStatus.OUT_OF_STOCK -> !food.isAvailable
+            }
+            matchesCategory && matchesStatus
         }
+        _foodManagementUiState.value = _foodManagementUiState.value.copy(filteredFoods = filtered)
     }
 
     fun deleteFood(foodId: String) {
@@ -417,6 +450,41 @@ class AdminViewModel(
         viewModelScope.launch {
              tableRepository.updateTableStatus(tableId, status)
              loadTables()
+        }
+    }
+    
+    fun updateTable(table: Table) {
+        viewModelScope.launch {
+            tableRepository.updateTable(table)
+            loadTables()
+        }
+    }
+    
+    fun deleteTable(tableId: String) {
+        viewModelScope.launch {
+            tableRepository.deleteTable(tableId)
+            loadTables()
+        }
+    }
+    
+    // Reservations
+    private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
+    val reservations: StateFlow<List<Reservation>> = _reservations.asStateFlow()
+    private val reservationRepository = ReservationRepository()
+    
+    fun loadReservations() {
+        viewModelScope.launch {
+            // Load all for demo purposes
+            reservationRepository.getReservationsByDate(0, 0).onSuccess { list ->
+                _reservations.value = list
+            }
+        }
+    }
+    
+    fun addReservation(reservation: Reservation) {
+        viewModelScope.launch {
+            reservationRepository.createReservation(reservation)
+            loadReservations()
         }
     }
 }

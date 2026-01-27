@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -200,23 +201,21 @@ fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) 
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(48.dp)
-            .height(48.dp)
             .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TimeFilterButton(text = "Today", isSelected = selectedRange == "Today", onClick = { onRangeSelected("Today") })
-        TimeFilterButton(text = "This Week", isSelected = selectedRange == "This Week", onClick = { onRangeSelected("This Week") })
-        TimeFilterButton(text = "This Month", isSelected = selectedRange == "This Month", onClick = { onRangeSelected("This Month") })
+        TimeFilterButton(text = "Today", isSelected = selectedRange == "Today", modifier = Modifier.weight(1f), onClick = { onRangeSelected("Today") })
+        TimeFilterButton(text = "This Month", isSelected = selectedRange == "This Month", modifier = Modifier.weight(1f), onClick = { onRangeSelected("This Month") })
+        TimeFilterButton(text = "All", isSelected = selectedRange == "All", modifier = Modifier.weight(1f), onClick = { onRangeSelected("All") })
     }
 }
 
 @Composable
-fun TimeFilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+fun TimeFilterButton(text: String, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth(0.33f)
-            .height(40.dp)
+        modifier = modifier
+            .fillMaxHeight()
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
             .clickable { onClick() },
@@ -226,7 +225,9 @@ fun TimeFilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
             text = text,
             color = if (isSelected) Color.White else Color.Gray,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 12.sp
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
     }
 }

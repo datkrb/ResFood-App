@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
@@ -208,13 +209,37 @@ fun AnalyticSummaryCard(title: String, value: String, subtitle: String, color: C
 @Composable
 fun TopProductRow(name: String, count: String, revenue: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(name, color = Color.White, fontWeight = FontWeight.Medium)
-        Row {
-             Text(count, color = Color.Gray, modifier = Modifier.padding(end = 12.dp))
-             Text(revenue, color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold)
-        }
+        // Column 1: Name (Priority, flexible width)
+        Text(
+            text = name,
+            color = Color.White,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.55f)
+        )
+        
+        // Column 2: Order Count
+        Text(
+            text = count,
+            color = Color.Gray,
+            fontSize = 13.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            modifier = Modifier.weight(0.15f)
+        )
+        
+        // Column 3: Revenue
+        Text(
+            text = revenue,
+            color = Color(0xFF4CAF50),
+            fontWeight = FontWeight.Bold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            modifier = Modifier.weight(0.3f)
+        )
     }
 }

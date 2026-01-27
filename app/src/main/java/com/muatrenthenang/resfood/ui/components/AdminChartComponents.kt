@@ -41,7 +41,7 @@ fun DateRangeSelector(
     val datePickerState = rememberDatePickerState()
 
     Column(modifier = Modifier.padding(16.dp)) {
-        // Segmented Control
+        // Segmented Control (3 Parts as requested)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -49,10 +49,9 @@ fun DateRangeSelector(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            FilterTab("Hôm nay", selectedType == AnalyticsFilterType.TODAY) { onTypeSelected(AnalyticsFilterType.TODAY) }
-            FilterTab("Tuần này", selectedType == AnalyticsFilterType.WEEK) { onTypeSelected(AnalyticsFilterType.WEEK) }
-            FilterTab("Tháng này", selectedType == AnalyticsFilterType.MONTH) { onTypeSelected(AnalyticsFilterType.MONTH) }
-            FilterTab("Tùy chọn", selectedType == AnalyticsFilterType.CUSTOM) { 
+            FilterTab("Hôm nay", selectedType == AnalyticsFilterType.TODAY, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.TODAY) }
+            FilterTab("Tháng này", selectedType == AnalyticsFilterType.MONTH, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.MONTH) }
+            FilterTab("Tùy chọn", selectedType == AnalyticsFilterType.CUSTOM, Modifier.weight(1f)) { 
                 onTypeSelected(AnalyticsFilterType.CUSTOM)
                 showDatePicker = true
             }
@@ -105,10 +104,9 @@ fun DateRangeSelector(
 }
 
 @Composable
-fun FilterTab(text: String, isSelected: Boolean, onClick: () -> Unit) {
+fun FilterTab(text: String, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Box(
-        modifier = Modifier
-            .width(85.dp) // Fixed width or weight
+        modifier = modifier
             .height(32.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
@@ -118,8 +116,10 @@ fun FilterTab(text: String, isSelected: Boolean, onClick: () -> Unit) {
         Text(
             text = text,
             color = if (isSelected) Color.White else Color.Gray,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
     }
 }
