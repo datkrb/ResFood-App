@@ -547,11 +547,3 @@ private fun LogoutSection(onLogout: () -> Unit) {
         )
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun MeScreenPreviewLight() {
-    ResFoodTheme(darkTheme = false) {
-        MeScreen()
-    }
-}
