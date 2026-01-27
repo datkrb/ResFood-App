@@ -31,9 +31,10 @@ import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.theme.rankColor
-import com.muatrenthenang.resfood.ui.viewmodel.MeViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.MeOrderCounts
-import com.muatrenthenang.resfood.ui.viewmodel.MeUserProfile
+// Removed MeUserProfile import
+import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeCount
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeDot
 import com.muatrenthenang.resfood.ui.screens.me.components.IconCircleButton
@@ -56,9 +57,9 @@ fun MeScreen(
     onNavigateToPaymentMethods: () -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
-    vm: MeViewModel = viewModel()
+    vm: UserViewModel = viewModel()
 ) {
-    val userProfile by vm.userProfile.collectAsState()
+    val userState by vm.userState.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
     // val voucherCount by vm.voucherCount.collectAsState() // Not used directly anymore
     val referralPromo by vm.referralPromo.collectAsState()
@@ -85,7 +86,7 @@ fun MeScreen(
 
             // Profile Header Section
             ProfileHeaderCard(
-                userProfile = userProfile,
+                user = userState,
                 onEditProfileClick = onNavigateToEditProfile
             )
 
@@ -171,7 +172,7 @@ private fun MeTopBar(
 
 @Composable
 private fun ProfileHeaderCard(
-    userProfile: MeUserProfile,
+    user: User?,
     onEditProfileClick: () -> Unit
 ) {
     Surface(
@@ -194,7 +195,7 @@ private fun ProfileHeaderCard(
                     .clickable { onEditProfileClick() }
             ) {
                 AsyncImage(
-                    model = userProfile.avatarUrl,
+                    model = user?.avatarUrl ?: "https://i.pravatar.cc/150?img=3", // Default avatar if null
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .fillMaxSize()
@@ -211,7 +212,7 @@ private fun ProfileHeaderCard(
                     .clickable { onEditProfileClick() }
             ) {
                 Text(
-                    text = userProfile.name,
+                    text = user?.fullName ?: "Đang tải...",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -228,7 +229,7 @@ private fun ProfileHeaderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = userProfile.rankDisplayName,
+                        text = user?.rank ?: "Thành viên",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
