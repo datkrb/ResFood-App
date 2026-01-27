@@ -25,8 +25,9 @@ class BookingTableViewModel : ViewModel() {
     private val _dates = MutableStateFlow<List<LocalDate>>(emptyList())
     val dates: StateFlow<List<LocalDate>> = _dates.asStateFlow()
 
-    // 3. Time Slots (17:00 - 22:00, every 15 mins)
-    val timeSlots = generateTimeSlots()
+    // 3. Time Selection Data
+    val availableHours = (10..22).toList()
+    val availableMinutes = listOf(0, 15, 30, 45)
 
     // --- Selection State ---
     
@@ -36,8 +37,11 @@ class BookingTableViewModel : ViewModel() {
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
-    private val _selectedTime = MutableStateFlow("18:00")
-    val selectedTime: StateFlow<String> = _selectedTime.asStateFlow()
+    private val _selectedHour = MutableStateFlow(18)
+    val selectedHour: StateFlow<Int> = _selectedHour.asStateFlow()
+
+    private val _selectedMinute = MutableStateFlow(0)
+    val selectedMinute: StateFlow<Int> = _selectedMinute.asStateFlow()
 
     private val _guestCountAdult = MutableStateFlow(2)
     val guestCountAdult: StateFlow<Int> = _guestCountAdult.asStateFlow()
@@ -61,20 +65,7 @@ class BookingTableViewModel : ViewModel() {
         _dates.value = dateList
     }
 
-    private fun generateTimeSlots(): List<String> {
-        val slots = mutableListOf<String>()
-        var hour = 17
-        var min = 0
-        while (hour < 22) {
-            slots.add(String.format("%02d:%02d", hour, min))
-            min += 15
-            if (min == 60) {
-                min = 0
-                hour++
-            }
-        }
-        return slots
-    }
+
 
     // --- Actions ---
 
@@ -87,8 +78,12 @@ class BookingTableViewModel : ViewModel() {
         // Logic to refresh available tables could go here
     }
 
-    fun selectTime(time: String) {
-        _selectedTime.value = time
+    fun selectHour(hour: Int) {
+        _selectedHour.value = hour
+    }
+
+    fun selectMinute(minute: Int) {
+        _selectedMinute.value = minute
     }
 
     fun updateGuestAdult(delta: Int) {

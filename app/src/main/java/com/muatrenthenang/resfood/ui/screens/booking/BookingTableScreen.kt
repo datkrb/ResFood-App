@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
@@ -24,6 +25,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -38,6 +40,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.BookingTableViewModel
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingTableScreen(
     onNavigateBack: () -> Unit,
@@ -50,13 +53,16 @@ fun BookingTableScreen(
     val dates by viewModel.dates.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     
-    val timeSlots = viewModel.timeSlots
-    val selectedTime by viewModel.selectedTime.collectAsState()
-    
     val guestCountAdult by viewModel.guestCountAdult.collectAsState()
     val guestCountChild by viewModel.guestCountChild.collectAsState()
     
     val note by viewModel.note.collectAsState()
+    
+    val selectedHour by viewModel.selectedHour.collectAsState()
+    val selectedMinute by viewModel.selectedMinute.collectAsState()
+    
+    val availableHours = viewModel.availableHours
+    val availableMinutes = viewModel.availableMinutes
 
     // Main Container
     Box(
@@ -64,12 +70,7 @@ fun BookingTableScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 100.dp) // Space for sticky bottom bar
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // 1. Top Bar
             Row(
                 modifier = Modifier
@@ -85,7 +86,7 @@ fun BookingTableScreen(
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f), CircleShape)
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
                         tint = MaterialTheme.colorScheme.onBackground
                     )
@@ -99,9 +100,16 @@ fun BookingTableScreen(
                 )
                 Spacer(modifier = Modifier.size(40.dp))
             }
-            
-            // 2. Branch Selection
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+
+            // Scrollable Content
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 100.dp) // Space for sticky bottom bar
+            ) {
+                // 2. Branch Selection
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
                     "Chi nhánh",
                     style = MaterialTheme.typography.titleMedium,
@@ -228,7 +236,7 @@ fun BookingTableScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
                                 .width(50.dp)
-                                .clip(RoundedCornerShape(25.dp))
+                                .clip(RoundedCornerShape(8  .dp))
                                 .background(if (isSelected) PrimaryColor else MaterialTheme.colorScheme.surface)
                                 .clickable { viewModel.selectDate(date) }
                                 .padding(vertical = 12.dp)
@@ -250,28 +258,76 @@ fun BookingTableScreen(
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
-                
-                // Time Slots
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                // Time Pickers
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(timeSlots) { time ->
-                        val isSelected = time == selectedTime
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) PrimaryColor else MaterialTheme.colorScheme.surface)
-                                .border(1.dp, if (isSelected) PrimaryColor else Color.Transparent, RoundedCornerShape(8.dp))
-                                .clickable { viewModel.selectTime(time) }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                time,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp
-                            )
+                    Text(
+                        "Giờ",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.width(60.dp)
+                    )
+                    
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(availableHours) { hour ->
+                            val isSelected = hour == selectedHour
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) PrimaryColor else MaterialTheme.colorScheme.surface)
+                                    .border(1.dp, if (isSelected) PrimaryColor else Color.Transparent, RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.selectHour(hour) }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    String.format("%02d", hour),
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Phút",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.width(60.dp)
+                    )
+                    
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(availableMinutes) { minute ->
+                            val isSelected = minute == selectedMinute
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) PrimaryColor else MaterialTheme.colorScheme.surface)
+                                    .border(1.dp, if (isSelected) PrimaryColor else Color.Transparent, RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.selectMinute(minute) }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    String.format("%02d", minute),
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
                 }
@@ -337,6 +393,8 @@ fun BookingTableScreen(
                     minLines = 3
                 )
             }
+            Spacer(modifier = Modifier.height(100.dp))
+            }
         }
         
         // 7. Bottom Bar
@@ -355,8 +413,9 @@ fun BookingTableScreen(
                 ) {
                     Column {
                         Text("THỜI GIAN", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
                         Text(
-                            "${selectedTime} - ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM"))}", 
+                            "$formattedTime - ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM"))}", 
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -419,25 +478,28 @@ fun GuestCounterInfo(
         }
         
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            IconButton(
-                onClick = onDecrease,
+            Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(MaterialTheme.colorScheme.background, CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), CircleShape),
-                enabled = count > 0 // Or 1 for adults
+                    .shadow(4.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.background)
+                    .clickable(enabled = count > 0) { onDecrease() },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Remove, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), modifier = Modifier.padding(4.dp))
+                Icon(Icons.Default.Remove, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (count > 0) 0.7f else 0.3f), modifier = Modifier.padding(4.dp))
             }
             
             Text(count.toString(), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
             
-            IconButton(
-                onClick = onIncrease,
+            Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(PrimaryColor, CircleShape)
                     .shadow(4.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(PrimaryColor)
+                    .clickable { onIncrease() },
+                contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.padding(4.dp))
             }
