@@ -149,4 +149,31 @@ class PromotionRepository {
             Result.failure(e)
         }
     }
+    /**
+     * Khôi phục voucher (dùng sau khi hủy đơn hàng)
+     */
+    suspend fun restoreVoucher(promotionId: String, userId: String): Result<Boolean> {
+        return try {
+            val docRef = promosRef.document(promotionId)
+            
+            val promoDoc = docRef.get().await()
+            val promo = promoDoc.toObject(Promotion::class.java)
+                ?: return Result.failure(Exception("Không tìm thấy mã giảm giá"))
+            
+            if (promo.isPublic()) {
+                // PUBLIC: Xóa userId khỏi danh sách đã dùng
+                docRef.update("usedByUserIds", FieldValue.arrayRemove(userId)).await()
+            } else {
+                // PRIVATE: Tăng quota của user lên 1
+                val currentQuota = promo.userQuantities[userId] ?: 0
+                val newQuantities = promo.userQuantities.toMutableMap()
+                newQuantities[userId] = currentQuota + 1
+                docRef.update("userQuantities", newQuantities).await()
+            }
+            
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

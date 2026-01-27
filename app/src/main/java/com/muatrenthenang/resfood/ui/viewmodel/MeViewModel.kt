@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import com.muatrenthenang.resfood.data.repository.OrderRepository
+import com.muatrenthenang.resfood.data.model.Order
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
 class MeViewModel : ViewModel() {
 
     private val promotionRepository = PromotionRepository()
+    private val orderRepository = OrderRepository()
     private val auth = FirebaseAuth.getInstance()
 
     // User profile state
@@ -44,11 +47,12 @@ class MeViewModel : ViewModel() {
     val utilityMenu: StateFlow<List<UtilityMenuOption>> = _utilityMenu.asStateFlow()
 
     init {
-        loadMockData()
+        loadMockUserProfile()
         loadVoucherCount()
+        loadOrderCounts()
     }
 
-    private fun loadMockData() {
+    private fun loadMockUserProfile() {
         // Mock user profile data
         _userProfile.value = MeUserProfile(
             name = "Nguyễn Văn A",
@@ -56,17 +60,26 @@ class MeViewModel : ViewModel() {
             rank = "Gold",
             rankDisplayName = "Thành viên Vàng (Gold)"
         )
-
-        // Mock order counts
-        _orderCounts.value = MeOrderCounts(
-            pending = 0,
-            processing = 0,
-            delivering = 1,
-            toReview = 0
-        )
-
-        // Initial utility menu with 0 vouchers (will be updated after loadVoucherCount)
+        // Initial utility menu with 0 vouchers
         updateUtilityMenu(voucherCount = 0)
+    }
+
+    private fun loadOrderCounts() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                orderRepository.getOrdersByUserId(userId).collect { orders ->
+                    _orderCounts.value = MeOrderCounts(
+                        pending = orders.count { it.status == "PENDING" },
+                        processing = orders.count { it.status == "PROCESSING" },
+                        delivering = orders.count { it.status == "DELIVERING" },
+                        toReview = orders.count { it.status == "COMPLETED" }
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
     
     /**

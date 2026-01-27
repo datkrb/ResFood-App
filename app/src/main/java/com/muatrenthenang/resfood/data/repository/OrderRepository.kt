@@ -30,7 +30,14 @@ class OrderRepository {
                     close(error)
                     return@addSnapshotListener
                 }
-                val orders = snapshot?.toObjects(Order::class.java) ?: emptyList()
+                val orders = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Order::class.java)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+                } ?: emptyList()
                 trySend(orders)
             }
         awaitClose { listener.remove() }
@@ -48,14 +55,40 @@ class OrderRepository {
     suspend fun getOrderById(orderId: String): Result<Order> {
          return try {
             val doc = ordersRef.document(orderId).get().await()
-            val order = doc.toObject(Order::class.java)
+            val order = try {
+                 doc.toObject(Order::class.java)
+            } catch (e: Exception) {
+                null
+            }
+            
             if (order != null) {
                 Result.success(order)
             } else {
-                Result.failure(Exception("Order not found"))
+                Result.failure(Exception("Order not found or invalid format"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+    fun getOrdersByUserId(userId: String): Flow<List<Order>> = callbackFlow {
+        val listener = ordersRef.whereEqualTo("userId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val orders = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Order::class.java)
+                    } catch (e: Exception) {
+                        // Skip documents with incompatible format
+                        e.printStackTrace()
+                        null
+                    }
+                } ?: emptyList()
+                trySend(orders)
+            }
+        awaitClose { listener.remove() }
     }
 }
