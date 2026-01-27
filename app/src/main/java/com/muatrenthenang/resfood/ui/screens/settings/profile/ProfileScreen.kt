@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onBack: () -> Unit,
     onNavigateToAddresses: () -> Unit = {},
+    onLogout: () -> Unit = {},
     userViewModel: UserViewModel
 ) {
     val userState by userViewModel.userState.collectAsState()
@@ -52,6 +53,12 @@ fun ProfileScreen(
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    
+    // Change password dialog states
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var currentPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -69,6 +76,9 @@ fun ProfileScreen(
         phone = user.phone ?: ""
         email = user.email
     }
+    
+    // Lấy địa chỉ mặc định để hiển thị
+    val defaultAddress = user.getDefaultAddress()
     
     // Validation function
     fun validateForm(): Boolean {
@@ -114,15 +124,11 @@ fun ProfileScreen(
                     }
                 }
                 
-                // Update user profile
-                val updatedUser = user.copy(
+                val result = userViewModel.updateUser(
                     fullName = fullName.trim(),
                     phone = phone.trim().ifBlank { null },
-                    email = email.trim(),
-                    avatarUrl = avatarUrl
+                    email = email.trim()
                 )
-                
-                val result = userViewModel.updateUser(updatedUser)
                 if (result.isFailure) {
                     throw result.exceptionOrNull() ?: Exception("Không thể cập nhật thông tin")
                 }
@@ -191,13 +197,10 @@ fun ProfileScreen(
                 contentAlignment = Alignment.BottomEnd,
                 modifier = Modifier.clickable { imagePickerLauncher.launch("image/*") }
             ) {
-                // Show newly selected image, or existing avatar from local path, or placeholder
+                // Show newly selected image, or existing avatar URL, or placeholder
                 val imageModel = when {
                     avatarUri != null -> avatarUri // Ảnh mới chọn (URI)
-                    user.avatarUrl != null -> {
-                        // Ảnh đã lưu (local path) - convert sang File để Coil load được
-                        java.io.File(user.avatarUrl)
-                    }
+                    user.avatarUrl != null -> user.avatarUrl // URL từ ImgBB
                     else -> null
                 }
                 
@@ -324,8 +327,8 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        user.getDefaultAddress()?.getFullAddress() ?: "Chưa cập nhật",
-                        color = MaterialTheme.colorScheme.onSurface,
+                        defaultAddress?.getFullAddress() ?: "Chưa cập nhật",
+                        color = if (defaultAddress != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.weight(1f)
                     )
@@ -347,7 +350,7 @@ fun ProfileScreen(
                     RoundedCornerShape(12.dp)
                 )
             ) {
-                SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu", onClick = { })
+                SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu", onClick = { showChangePasswordDialog = true })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                 SettingRow(icon = Icons.Default.ShoppingCart, title = "Ví Voucher", onClick = { })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
@@ -358,7 +361,12 @@ fun ProfileScreen(
 
             // Buttons
             OutlinedButton(
-                onClick = { /* Logout Logic Here */ },
+                onClick = {
+                    // Logout with UserViewModel
+                    userViewModel.logout {
+                        onLogout()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onBackground)
@@ -426,6 +434,129 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(onClick = { showErrorDialog = false }) {
                     Text("OK")
+                }
+            }
+        )
+    }
+    
+    // Change Password Dialog
+    if (showChangePasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showChangePasswordDialog = false
+                currentPassword = ""
+                newPassword = ""
+                confirmPassword = ""
+            },
+            icon = {
+                Icon(
+                    Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = { Text("Đổi mật khẩu") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        label = { Text("Mật khẩu hiện tại") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text("Mật khẩu mới") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Xác nhận mật khẩu mới") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        // Validation
+                        when {
+                            currentPassword.isBlank() -> {
+                                errorMessage = "Vui lòng nhập mật khẩu hiện tại"
+                                showErrorDialog = true
+                            }
+                            newPassword.isBlank() -> {
+                                errorMessage = "Vui lòng nhập mật khẩu mới"
+                                showErrorDialog = true
+                            }
+                            newPassword.length < 6 -> {
+                                errorMessage = "Mật khẩu mới phải có ít nhất 6 ký tự"
+                                showErrorDialog = true
+                            }
+                            newPassword != confirmPassword -> {
+                                errorMessage = "Mật khẩu xác nhận không khớp"
+                                showErrorDialog = true
+                            }
+                            else -> {
+                                // Change password
+                                scope.launch {
+                                    isLoading = true
+                                    val result = userViewModel.changePassword(currentPassword, newPassword)
+                                    isLoading = false
+                                    
+                                    if (result.isSuccess) {
+                                        showChangePasswordDialog = false
+                                        currentPassword = ""
+                                        newPassword = ""
+                                        confirmPassword = ""
+                                        errorMessage = "Đổi mật khẩu thành công"
+                                        showSuccessDialog = true
+                                    } else {
+                                        errorMessage = when {
+                                            result.exceptionOrNull()?.message?.contains("password") == true -> 
+                                                "Mật khẩu hiện tại không đúng"
+                                            else -> result.exceptionOrNull()?.message ?: "Có lỗi xảy ra"
+                                        }
+                                        showErrorDialog = true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    } else {
+                        Text("Xác nhận")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showChangePasswordDialog = false
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                    }
+                ) {
+                    Text("Hủy")
                 }
             }
         )

@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.muatrenthenang.resfood.data.model.User
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 class AuthRepository {
     private val auth = FirebaseAuth.getInstance()
@@ -48,31 +49,48 @@ class AuthRepository {
             val user = authResult.user ?: throw Exception("Không lấy được thông tin User")
             val userId = user.uid
 
-            // 2. Gửi email xác thực ngay lập tức
-            // (Hàm này sẽ gửi 1 email từ Firebase đến hòm thư người dùng)
-            user.sendEmailVerification().await()
-
-            // 3. Chuẩn bị dữ liệu user để lưu Firestore
-            val userMap = hashMapOf(
-                "id" to userId,
-                "email" to email,
-                "fullName" to fullName,
-                "role" to "customer", // Mặc định là khách hàng
-                "createdAt" to System.currentTimeMillis()
+            // 2. Tạo doc user trong Firestore
+            val newUser = User(
+                id = userId,
+                fullName = fullName,
+                email = email,
+                role = "customer"
             )
-
-            // 4. Lưu vào Firestore Database
-            db.collection("users").document(userId).set(userMap).await()
+            db.collection("users").document(userId).set(newUser).await()
 
             Result.success(true)
         } catch (e: Exception) {
-            // Nếu lỗi (ví dụ email đã tồn tại, mật khẩu yếu...), trả về lỗi để ViewModel hiển thị
             Result.failure(e)
         }
     }
 
-    // Hàm gửi email đặt lại mật khẩu (Forgot Password)
-    suspend fun sendPasswordResetEmail(email: String): Result<Boolean> {
+    // Hàm đăng xuất
+    fun logout() {
+        auth.signOut()
+    }
+
+    // Hàm lấy ID user hiện tại
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
+
+    // Hàm lấy thông tin user từ Firestore
+    suspend fun getUserProfile(userId: String): Result<User> {
+        return try {
+            val doc = db.collection("users").document(userId).get().await()
+            val user = doc.toObject(User::class.java)
+            if (user != null) {
+                Result.success(user)
+            } else {
+                Result.failure(Exception("User không tồn tại"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Hàm reset mật khẩu
+    suspend fun resetPassword(email: String): Result<Boolean> {
         return try {
             auth.sendPasswordResetEmail(email).await()
             Result.success(true)
@@ -81,150 +99,198 @@ class AuthRepository {
         }
     }
 
-    // Kiểm tra xem user đã đăng nhập chưa
-    fun isUserLoggedIn(): Boolean {
-        // Lưu ý: Nếu muốn chặt chẽ, có thể check thêm auth.currentUser?.isEmailVerified == true
-        return auth.currentUser != null
-    }
-
-    // Hàm đăng xuất (cho nút Đăng xuất sau này)
-    fun logout() {
-        auth.signOut()
-    }
-
-    suspend fun loginWithGoogle(idToken: String): Result<Boolean> {
+    /**
+     * Kiểm tra xem email đã tồn tại trong hệ thống chưa (trừ email của user hiện tại)
+     */
+    suspend fun checkEmailExists(email: String, currentUserId: String): Boolean {
         return try {
-            // 1. Tạo chứng chỉ từ Token của Google
-            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
-
-            // 2. Đăng nhập vào Firebase
-            val authResult = auth.signInWithCredential(credential).await()
-            val user = authResult.user ?: throw Exception("Lỗi đăng nhập Google")
-
-            // 3. Kiểm tra xem user này đã có trong Database chưa?
-            // (Nếu lần đầu đăng nhập bằng Google thì phải tạo dữ liệu user mới)
-            val docSnapshot = db.collection("users").document(user.uid).get().await()
-
-            if (!docSnapshot.exists()) {
-                val userMap = hashMapOf(
-                    "id" to user.uid,
-                    "email" to user.email,
-                    "fullName" to user.displayName, // Lấy tên từ Google
-                    "role" to "customer",
-                    "createdAt" to System.currentTimeMillis()
-                )
-                db.collection("users").document(user.uid).set(userMap).await()
-            }
-
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // Hàm lấy thông tin chi tiết User từ Firestore
-    suspend fun getUserDetails(userId: String): Result<User> {
-        return try {
-            val document = db.collection("users").document(userId).get().await()
-            if (document.exists()) {
-                val user = document.toObject(User::class.java)
-                if (user != null) {
-                    Result.success(user)
-                } else {
-                    Result.failure(Exception("Dữ liệu user bị lỗi"))
-                }
-            } else {
-                Result.failure(Exception("Không tìm thấy user"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // Hàm lấy ID người dùng hiện tại
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
-
-    // Hàm cập nhật thông tin user
-    suspend fun updateUser(user: User): Result<Boolean> {
-        return try {
-            val userId = getCurrentUserId() ?: throw Exception("Người dùng chưa đăng nhập")
-            val currentUser = auth.currentUser ?: throw Exception("Người dùng chưa đăng nhập")
-            
-            // Kiểm tra nếu email thay đổi
-            if (user.email != currentUser.email) {
-                // Kiểm tra email mới đã tồn tại chưa
-                val emailExists = checkEmailExists(user.email)
-                if (emailExists) {
-                    throw Exception("Email này đã được sử dụng bởi tài khoản khác")
-                }
-            }
-            
-            val userMap = hashMapOf<String, Any>(
-                "fullName" to user.fullName,
-                "email" to user.email
-            )
-            
-            // Chỉ thêm phone nếu không null
-            user.phone?.let { userMap["phone"] = it }
-            
-            // Chỉ thêm avatarUrl nếu không null
-            user.avatarUrl?.let { userMap["avatarUrl"] = it }
-            
-            db.collection("users").document(userId).update(userMap).await()
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    // Hàm kiểm tra email đã tồn tại chưa
-    suspend fun checkEmailExists(email: String): Boolean {
-        return try {
-            val currentUserId = getCurrentUserId()
             val querySnapshot = db.collection("users")
                 .whereEqualTo("email", email)
                 .get()
                 .await()
             
-            // Nếu tìm thấy email và không phải của user hiện tại
-            querySnapshot.documents.any { it.id != currentUserId }
+            // Nếu tìm thấy user với email này
+            if (!querySnapshot.isEmpty) {
+                // Kiểm tra xem có phải là email của chính user hiện tại không
+                val existingUser = querySnapshot.documents.firstOrNull()
+                existingUser?.id != currentUserId
+            } else {
+                false
+            }
         } catch (e: Exception) {
             false
         }
     }
 
-    // Hàm lưu avatar vào Local Storage
+    /**
+     * Cập nhật thông tin user
+     */
+    suspend fun updateUser(
+        userId: String,
+        fullName: String,
+        phone: String?,
+        email: String
+    ): Result<Boolean> {
+        return try {
+            // Kiểm tra email có bị trùng không (nếu email thay đổi)
+            val currentUser = getUserProfile(userId).getOrNull()
+            if (currentUser != null && currentUser.email != email) {
+                val emailExists = checkEmailExists(email, userId)
+                if (emailExists) {
+                    return Result.failure(Exception("Email đã được sử dụng"))
+                }
+            }
+
+            val updates = hashMapOf<String, Any>(
+                "fullName" to fullName,
+                "email" to email
+            )
+            if (phone != null) {
+                updates["phone"] = phone
+            }
+
+            db.collection("users")
+                .document(userId)
+                .update(updates)
+                .await()
+
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Toggle theme preference
+     */
+    suspend fun toggleTheme(userId: String, isDarkTheme: Boolean): Result<Boolean> {
+        return try {
+            db.collection("users")
+                .document(userId)
+                .update("isDarkTheme", isDarkTheme)
+                .await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Upload avatar lên ImgBB và cập nhật URL vào Firestore
+     */
     suspend fun uploadAvatar(imageUri: Uri, context: android.content.Context): Result<String> {
         return try {
             val userId = getCurrentUserId() ?: throw Exception("Người dùng chưa đăng nhập")
             
-            // Đọc ảnh từ URI
+            // Đọc ảnh từ URI và tạo file tạm
             val inputStream = context.contentResolver.openInputStream(imageUri)
                 ?: throw Exception("Không thể đọc ảnh")
             
-            // Tạo file trong Internal Storage
-            val fileName = "avatar_$userId.jpg"
-            val file = java.io.File(context.filesDir, fileName)
-            
-            // Copy ảnh vào Internal Storage
+            val tempFile = java.io.File(context.cacheDir, "temp_avatar_$userId.jpg")
             inputStream.use { input ->
-                file.outputStream().use { output ->
+                tempFile.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
             
-            // Lấy đường dẫn tuyệt đối
-            val localPath = file.absolutePath
+            // Tạo RequestBody và MultipartBody.Part
+            val requestFile = okhttp3.RequestBody.create(
+                "image/*".toMediaTypeOrNull(),
+                tempFile
+            )
+            val imagePart = okhttp3.MultipartBody.Part.createFormData(
+                "image",
+                tempFile.name,
+                requestFile
+            )
             
-            // Cập nhật đường dẫn local vào Firestore
+            // Upload lên ImgBB
+            val response = com.muatrenthenang.resfood.data.api.ImgBBUploader.api.uploadImage(
+                apiKey = com.muatrenthenang.resfood.data.api.ImgBBUploader.getApiKey(),
+                image = imagePart
+            )
+            
+            // Xóa file tạm
+            tempFile.delete()
+            
+            if (!response.success || response.data == null) {
+                throw Exception("Upload ảnh thất bại")
+            }
+            
+            val imageUrl = response.data.display_url
+            
+            // Cập nhật URL vào Firestore
             db.collection("users")
                 .document(userId)
-                .update("avatarUrl", localPath)
+                .update("avatarUrl", imageUrl)
                 .await()
             
-            Result.success(localPath)
+            Result.success(imageUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Đổi mật khẩu người dùng
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Boolean> {
+        return try {
+            val user = auth.currentUser ?: throw Exception("Người dùng chưa đăng nhập")
+            
+            // Re-authenticate user với mật khẩu hiện tại
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(
+                user.email ?: throw Exception("Email không hợp lệ"),
+                currentPassword
+            )
+            user.reauthenticate(credential).await()
+            
+            // Cập nhật mật khẩu mới
+            user.updatePassword(newPassword).await()
+            
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Đăng nhập bằng Google Sign-In
+     */
+    suspend fun loginWithGoogle(idToken: String): Result<User> {
+        return try {
+            // 1. Tạo credential từ Google ID Token
+            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+            
+            // 2. Đăng nhập vào Firebase Auth
+            val authResult = auth.signInWithCredential(credential).await()
+            val firebaseUser = authResult.user ?: throw Exception("Không lấy được thông tin user từ Google")
+            
+            val userId = firebaseUser.uid
+            
+            // 3. Kiểm tra xem user đã tồn tại trong Firestore chưa
+            val userDoc = db.collection("users").document(userId).get().await()
+            
+            val user = if (userDoc.exists()) {
+                // User đã tồn tại, lấy thông tin
+                userDoc.toObject(User::class.java) ?: throw Exception("Không thể parse user data")
+            } else {
+                // User mới, tạo profile
+                val newUser = User(
+                    id = userId,
+                    fullName = firebaseUser.displayName ?: "User",
+                    email = firebaseUser.email ?: "",
+                    role = "customer",
+                    avatarUrl = firebaseUser.photoUrl?.toString(),
+                    phone = firebaseUser.phoneNumber
+                )
+                
+                // Lưu vào Firestore
+                db.collection("users").document(userId).set(newUser).await()
+                newUser
+            }
+            
+            Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
         }

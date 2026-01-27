@@ -35,7 +35,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         val userId = authRepository.getCurrentUserId()
         if (userId != null) {
             viewModelScope.launch {
-                val result = authRepository.getUserDetails(userId)
+                val result = authRepository.getUserProfile(userId)
                 result.onSuccess { user ->
                     _userState.value = user
                 }
@@ -56,12 +56,13 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Hàm cập nhật thông tin user
-    suspend fun updateUser(user: User): Result<Boolean> {
+    suspend fun updateUser(fullName: String, phone: String?, email: String): Result<Boolean> {
         return try {
-            val result = authRepository.updateUser(user)
+            val userId = authRepository.getCurrentUserId() ?: throw Exception("Chưa đăng nhập")
+            val result = authRepository.updateUser(userId, fullName, phone, email)
             if (result.isSuccess) {
-                // Cập nhật lại state sau khi lưu thành công
-                _userState.value = user
+                // Refresh user data sau khi cập nhật
+                fetchUserProfile()
             }
             result
         } catch (e: Exception) {
@@ -82,10 +83,16 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             Result.failure(e)
         }
     }
+    
     // Hàm chuyển đổi theme
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
         // Lưu vào SharedPreferences
         sharedPreferences.edit().putBoolean("is_dark_theme", isDark).apply()
+    }
+    
+    // Hàm đổi mật khẩu
+    suspend fun changePassword(currentPassword: String, newPassword: String): Result<Boolean> {
+        return authRepository.changePassword(currentPassword, newPassword)
     }
 }
