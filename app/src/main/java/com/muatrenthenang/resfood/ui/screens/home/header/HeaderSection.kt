@@ -28,8 +28,7 @@ fun HeaderSection(user: User?) {
     ) {
         // avatar cua user
         Avatar(
-            imageUrl = user?.avatarUrl,
-            onClick = {}
+            imageUrl = user?.avatarUrl
         )
 
         // cum thong tin user

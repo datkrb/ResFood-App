@@ -56,11 +56,13 @@ fun MeScreen(
     onNavigateToPaymentMethods: () -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
-    vm: MeViewModel = viewModel()
+    vm: MeViewModel = viewModel(),
+    userViewModel: com.muatrenthenang.resfood.ui.viewmodel.UserViewModel = viewModel()
 ) {
-    val userProfile by vm.userProfile.collectAsState()
+    // Lấy dữ liệu user thật từ UserViewModel
+    val realUser by userViewModel.userState.collectAsState()
+    
     val orderCounts by vm.orderCounts.collectAsState()
-    // val voucherCount by vm.voucherCount.collectAsState() // Not used directly anymore
     val referralPromo by vm.referralPromo.collectAsState()
     val utilityMenu by vm.utilityMenu.collectAsState()
 
@@ -83,9 +85,14 @@ fun MeScreen(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Profile Header Section
+            // Profile Header Section - Dùng dữ liệu thật từ UserViewModel
             ProfileHeaderCard(
-                userProfile = userProfile,
+                userProfile = MeUserProfile(
+                    name = realUser?.fullName ?: "Người dùng",
+                    avatarUrl = realUser?.avatarUrl ?: "",
+                    rank = realUser?.rank ?: "Bronze",
+                    rankDisplayName = "Thành viên ${realUser?.rank ?: "Bronze"}"
+                ),
                 onEditProfileClick = onNavigateToEditProfile
             )
 

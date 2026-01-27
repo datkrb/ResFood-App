@@ -52,14 +52,9 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             val result = repository.loginWithGoogle(idToken)
-            result.onSuccess {
-                // For Google login, we might need to fetch user role as well if not already done in repo.
-                // Assuming repo returns Result<Boolean> currently for Google, we need to check repo code.
-                // Wait, I didn't update loginWithGoogle in Repo. It returns Result<Boolean>.
-                // I should probably just treat Google users as usage "customer" for now OR update Repo.
-                // To keep it simple and safe: Default to customer (false). 
-                // Ideally we should update Repo to return User for Google too.
-                _loginResult.value = LoginState.Success(isAdmin = false)
+            result.onSuccess { user ->
+                val isAdmin = user.role == "admin"
+                _loginResult.value = LoginState.Success(isAdmin)
             }.onFailure {
                  _loginResult.value = LoginState.Error("Lỗi Google: ${it.message}")
             }

@@ -130,12 +130,24 @@ fun UserInfoHeader(user: User) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        // Avatar - Load từ local path hoặc URL
+        val imageModel = user.avatarUrl?.let { path ->
+            if (path.startsWith("/")) {
+                java.io.File(path)
+            } else {
+                path
+            }
+        }
+        
+        coil.compose.AsyncImage(
+            model = imageModel,
+            contentDescription = "Avatar",
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier
                 .size(50.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-        ) // Avatar placeholder
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 
