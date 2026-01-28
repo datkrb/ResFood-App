@@ -378,15 +378,19 @@ class AdminViewModel(
         }
     }
     
-    fun approveOrder(orderId: String) {
+    fun approveOrder(orderId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            orderRepository.updateOrderStatus(orderId, "PROCESSING")
+            orderRepository.updateOrderStatus(orderId, "PROCESSING").onSuccess {
+                onSuccess()
+            }
         }
     }
 
-    fun rejectOrder(orderId: String) {
+    fun rejectOrder(orderId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            orderRepository.updateOrderStatus(orderId, "REJECTED")
+            orderRepository.updateOrderStatus(orderId, "REJECTED").onSuccess {
+                onSuccess()
+            }
         }
     }
 
