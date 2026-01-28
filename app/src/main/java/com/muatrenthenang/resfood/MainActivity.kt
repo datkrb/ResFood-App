@@ -618,7 +618,20 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             TableManagementScreen(
                                 viewModel = adminViewModel,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { reservationId -> 
+                                    navController.navigate("admin_table_detail/$reservationId")
+                                }
+                            )
+                        }
+
+                        composable("admin_table_detail/{reservationId}") { backStackEntry ->
+                            val reservationId = backStackEntry.arguments?.getString("reservationId") ?: ""
+                            val adminViewModel: AdminViewModel = viewModel()
+                            com.muatrenthenang.resfood.ui.screens.admin.tables.TableReservationDetailScreen(
+                                reservationId = reservationId,
+                                onNavigateBack = { navController.popBackStack() },
+                                viewModel = adminViewModel
                             )
                         }
 
@@ -632,7 +645,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
-                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToSettings = { navController.navigate("admin_settings") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
                             )

@@ -107,9 +107,13 @@ fun ManagementHubScreen(
                         onClick = onNavigateToCategory
                     )
                 }
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Section 2: Operations (Orders, Tables)
             Text(
@@ -132,7 +136,7 @@ fun ManagementHubScreen(
                 )
                 ManagementHubLargeItem(
                     modifier = Modifier.weight(1f),
-                    title = "Bàn & Đặt chỗ",
+                    title = "Đặt bàn",
                     icon = Icons.Default.TableRestaurant,
                     color = Color(0xFF009688), // Teal
                     onClick = onNavigateToTables

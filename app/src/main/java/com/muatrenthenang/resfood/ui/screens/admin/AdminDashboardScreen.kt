@@ -102,7 +102,7 @@ fun AdminDashboardScreen(
             AdminBottomNavigation(
                 currentRoute = "admin_dashboard",
                 onHomeClick = { /* Already here */ },
-                onMenuClick = onNavigateToFoodManagement,
+                onMenuClick = onNavigateToMenu,
                 onAnalyticsClick = onNavigateToAnalytics,
                 onSettingsClick = onNavigateToSettings,
                 onFabClick = onNavigateToOrders // FAB navigates to Orders

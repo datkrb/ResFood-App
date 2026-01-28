@@ -1,445 +1,439 @@
 package com.muatrenthenang.resfood.ui.screens.admin.tables
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.TableReservation
-import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.Date
-
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.ui.theme.SuccessGreen
+import com.muatrenthenang.resfood.ui.theme.LightRed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TableManagementScreen(
     viewModel: AdminViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit = {}
 ) {
-    val tables by viewModel.tables.collectAsState()
+    val reservations by viewModel.reservations.collectAsState()
+    val customers by viewModel.customers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
+    val context = LocalContext.current
     
-    // Reservations
-    val reservations by viewModel.reservations.collectAsState()
-    LaunchedEffect(Unit) { viewModel.loadReservations() }
+    LaunchedEffect(Unit) { 
+        viewModel.loadReservations()
+        viewModel.loadCustomers()
+    }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var showAddDialog by remember { mutableStateOf(false) }
-    var showReservationDialog by remember { mutableStateOf(false) }
-    var tableToEdit by remember { mutableStateOf<Table?>(null) }
+    // Tabs matching Order Management style
+    val tabs = listOf("PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "REJECTED", "ALL")
+    val tabTitles = listOf("Chờ duyệt", "Đã duyệt", "Hoàn thành", "Đã hủy", "Đã từ chối", "Tất cả")
+    
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedDateFilter by remember { mutableStateOf("Tất cả") }
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Filter Logic
+    val filteredReservations = reservations.filter { reservation ->
+        val selectedStatus = tabs[selectedTabIndex]
+        val matchesStatus = when(selectedStatus) {
+             "ALL" -> true
+             else -> reservation.status == selectedStatus
+        }
+        
+        val matchesDate = when(selectedDateFilter) {
+            "Hôm nay" -> {
+                val diff = System.currentTimeMillis() - (reservation.createdAt?.toDate()?.time ?: 0)
+                diff < 24 * 60 * 60 * 1000
+            }
+            "Tuần này" -> {
+                val diff = System.currentTimeMillis() - (reservation.createdAt?.toDate()?.time ?: 0)
+                diff < 7 * 24 * 60 * 60 * 1000
+            }
+            else -> true
+        }
+
+        val matchesSearch = if(searchQuery.isBlank()) true else {
+            reservation.id.contains(searchQuery, ignoreCase = true) ||
+            reservation.branchName.contains(searchQuery, ignoreCase = true) ||
+            reservation.note.contains(searchQuery, ignoreCase = true)
+        }
+        matchesStatus && matchesDate && matchesSearch
+    }.sortedByDescending { it.createdAt }
+
+    // State for Reject Dialog
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var reservationToReject by remember { mutableStateOf<TableReservation?>(null) }
+
+    if (showRejectDialog && reservationToReject != null) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("Từ chối đơn đặt bàn?", fontWeight = FontWeight.Bold) },
+            text = { Text("Bạn có chắc chắn muốn từ chối đơn đặt bàn #${reservationToReject?.id?.takeLast(5)?.uppercase()} không?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        reservationToReject?.let { reservation ->
+                            viewModel.rejectReservation(reservation.id) {
+                                Toast.makeText(context, "Đã từ chối đơn đặt bàn", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        showRejectDialog = false
+                        reservationToReject = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = LightRed)
+                ) {
+                    Text("Từ chối", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý bàn & Đặt chỗ", fontWeight = FontWeight.Bold) },
+                title = { Text("Quản lý đặt bàn", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Alerts")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { 
-                    if (selectedTab == 0) showAddDialog = true 
-                    else showReservationDialog = true
-                },
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            // Tabs
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.   tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text("Sơ đồ bàn") }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text("Danh sách đặt bàn") }
-                )
-            }
-
-            if (selectedTab == 0) {
-                // Table Map View
-                PullToRefreshBox(
-                    isRefreshing = isLoading,
-                    onRefresh = { viewModel.refreshData() },
-                    state = pullRefreshState,
-                    modifier = Modifier.fillMaxSize()
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.loadReservations() },
+            state = pullRefreshState,
+            modifier = Modifier.padding(padding).fillMaxSize()
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Search Bar
+                CustomSearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
+                
+                // Date Filter Chips
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        // Legend
-                        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            StatusLegend(Color(0xFF4CAF50), "Trống")
-                            StatusLegend(Color(0xFFF44336), "Đang dùng")
-                            StatusLegend(Color(0xFFFF9800), "Đặt trước")
-                        }
-            
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 100.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                    listOf("Tất cả", "Hôm nay", "Tuần này").forEach { filter ->
+                        FilterChip(
+                            selected = selectedDateFilter == filter,
+                            onClick = { selectedDateFilter = filter },
+                            label = { Text(filter) }
+                        )
+                    }
+                }
+
+                // Tabs
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    edgePadding = 16.dp,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = PrimaryColor
+                        )
+                    }
+                ) {
+                    tabs.forEachIndexed { index, _ ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = {
+                                Text(
+                                    text = tabTitles[index],
+                                    color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Reservation List
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Header for Section
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(), 
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            items(tables) { table ->
-                                TableItem(table, onClick = { tableToEdit = table })
+                            val headerTitle = tabTitles[selectedTabIndex]
+                            Text(headerTitle, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("${filteredReservations.size} Đơn", color = LightRed, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    if (filteredReservations.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                Text("Không có đơn đặt bàn nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
-                }
-            } else {
-                // Reservation View
-                if (reservations.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Chưa có đặt bàn nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                        items(reservations) { reservation ->
-                            ReservationItem(reservation)
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
+
+                    items(filteredReservations) { reservation ->
+                        val customer = customers.find { it.id == reservation.userId }
+                        ReservationItem(
+                            reservation = reservation, 
+                            userAvatar = customer?.avatarUrl,
+                            userName = customer?.fullName ?: "Khách",
+                            onClick = { onNavigateToDetail(reservation.id) },
+                            onAccept = { 
+                                viewModel.approveReservation(reservation.id) {
+                                    Toast.makeText(context, "Đã duyệt đơn đặt bàn", Toast.LENGTH_SHORT).show()
+                                } 
+                            },
+                            onReject = { 
+                                reservationToReject = reservation
+                                showRejectDialog = true
+                            }
+                        )
                     }
                 }
             }
         }
     }
-    
-    // Dialogs
-    if (showAddDialog) {
-        TableEditDialog(
-            table = null,
-            onDismiss = { showAddDialog = false },
-            onSave = { name, seats, status -> 
-                viewModel.addTable(name, seats)
-                showAddDialog = false
-            },
-            onDelete = {}
-        )
-    }
-    
-    if (showReservationDialog) {
-        ReservationDialog(
-            tables = tables,
-            onDismiss = { showReservationDialog = false },
-            onSave = { res ->
-                viewModel.addReservation(res)
-                showReservationDialog = false
-            }
-        )
-    }
-    
-    if (tableToEdit != null) {
-        TableEditDialog(
-            table = tableToEdit,
-            onDismiss = { tableToEdit = null },
-            onSave = { name, seats, status ->
-                val updated = tableToEdit!!.copy(name = name, seats = seats, status = status)
-                viewModel.updateTable(updated)
-                tableToEdit = null
-            },
-            onDelete = {
-                viewModel.deleteTable(tableToEdit!!.id)
-                tableToEdit = null
-            }
-        )
-    }
 }
 
 @Composable
-fun StatusLegend(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(4.dp)))
-        Spacer(modifier = Modifier.width(8.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-    }
-}
-
-@Composable
-fun TableItem(table: Table, onClick: () -> Unit) {
-    val bgColor = when (table.status) {
-        "EMPTY" -> Color(0xFF4CAF50).copy(alpha = 0.2f)
-        "OCCUPIED" -> Color(0xFFF44336).copy(alpha = 0.2f)
-        "RESERVED" -> Color(0xFFFF9800).copy(alpha = 0.2f)
-        else -> Color.Gray
-    }
-    val contentColor = when (table.status) {
-        "EMPTY" -> Color(0xFF4CAF50)
-        "OCCUPIED" -> Color(0xFFF44336)
-        "RESERVED" -> Color(0xFFFF9800)
-        else -> Color.Gray
-    }
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.aspectRatio(1f).clickable { onClick() }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(Icons.Default.TableRestaurant, contentDescription = null, tint = contentColor, modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(table.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-            Text("${table.seats} ghế", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Box(
-                modifier = Modifier.background(bgColor, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)
+fun CustomSearchBar(query: String, onQueryChange: (String) -> Unit) {
+    BasicTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        singleLine = true,
+        textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    when(table.status){
-                        "EMPTY" -> "Trống"
-                        "OCCUPIED" -> "Có khách"
-                        "RESERVED" -> "Đã đặt"
-                        else -> "N/A"
-                    },
-                    color = contentColor,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TableEditDialog(
-    table: Table?,
-    onDismiss: () -> Unit,
-    onSave: (String, Int, String) -> Unit,
-    onDelete: () -> Unit
-) {
-    var name by remember { mutableStateOf(table?.name ?: "") }
-    var seatsStr by remember { mutableStateOf(table?.seats?.toString() ?: "4") }
-    var status by remember { mutableStateOf(table?.status ?: "EMPTY") }
-    
-    val isEdit = table != null
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (isEdit) "Chỉnh sửa bàn" else "Thêm bàn mới") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name, 
-                    onValueChange = { name = it },
-                    label = { Text("Tên bàn") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = seatsStr, 
-                    onValueChange = { seatsStr = it },
-                    label = { Text("Số ghế") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Trạng thái:", fontWeight = FontWeight.Bold)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = status == "EMPTY", onClick = { status = "EMPTY" })
-                    Text("Trống")
+                Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(modifier = Modifier.weight(1f)) {
+                    if (query.isEmpty()) {
+                        Text("Tìm mã đơn, chi nhánh...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    innerTextField()
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = status == "OCCUPIED", onClick = { status = "OCCUPIED" })
-                    Text("Có khách")
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = status == "RESERVED", onClick = { status = "RESERVED" })
-                    Text("Đặt trước")
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val seats = seatsStr.toIntOrNull() ?: 4
-                onSave(name, seats, status)
-            }) {
-                Text(if (isEdit) "Lưu" else "Thêm")
-            }
-        },
-        dismissButton = {
-            if (isEdit) {
-                 TextButton(onClick = onDelete, colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)) {
-                    Text("Xóa")
-                }
-            } else {
-                TextButton(onClick = onDismiss) { Text("Hủy") }
             }
         }
     )
 }
 
 @Composable
-fun ReservationItem(reservation: TableReservation) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("User: ${reservation.userId.take(8)}...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
-                // Phone number not directly in TableReservation, maybe show guest count or branch?
-                if (reservation.note.isNotEmpty()) {
-                    Text("Note: ${reservation.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
-                }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text("Bàn: ${if(reservation.branchName.isNotEmpty()) reservation.branchName else "Chưa gán"}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                Text("${reservation.getTotalGuests()} khách", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                val date = reservation.timeSlot.toDate()
-                if (date != null) {
-                    val format = SimpleDateFormat("HH:mm dd/MM", Locale.getDefault())
-                    Text(format.format(date), color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReservationDialog(
-    tables: List<Table>,
-    onDismiss: () -> Unit,
-    onSave: (TableReservation) -> Unit
+fun ReservationItem(
+    reservation: TableReservation, 
+    userAvatar: String? = null,
+    userName: String,
+    onClick: () -> Unit, 
+    onAccept: () -> Unit, 
+    onReject: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var guests by remember { mutableStateOf("2") }
-    var note by remember { mutableStateOf("") }
-    var selectedTable by remember { mutableStateOf<Table?>(null) }
-    var expanded by remember { mutableStateOf(false) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Thêm đặt bàn mới") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name, onValueChange = { name = it },
-                    label = { Text("Tên khách hàng") }, modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = phone, onValueChange = { phone = it },
-                    label = { Text("Số điện thoại") }, modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                     OutlinedTextField(
-                        value = guests, onValueChange = { guests = it },
-                        label = { Text("Số khách") }, modifier = Modifier.weight(1f),
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Box {
-                    OutlinedButton(
-                        onClick = { expanded = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (selectedTable != null) selectedTable!!.name else "Chọn bàn")
-                    }
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        tables.forEach { table ->
-                            DropdownMenuItem(
-                                text = { Text(table.name) },
-                                onClick = { 
-                                    selectedTable = table
-                                    expanded = false
-                                }
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header: User + Status badge
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row {
+                    // Avatar
+                    if (userAvatar != null) {
+                        AsyncImage(
+                            model = userAvatar,
+                            contentDescription = "Avatar",
+                            modifier = Modifier.size(40.dp).clip(CircleShape),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.Gray),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = userName.firstOrNull()?.toString()?.uppercase() ?: "K",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(userName, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        val date = if(reservation.createdAt != null) {
+                            SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault()).format(reservation.createdAt.toDate())
+                        } else "Vừa xong"
+                        Text(date + " • #" + reservation.id.takeLast(6).uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = note, onValueChange = { note = it },
-                    label = { Text("Ghi chú") }, modifier = Modifier.fillMaxWidth(),
-                    maxLines = 3
-                )
+                
+                // Status Badge
+                val (badgeColor, badgeText) = when(reservation.status) {
+                    "PENDING" -> Color(0xFFF59E0B) to "Chờ duyệt"
+                    "CONFIRMED" -> Color(0xFF3B82F6) to "Đã duyệt"
+                    "COMPLETED" -> SuccessGreen to "Xong"
+                    "CANCELLED" -> Color.Gray to "Hủy"
+                    "REJECTED" -> LightRed to "Từ chối"
+                    else -> Color.Gray to reservation.status
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(badgeColor.copy(alpha = 0.15f))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    val statusLabel = when(reservation.status) {
+                        "PENDING" -> "Mới"
+                        "CONFIRMED" -> "Đã duyệt"
+                        "COMPLETED" -> "Xong"
+                        "CANCELLED" -> "Hủy"
+                        "REJECTED" -> "Từ chối"
+                        else -> reservation.status
+                    }
+                    Text(statusLabel, color = badgeColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val res = TableReservation(
-                        // TableReservation doesn't have customerName/phone, likely handled via User ID or external logic.
-                        // For Admin creating, we might need a workaround or just set basic info.
-                        // Since this is Admin side, maybe we just use note for name/phone for now?
-                        userId = "ADMIN_CREATED", // Placeholder
-                        branchId = "DEFAULT_BRANCH",
-                        branchName = selectedTable?.name ?: "",
-                        guestCountAdult = guests.toIntOrNull() ?: 1,
-                        guestCountChild = 0,
-                        note = "Admin: $name - $phone. $note",
-                        timeSlot = com.google.firebase.Timestamp.now()
-                    )
-                    onSave(res)
-                },
-                enabled = name.isNotEmpty()
-            ) { Text("Lưu") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Hủy") }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Reservation details
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Chi nhánh", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(reservation.branchName.ifEmpty { "Chưa xác định" }, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Số khách", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text("${reservation.guestCountAdult} Lớn, ${reservation.guestCountChild} Trẻ", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Thời gian", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    val timeFormat = SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault())
+                    Text(timeFormat.format(reservation.timeSlot.toDate()), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+
+            if (reservation.note.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Ghi chú: ${reservation.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Footer: Button Action
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Xem chi tiết >", color = PrimaryColor, fontSize = 14.sp, fontWeight = FontWeight.Medium, modifier = Modifier.clickable { onClick() })
+
+                if (reservation.status == "PENDING") {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Reject Button
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f))
+                                .clickable { onReject() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.LightGray)
+                        }
+                        
+                        // Approve Button
+                        Button(
+                            onClick = onAccept,
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Text("Duyệt")
+                        }
+                    }
+                }
+            }
         }
-    )
+    }
 }
