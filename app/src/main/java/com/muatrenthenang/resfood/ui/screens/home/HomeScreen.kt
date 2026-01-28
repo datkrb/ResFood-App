@@ -1,5 +1,6 @@
 package com.muatrenthenang.resfood.ui.screens.home
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Food
@@ -41,9 +44,19 @@ fun HomeScreen(
     onNavigateToNotifications: () -> Unit,
     paddingValues: PaddingValues = PaddingValues()
 ){
+    val context = LocalContext.current
     val uiState by homeViewModel.uiState.collectAsState()
     val userState by userViewModel.userState.collectAsState()
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    val addToCartResult by homeViewModel.addToCartResult.collectAsState()
+
+    // Show toast when add to cart result changes
+    LaunchedEffect(addToCartResult) {
+        addToCartResult?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            homeViewModel.clearAddToCartResult()
+        }
+    }
 
     if (uiState.isLoading) {
         Box(
@@ -104,7 +117,9 @@ fun HomeScreen(
                     onClickFood = { food ->
                         onFoodClick(food)
                     },
-                    onClickAdd = {}
+                    onClickAdd = {
+                        homeViewModel.addToCart(food.id)
+                    }
                 )
             }
         }

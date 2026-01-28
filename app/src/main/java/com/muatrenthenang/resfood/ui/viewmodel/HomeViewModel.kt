@@ -98,4 +98,25 @@ class HomeViewModel (
         _uiState.value = _uiState.value.copy(selectedCategory = newCategory)
         applyFilters()
     }
+
+    // ---- Add to Cart ----
+    private val _cartRepository = com.muatrenthenang.resfood.data.repository.CartRepository()
+    
+    private val _addToCartResult = MutableStateFlow<String?>(null)
+    val addToCartResult: StateFlow<String?> = _addToCartResult.asStateFlow()
+
+    fun addToCart(foodId: String) {
+        viewModelScope.launch {
+            val result = _cartRepository.addOrUpdateCartItem(foodId, 1, null)
+            if (result.isSuccess) {
+                _addToCartResult.value = "Đã thêm vào giỏ hàng"
+            } else {
+                _addToCartResult.value = result.exceptionOrNull()?.message ?: "Lỗi thêm vào giỏ hàng"
+            }
+        }
+    }
+
+    fun clearAddToCartResult() {
+        _addToCartResult.value = null
+    }
 }
