@@ -14,8 +14,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.TableBar
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,17 +24,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.ui.theme.SuccessGreen
+import com.muatrenthenang.resfood.ui.theme.LightRed
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import com.muatrenthenang.resfood.ui.theme.PrimaryColor
-import com.muatrenthenang.resfood.ui.theme.SurfaceCard
-import com.muatrenthenang.resfood.ui.theme.AccentOrange
-import com.muatrenthenang.resfood.ui.theme.SuccessGreen
-import com.muatrenthenang.resfood.ui.theme.LightRed
-import androidx.compose.foundation.border
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,20 +43,23 @@ fun OrderManagementScreen(
     onNavigateToDetail: (String) -> Unit
 ) {
     val orders by viewModel.orders.collectAsState()
+    val customers by viewModel.customers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
-    var selectedFilter by remember { mutableStateOf("Tất cả") }
+    // Tabs matching User Order Screen style but for Admin
+    val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "COMPLETED", "CANCELLED", "REJECTED", "ALL")
+    val tabTitles = listOf("Chờ duyệt", "Đang chế biến", "Đang giao", "Hoàn thành", "Đã hủy", "Đã từ chối", "Tất cả")
+    
+    var selectedTabIndex by remember { mutableStateOf(0) } // Default to PENDING
     var selectedDateFilter by remember { mutableStateOf("Tất cả") }
     var searchQuery by remember { mutableStateOf("") }
-    
+
     // Filter Logic
     val filteredOrders = orders.filter { order ->
-        val matchesStatus = when(selectedFilter) {
-             "Tất cả" -> true
-             "Mới" -> order.status == "PENDING"
-             "Chờ duyệt" -> order.status == "PROCESSING"
-             "Đang giao" -> order.status == "DELIVERING"
-             else -> true
+        val selectedStatus = tabs[selectedTabIndex]
+        val matchesStatus = when(selectedStatus) {
+             "ALL" -> true
+             else -> order.status == selectedStatus
         }
         
         val matchesDate = when(selectedDateFilter) {
@@ -79,6 +81,43 @@ fun OrderManagementScreen(
         }
         matchesStatus && matchesDate && matchesSearch
     }.sortedByDescending { it.createdAt }
+
+    // State for Reject Dialog
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var orderToReject by remember { mutableStateOf<Order?>(null) }
+    val context = LocalContext.current
+
+    if (showRejectDialog && orderToReject != null) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("Từ chối đơn hàng?", fontWeight = FontWeight.Bold) },
+            text = { Text("Bạn có chắc chắn muốn từ chối đơn hàng #${orderToReject?.id?.takeLast(5)?.uppercase()} không?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        orderToReject?.let { order ->
+                            viewModel.rejectOrder(order.id) {
+                                Toast.makeText(context, "Đã từ chối đơn hàng thành công", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        showRejectDialog = false
+                        orderToReject = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = LightRed)
+                ) {
+                    Text("Từ chối", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRejectDialog = false }) {
+                    Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -120,10 +159,35 @@ fun OrderManagementScreen(
                 onQueryChange = { searchQuery = it }
             )
             
-            // Filters
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterTabs(selectedFilter) { selectedFilter = it }
-                DateFilterTabs(selectedDateFilter) { selectedDateFilter = it }
+            // Tabs
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = Color.Transparent,
+                contentColor = PrimaryColor,
+                edgePadding = 16.dp,
+                indicator = { tabPositions ->
+                    if (selectedTabIndex < tabPositions.size) {
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = PrimaryColor
+                        )
+                    }
+                },
+                divider = {}
+            ) {
+                tabs.forEachIndexed { index, _ ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = {
+                            Text(
+                                text = tabTitles[index],
+                                color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -140,8 +204,9 @@ fun OrderManagementScreen(
                        horizontalArrangement = Arrangement.SpaceBetween,
                        verticalAlignment = Alignment.CenterVertically
                    ) {
-                       Text("Đơn mới cần xử lý", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                       Text("${filteredOrders.size} Đơn", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                       val headerTitle = tabTitles[selectedTabIndex]
+                       Text(headerTitle, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                       Text("${filteredOrders.size} Đơn", color = LightRed, fontWeight = FontWeight.Bold)
                    }
                 }
 
@@ -154,11 +219,20 @@ fun OrderManagementScreen(
                 }
 
                 items(filteredOrders) { order ->
+                    val customer = customers.find { it.id == order.userId }
                     OrderItem(
                         order = order, 
+                        userAvatar = customer?.avatarUrl,
                         onClick = { onNavigateToDetail(order.id) },
-                        onAccept = { viewModel.approveOrder(order.id) },
-                        onReject = { viewModel.rejectOrder(order.id) }
+                        onAccept = { 
+                            viewModel.approveOrder(order.id) {
+                                Toast.makeText(context, "Đã duyệt đơn hàng thành công", Toast.LENGTH_SHORT).show()
+                            } 
+                        },
+                        onReject = { 
+                            orderToReject = order
+                            showRejectDialog = true
+                        }
                     )
                 }
             }
@@ -199,62 +273,13 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
 }
 
 @Composable
-fun FilterTabs(selected: String, onSelect: (String) -> Unit) {
-    val filters = listOf("Tất cả", "Mới", "Chờ duyệt", "Đang giao")
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selected
-            val bgColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-            val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(bgColor)
-                    .clickable { onSelect(filter) }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(filter, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            }
-        }
-    }
-}
-
-@Composable
-fun DateFilterTabs(selected: String, onSelect: (String) -> Unit) {
-    val filters = listOf("Tất cả", "Hôm nay", "Tuần này")
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        filters.forEach { filter ->
-            val isSelected = filter == selected
-            val bgColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha=0.5f) else Color.Transparent
-            val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            val textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(bgColor)
-                    .border(1.dp, borderColor, RoundedCornerShape(16.dp))
-                    .clickable { onSelect(filter) }
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Text(filter, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-            }
-        }
-    }
-}
-
-@Composable
-fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject: () -> Unit) {
+fun OrderItem(
+    order: Order, 
+    userAvatar: String? = null,
+    onClick: () -> Unit, 
+    onAccept: () -> Unit, 
+    onReject: () -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
@@ -267,10 +292,26 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row {
-                    // Avatar Placeholder
-                    Box(
-                       modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.Gray)
-                    )
+                    // Avatar
+                    if (userAvatar != null) {
+                         AsyncImage(
+                            model = userAvatar,
+                            contentDescription = "Avatar",
+                            modifier = Modifier.size(40.dp).clip(CircleShape),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                           modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.Gray),
+                           contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = order.userName.firstOrNull()?.toString()?.uppercase() ?: "K",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(order.userName.ifEmpty { "Khách lẻ" }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
@@ -283,8 +324,9 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                 
                 // Status Badge
                 val (badgeBg, badgeText) = when(order.status) {
-                    "PENDING" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) to MaterialTheme.colorScheme.primary
-                    "PROCESSING" -> AccentOrange.copy(alpha = 0.2f) to AccentOrange
+                    "PENDING" -> PrimaryColor.copy(alpha = 0.2f) to PrimaryColor
+                    "PROCESSING" -> Color(0xFFFF9800).copy(alpha = 0.2f) to Color(0xFFFF9800)
+                    "DELIVERING" -> Color(0xFF2196F3).copy(alpha = 0.2f) to Color(0xFF2196F3)
                     "COMPLETED" -> SuccessGreen.copy(alpha = 0.2f) to SuccessGreen
                     "REJECTED", "CANCELLED" -> LightRed.copy(alpha = 0.2f) to LightRed
                     else -> SuccessGreen.copy(alpha = 0.2f) to SuccessGreen
@@ -299,6 +341,7 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                     val statusLabel = when(order.status) {
                         "PENDING" -> "Mới"
                         "PROCESSING" -> "Đang làm"
+                        "DELIVERING" -> "Đang giao"
                         "COMPLETED" -> "Xong"
                         "CANCELLED" -> "Hủy"
                         "REJECTED" -> "Từ chối"
@@ -309,7 +352,7 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(12.dp))
 
             // Items - Assuming all are food items for now
@@ -330,27 +373,31 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
             ) {
                 Column {
                     Text("Tổng tiền", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                    Text("${order.total}đ", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    val formattedTotal = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN")).format(order.total)
+                    Text(formattedTotal, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 if (order.status == "PENDING") {
-                   Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                   Row(
+                       horizontalArrangement = Arrangement.spacedBy(12.dp),
+                       verticalAlignment = Alignment.CenterVertically
+                   ) {
                        // Reject Button (Icon only or small text)
                        Box(
                            modifier = Modifier
                                .size(40.dp)
                                .clip(CircleShape)
-                               .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                               .background(Color.White.copy(alpha = 0.1f))
                                .clickable { onReject() },
                            contentAlignment = Alignment.Center
                        ) {
-                           Icon(Icons.Default.Close, contentDescription = "Reject", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                           Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.LightGray)
                        }
                        
                        // Approve Button
                        Button(
                            onClick = onAccept,
-                           colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                           colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                            shape = RoundedCornerShape(20.dp)
                        ) {
                            Text("Duyệt")
