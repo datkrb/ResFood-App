@@ -15,12 +15,14 @@ import com.muatrenthenang.resfood.data.repository.FoodRepository
 import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.data.repository.FavoritesRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
+import com.muatrenthenang.resfood.data.repository.ToppingRepository
 
 class FoodDetailViewModel(
     private val _foodRepository: FoodRepository = FoodRepository(),
     private val _cartRepository: CartRepository = CartRepository(),
     private val _favoritesRepository: FavoritesRepository = FavoritesRepository(),
-    private val _orderRepository: OrderRepository = OrderRepository()
+    private val _orderRepository: OrderRepository = OrderRepository(),
+    private val _toppingRepository: ToppingRepository = ToppingRepository()
 
 ) : ViewModel() {
     
@@ -49,56 +51,45 @@ class FoodDetailViewModel(
     private val _ratingHistogram = MutableStateFlow<Map<Int, Int>>(emptyMap())
     val ratingHistogram: StateFlow<Map<Int, Int>> = _ratingHistogram.asStateFlow()
 
-    val listTopping = listOf(
-        Topping(
-            name = "Trứng lòng đào",
-            price = 5000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-        Topping(
-            name = "Thịt nướng",
-            price = 7000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-        Topping(
-            name = "Tốp mỡ",
-            price = 3000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-    )
+
     //
 
     fun loadFoodDetail(foodId: String) {
         viewModelScope.launch {
-            val result = _foodRepository.getFood(foodId)
-            if (result.isSuccess) {
-                val foodItem = result.getOrNull()
+            // Load Food
+            val foodResult = _foodRepository.getFood(foodId)
+            if (foodResult.isSuccess) {
+                val foodItem = foodResult.getOrNull()
                 _food.value = foodItem
                 _totalPrice.value = foodItem?.price ?: 0
-                // Check favorites status for this food
+                
+                // Load favorites status
                 foodItem?.id?.let { id ->
                     val favRes = _favoritesRepository.isFavorite(id)
-                    if (favRes.isSuccess) {
-                        _isFavorite.value = favRes.getOrNull() ?: false
-                    } else {
-                        _isFavorite.value = false
-                    }
+                    _isFavorite.value = favRes.getOrNull() ?: false
                 }
             } else {
                 _food.value = null
                 _isFavorite.value = false
             }
+
+            // Load Toppings
+            val toppingResult = _toppingRepository.getToppings()
+            if (toppingResult.isSuccess) {
+                _allToppings.value = toppingResult.getOrNull()
+            } else {
+                _allToppings.value = emptyList()
+            }
+
              // Calculate histogram whenever food updates
             _food.value?.let { food ->
                 calculateRatingHistogram(food.reviews)
             }
             // Check if user can review
              checkIfUserCanReview(foodId)
-        }
-        //_food.value = sampleFoods.find { it.id == foodId }
-        _allToppings.value = listTopping
 
-        updateTotalPrice()
+            updateTotalPrice()
+        }
     }
 
     fun increaseQuantity() {
