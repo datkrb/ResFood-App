@@ -15,12 +15,14 @@ import com.muatrenthenang.resfood.data.repository.FoodRepository
 import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.data.repository.FavoritesRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
+import com.muatrenthenang.resfood.data.repository.AuthRepository
 
 class FoodDetailViewModel(
     private val _foodRepository: FoodRepository = FoodRepository(),
     private val _cartRepository: CartRepository = CartRepository(),
     private val _favoritesRepository: FavoritesRepository = FavoritesRepository(),
-    private val _orderRepository: OrderRepository = OrderRepository()
+    private val _orderRepository: OrderRepository = OrderRepository(),
+    private val _authRepository: AuthRepository = AuthRepository()
 
 ) : ViewModel() {
     
@@ -209,15 +211,19 @@ class FoodDetailViewModel(
          val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser ?: return
          val foodId = _food.value?.id ?: return
          
-         val review = com.muatrenthenang.resfood.data.model.Review(
-             star = star,
-             comment = comment,
-             userId = currentUser.uid,
-             userName = currentUser.displayName ?: "User",
-             createdAt = System.currentTimeMillis()
-         )
-         
          viewModelScope.launch {
+             // Lấy thông tin user mới nhất từ Firestore để có tên chính xác
+             val userResult = _authRepository.getUserProfile(currentUser.uid)
+             val userName = userResult.getOrNull()?.fullName ?: currentUser.displayName ?: "User"
+
+             val review = com.muatrenthenang.resfood.data.model.Review(
+                 star = star,
+                 comment = comment,
+                 userId = currentUser.uid,
+                 userName = userName,
+                 createdAt = System.currentTimeMillis()
+             )
+
              val result = _foodRepository.addReview(foodId, review)
              if (result.isSuccess) {
                  // Refresh food data to show new review
