@@ -360,7 +360,12 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToReferral = { navController.navigate("referral") },
                                 onNavigateToVouchers = { navController.navigate("vouchers") },
                                 onNavigateToAddresses = { navController.navigate("profile_addresses") },
-                                onNavigateToHelpCenter = { /* TODO: Help Center */ },
+                                onNavigateToHelpCenter = {
+                                    val userId = userViewModel.userState.value?.id
+                                    if (userId != null) {
+                                        navController.navigate("chat_detail/$userId")
+                                    }
+                                },
                                 onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
                                 onLogout = {
                                     navController.navigate("login") {

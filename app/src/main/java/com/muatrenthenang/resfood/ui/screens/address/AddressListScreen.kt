@@ -285,7 +285,7 @@ fun AddressCard(
         shadowElevation = 2.dp,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onSelect() }
+            .clickable { onEdit() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -351,17 +351,6 @@ fun AddressCard(
 
                 // Action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "Sửa",
-                            tint = PrimaryColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
                     IconButton(
                         onClick = onDelete,
                         modifier = Modifier.size(36.dp)

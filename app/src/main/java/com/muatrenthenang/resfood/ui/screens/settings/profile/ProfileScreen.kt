@@ -316,7 +316,6 @@ fun ProfileScreen(
                             MaterialTheme.colorScheme.surface,
                             RoundedCornerShape(12.dp)
                         )
-                        .clickable { onNavigateToAddresses() }
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -332,11 +331,6 @@ fun ProfileScreen(
                         color = if (defaultAddress != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.weight(1f)
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
