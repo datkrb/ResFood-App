@@ -27,7 +27,7 @@ class CheckoutRepository {
                 val quantity = doc.getLong("quantity")?.toInt() ?: 1
                 val isSelected = doc.getBoolean("isSelected") ?: true
                 val note = doc.getString("note")
-                val foodDoc = db.collection("foods").document(foodId).get().await()
+                val foodDoc = db.collection("foods").document(foodId).get(com.google.firebase.firestore.Source.SERVER).await()
                 val food = foodDoc.toObject(Food::class.java)?.copy(id = foodId)
                 if (food != null) {
                     items.add(CartItem(food, quantity, isSelected, note))

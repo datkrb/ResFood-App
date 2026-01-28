@@ -125,4 +125,12 @@ class OrderRepository {
             Result.failure(e)
         }
     }
+    suspend fun deleteOrder(orderId: String): Result<Boolean> {
+        return try {
+            ordersRef.document(orderId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

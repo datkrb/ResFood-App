@@ -17,8 +17,10 @@ import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
 import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
-enum class PaymentMethod { ZALOPAY, MOMO, COD }
+enum class PaymentMethod { SEPAY, COD }
 
 class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository(),
@@ -63,6 +65,12 @@ class CheckoutViewModel(
 
     private val _actionResult = MutableStateFlow<String?>(null)
     val actionResult = _actionResult.asStateFlow()
+
+    // SEPay QR Code URL
+    private val _paymentQrUrl = MutableStateFlow<String?>(null)
+    val paymentQrUrl = _paymentQrUrl.asStateFlow()
+
+    private val _currentOrderId = MutableStateFlow<String?>(null)
 
     private val _shippingFee = 15000L
 
@@ -167,47 +175,39 @@ class CheckoutViewModel(
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setAddress(a: Address) { _address.value = a }
 
-    fun subTotal(): Long = _items.value.sumOf { it.food.price.toLong() * it.quantity }
+    val subTotal = _items.map { list ->
+        list.sumOf { it.food.price.toLong() * it.quantity }
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     // Tính toán discount từ Product Voucher
-    fun productDiscount(): Long {
-        val voucher = _selectedProductVoucher.value ?: return 0L
-        val subtotal = subTotal()
-
-        if (subtotal < voucher.minOrderValue) return 0L
+    val productDiscount = kotlinx.coroutines.flow.combine(_selectedProductVoucher, subTotal) { voucher, sub ->
+        if (voucher == null) return@combine 0L
+        if (sub < voucher.minOrderValue) return@combine 0L
 
         var discount = if (voucher.discountType == 1) { // Amount
             voucher.discountValue.toLong()
-        } else { // Percent check (assuming 0 is percent)
-            // Logic percent here if supported, current logic mainly supports amount based on previous code
-            // Assuming discountValue is percent if type 0? Or maybe fixed amount only for now?
-            // Existing model says: discountType: Int = 0, // 0: %, 1: Amount
+        } else { // Percent
             if (voucher.discountType == 0) {
-                (subtotal * voucher.discountValue) / 100
+                (sub * voucher.discountValue) / 100
             } else {
                 voucher.discountValue.toLong()
             }
         }
         
-        // Cap at max discount if set
         if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
             discount = voucher.maxDiscountValue.toLong()
         }
-
-        return discount
-    }
+        discount
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     // Tính toán discount từ Shipping Voucher
-    fun shippingDiscount(): Long {
-        val voucher = _selectedShippingVoucher.value ?: return 0L
-        val subtotal = subTotal()
-        
-        if (subtotal < voucher.minOrderValue) return 0L
+    val shippingDiscount = kotlinx.coroutines.flow.combine(_selectedShippingVoucher, subTotal) { voucher, sub ->
+        if (voucher == null) return@combine 0L
+        if (sub < voucher.minOrderValue) return@combine 0L
 
         var discount = if (voucher.discountType == 1) {
              voucher.discountValue.toLong()
         } else {
-            // Percent of shipping fee
              if (voucher.discountType == 0) {
                 (_shippingFee * voucher.discountValue) / 100
             } else {
@@ -218,14 +218,16 @@ class CheckoutViewModel(
         if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
             discount = voucher.maxDiscountValue.toLong()
         }
-        
         // Cannot exceed shipping fee
-        return minOf(discount, _shippingFee)
-    }
+        minOf(discount, _shippingFee)
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun totalDiscount(): Long = productDiscount() + shippingDiscount()
+    val totalDiscount = kotlinx.coroutines.flow.combine(productDiscount, shippingDiscount) { p, s -> p + s }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun total(): Long = maxOf(0L, subTotal() + _shippingFee - totalDiscount())
+    val total = kotlinx.coroutines.flow.combine(subTotal, totalDiscount) { sub, disc ->
+        maxOf(0L, sub + _shippingFee - disc)
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
@@ -272,15 +274,14 @@ class CheckoutViewModel(
                     userPhone = currentAddress.phone,
                     address = currentAddress,
                     items = orderItems,
-                    subtotal = subTotal().toInt(),
-                    discount = totalDiscount().toInt(),
+                    subtotal = subTotal.value.toInt(),
+                    discount = totalDiscount.value.toInt(),
                     deliveryFee = _shippingFee.toInt(),
-                    total = total().toInt(),
+                    total = total.value.toInt(),
                     status = "PENDING",
                     paymentMethod = when (_paymentMethod.value) {
                         PaymentMethod.COD -> "COD"
-                        PaymentMethod.MOMO -> "MOMO"
-                        PaymentMethod.ZALOPAY -> "ZALOPAY"
+                        PaymentMethod.SEPAY -> "SEPAY"
                     },
                     createdAt = Timestamp.now(),
                     
@@ -289,8 +290,8 @@ class CheckoutViewModel(
                     productVoucherId = _selectedProductVoucher.value?.id,
                     shippingVoucherCode = _selectedShippingVoucher.value?.code,
                     shippingVoucherId = _selectedShippingVoucher.value?.id,
-                    productDiscount = productDiscount().toInt(),
-                    shippingDiscount = shippingDiscount().toInt()
+                    productDiscount = productDiscount.value.toInt(),
+                    shippingDiscount = shippingDiscount.value.toInt()
                 )
 
                 // Save order to Firebase
@@ -320,22 +321,20 @@ class CheckoutViewModel(
     }
 
     /**
-     * Create Order for ZaloPay and get Token
+     * Create Order for SEPay
      */
-    fun createZaloPayOrder(onResult: (String?) -> Unit) {
+    fun createSepayOrder() {
         viewModelScope.launch {
             // Validate items
             val selectedItems = _items.value.filter { it.isSelected }
             if (selectedItems.isEmpty()) {
                 _actionResult.value = "Không có món nào được chọn"
-                onResult(null)
                 return@launch
             }
             
             val currentAddress = _address.value
             if (currentAddress.id.isBlank()) {
                 _actionResult.value = "Vui lòng chọn địa chỉ"
-                onResult(null)
                 return@launch
             }
 
@@ -361,87 +360,71 @@ class CheckoutViewModel(
                     userPhone = currentAddress.phone,
                     address = currentAddress,
                     items = orderItems,
-                    subtotal = subTotal().toInt(),
-                    discount = totalDiscount().toInt(),
+                    subtotal = subTotal.value.toInt(),
+                    discount = totalDiscount.value.toInt(),
                     deliveryFee = _shippingFee.toInt(),
-                    total = total().toInt(),
-                    status = "PENDING", // Initial status
-                    paymentMethod = "ZALOPAY",
+                    total = total.value.toInt(),
+                    status = "WAITING_PAYMENT", // Changed from PENDING to hide from Order List until paid
+                    paymentMethod = "SEPAY",
                     createdAt = Timestamp.now(),
                     productVoucherCode = _selectedProductVoucher.value?.code,
                     productVoucherId = _selectedProductVoucher.value?.id,
                     shippingVoucherCode = _selectedShippingVoucher.value?.code,
                     shippingVoucherId = _selectedShippingVoucher.value?.id,
-                    productDiscount = productDiscount().toInt(),
-                    shippingDiscount = shippingDiscount().toInt()
+                    productDiscount = productDiscount.value.toInt(),
+                    shippingDiscount = shippingDiscount.value.toInt()
                 )
 
                 val createResult = _orderRepository.createOrder(order)
+                
                 if (createResult.isSuccess) {
                     val orderId = createResult.getOrNull()
+                    _currentOrderId.value = orderId
                     if (orderId != null) {
-                         // Call ZaloPay API
+                         // Call SEPay API
                          try {
-                              val request = com.muatrenthenang.resfood.data.api.CreatePaymentRequest(orderId)
-                              val response = com.muatrenthenang.resfood.data.api.ZaloPayClient.api.createPayment(request)
-                              if (response.return_code == 1 && response.zp_trans_token != null) {
-                                  _currentOrderId.value = orderId
-                                  onResult(response.zp_trans_token)
-                              } else {
-                                  _actionResult.value = "Lỗi ZaloPay: ${response.return_message}"
-                                  onResult(null)
-                              }
+                              val request = com.muatrenthenang.resfood.data.api.CreateSepayPaymentRequest(orderId)
+                              val response = com.muatrenthenang.resfood.data.api.ResFoodPaymentClient.api.createSepayPayment(request)
+                              
+                              // Success, show QR
+                              _paymentQrUrl.value = response.qrUrl
+                              
+                              // Use vouchers
+                                _selectedProductVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                                _selectedShippingVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                                
+                                // _repository.removeSelectedItems()
+
                          } catch (e: Exception) {
-                              _actionResult.value = "Lỗi kết nối ZaloPay: ${e.message}"
-                              onResult(null)
+                              _actionResult.value = "Lỗi kết nối SEPay: ${e.message}"
                          }
                     }
                 } else {
                     _actionResult.value = "Lỗi tạo đơn hàng: ${createResult.exceptionOrNull()?.message}"
-                    onResult(null)
                 }
             } catch (e: Exception) {
                 _actionResult.value = "Lỗi: ${e.message}"
-                onResult(null)
             } finally {
                 _isLoading.value = false
             }
         }
     }
-    
-    // Store current processing order ID
-    private val _currentOrderId = MutableStateFlow<String?>(null)
 
-    fun checkZaloPayStatus(appTransID: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val request = com.muatrenthenang.resfood.data.api.CheckStatusRequest(appTransID)
-                val response = com.muatrenthenang.resfood.data.api.ZaloPayClient.api.checkStatus(request)
-                
-                if (response.return_code == 1) {
-                     val userId = _authRepository.getCurrentUserId()
-                     if (userId != null) {
-                        _selectedProductVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
-                        _selectedShippingVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
-                     }
-
-                     _repository.removeSelectedItems()
-                     _actionResult.value = "Thanh toán thành công!"
-                     // Order status in local repository might need update if we are observing it?
-                     // But here we just navigate away or show success.
-                } else if (response.return_code == 3) {
-                     _actionResult.value = "Đang xử lý thanh toán..."
-                } else {
-                     _actionResult.value = "Thanh toán thất bại: ${response.return_message}"
-                     _orderRepository.updateOrderStatus(_currentOrderId.value ?: "", "CANCELLED")
+    fun clearPaymentQr() {
+        val orderId = _currentOrderId.value
+        if (orderId != null) {
+            viewModelScope.launch {
+                val orderResult = _orderRepository.getOrderById(orderId)
+                if (orderResult.isSuccess) {
+                    val order = orderResult.getOrNull()
+                    if (order != null && order.status == "WAITING_PAYMENT") {
+                        _orderRepository.deleteOrder(orderId)
+                    }
                 }
-            } catch (e: Exception) {
-                _actionResult.value = "Lỗi kiểm tra trạng thái: ${e.message}"
-            } finally {
-                _isLoading.value = false
+                _currentOrderId.value = null
             }
         }
+        _paymentQrUrl.value = null
     }
 
     fun clearResult(){ _actionResult.value = null }

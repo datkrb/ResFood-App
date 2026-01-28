@@ -16,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +43,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -58,6 +61,7 @@ fun CheckoutScreen(
     val paymentMethod by vm.paymentMethod.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     val result by vm.actionResult.collectAsState()
+    val paymentQrUrl by vm.paymentQrUrl.collectAsState()
 
     // Compute totals from collected state so UI reacts immediately
     // State to toggle Voucher Selection Screen
@@ -68,10 +72,10 @@ fun CheckoutScreen(
     val shippingVoucher by vm.selectedShippingVoucher.collectAsState()
 
     // Calculated values
-    val subTotal = vm.subTotal()
-    val productDiscount = vm.productDiscount()
-    val shippingDiscount = vm.shippingDiscount()
-    val total = vm.total()
+    val subTotal by vm.subTotal.collectAsState(initial = 0L)
+    val productDiscount by vm.productDiscount.collectAsState(initial = 0L)
+    val shippingDiscount by vm.shippingDiscount.collectAsState(initial = 0L)
+    val total by vm.total.collectAsState(initial = 0L)
 
     if (showVoucherSelection) {
         VoucherSelectionScreen(
@@ -87,8 +91,40 @@ fun CheckoutScreen(
         return
     }
 
+    if (paymentQrUrl != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                vm.clearPaymentQr()
+            },
+            title = { Text("Quét mã QR để thanh toán") },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    AsyncImage(
+                        model = paymentQrUrl,
+                        contentDescription = "QR Code",
+                        modifier = Modifier.size(250.dp).padding(8.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Vui lòng quét mã trên ứng dụng ngân hàng của bạn.", fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { 
+                    vm.clearPaymentQr()
+                }) {
+                    Text("Đóng")
+                }
+            }
+        )
+    }
+
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        vm.loadSelectedCartItems()
+    }
 
     LaunchedEffect(result) {
         result?.let { r ->
@@ -143,24 +179,8 @@ fun CheckoutScreen(
                         }
                         Button(
                             onClick = { 
-                                if (paymentMethod == PaymentMethod.ZALOPAY) {
-                                    vm.createZaloPayOrder { token ->
-                                        if (token != null) {
-                                            vn.zalopay.sdk.ZaloPaySDK.getInstance().payOrder(context as android.app.Activity, token, "demozpdk://app", object : vn.zalopay.sdk.listeners.PayOrderListener {
-                                                override fun onPaymentSucceeded(transactionId: String, transToken: String, appTransID: String) {
-                                                     vm.checkZaloPayStatus(appTransID)
-                                                }
-                                                override fun onPaymentCanceled(zpTransToken: String, appTransID: String) {
-                                                     vm.checkZaloPayStatus(appTransID)
-                                                }
-                                                override fun onPaymentError(zaloPayError: vn.zalopay.sdk.ZaloPayError, zpTransToken: String, appTransID: String) {
-                                                     vm.checkZaloPayStatus(appTransID)
-                                                }
-                                            })
-                                        } else {
-                                            Toast.makeText(context, "Lỗi tạo đơn ZaloPay", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+                                if (paymentMethod == PaymentMethod.SEPAY) {
+                                    vm.createSepayOrder()
                                 } else {
                                     vm.confirmPayment() 
                                 }
@@ -424,9 +444,20 @@ fun CheckoutScreen(
             Column {
                 Text(text = "Phương thức thanh toán", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                    PaymentOption(label = "Ví ZaloPay", subtitle = null, drawableRes = R.drawable.ic_zalopay_logo, selected = paymentMethod == PaymentMethod.ZALOPAY, onSelect = { vm.setPaymentMethod(PaymentMethod.ZALOPAY) })
-                    PaymentOption(label = "Ví MoMo", subtitle = null, drawableRes = R.drawable.ic_momo_logo, selected = paymentMethod == PaymentMethod.MOMO, onSelect = { vm.setPaymentMethod(PaymentMethod.MOMO) })
-                    PaymentOption(label = "Tiền mặt khi nhận hàng", subtitle = null, drawableRes = R.drawable.ic_cash, selected = paymentMethod == PaymentMethod.COD, onSelect = { vm.setPaymentMethod(PaymentMethod.COD) })
+                    PaymentOption(
+                        label = "Quét mã QR với SEPAY",
+                        subtitle = "Thanh toán tự động 24/7",
+                        drawableRes = R.drawable.sepay,
+                        selected = paymentMethod == PaymentMethod.SEPAY,
+                        onSelect = { vm.setPaymentMethod(PaymentMethod.SEPAY) }
+                    )
+                    PaymentOption(
+                        label = "Tiền mặt khi nhận hàng",
+                        subtitle = null,
+                        drawableRes = R.drawable.ic_cash,
+                        selected = paymentMethod == PaymentMethod.COD,
+                        onSelect = { vm.setPaymentMethod(PaymentMethod.COD) }
+                    )
                 }
             }
 
@@ -444,7 +475,14 @@ fun CheckoutScreen(
 }
 
 @Composable
-fun PaymentOption(label: String, subtitle: String? = null, @androidx.annotation.DrawableRes drawableRes: Int? = null, selected: Boolean = false, onSelect: () -> Unit = {}) {
+fun PaymentOption(
+    label: String, 
+    subtitle: String? = null, 
+    @androidx.annotation.DrawableRes drawableRes: Int? = null, 
+    imageVector: ImageVector? = null,
+    selected: Boolean = false, 
+    onSelect: () -> Unit = {}
+) {
     val border = if (selected) BorderStroke(2.dp, PrimaryColor) else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     Surface(shape = RoundedCornerShape(12.dp), border = border, color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxWidth().clickable { onSelect() }) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -458,6 +496,18 @@ fun PaymentOption(label: String, subtitle: String? = null, @androidx.annotation.
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
                         Image(painter = androidx.compose.ui.res.painterResource(id = drawableRes), contentDescription = label, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                } else if (imageVector != null) {
+                     Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .shadow(1.dp, RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface),
+                         contentAlignment = Alignment.Center
+                    ) {
+                        Icon(imageVector = imageVector, contentDescription = label, tint = PrimaryColor, modifier = Modifier.size(24.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                 }

@@ -57,7 +57,7 @@ fun OrderListScreen(
         "COMPLETED" -> 4
         "CANCELLED" -> 5
         "ALL" -> 6
-        else -> 0 // Default to first if unknown or "all" passed generically
+        else -> 0 // Default to first (PENDING) if unknown
     }
     
     var selectedTabIndex by remember { mutableStateOf(initialIndex) }
@@ -203,7 +203,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                 verticalAlignment = Alignment.CenterVertically
             ) {
                  // Status Text
-                val (statusText, statusColor) = getStatusDisplay(order.status)
+                val (statusText, statusColor) = getStatusDisplay(order)
                 Surface(
                     color = statusColor.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(6.dp)
@@ -321,13 +321,14 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
 }
 
 @Composable
-fun getStatusDisplay(status: String): Pair<String, Color> {
-    return when(status) {
+fun getStatusDisplay(order: Order): Pair<String, Color> {
+    return when(order.status) {
+        "WAITING_PAYMENT" -> "Chờ thanh toán" to Color(0xFFEAB308) // Yellow/Orange
         "PENDING" -> "Chờ xác nhận" to PrimaryColor
         "PROCESSING" -> "Đang chế biến" to Color(0xFFF97316) // Orange
         "DELIVERING" -> "Đang giao" to Color(0xFF3B82F6) // Blue
         "COMPLETED" -> "Đã hoàn thành" to SuccessGreen
         "CANCELLED" -> "Đã hủy" to Color.Red
-        else -> status to Color.Gray
+        else -> order.status to Color.Gray
     }
 }

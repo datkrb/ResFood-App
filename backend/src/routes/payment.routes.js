@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const PaymentController = require('../controllers/payment.controller');
 
-router.post('/zalopay', PaymentController.createPayment);
-router.post('/zalopay/callback', PaymentController.callback);
-router.post('/zalopay/check-status', PaymentController.checkStatus);
+router.post("/sepay/create", PaymentController.create);
+router.post("/sepay/webhook", PaymentController.webhook);
 
 module.exports = router;

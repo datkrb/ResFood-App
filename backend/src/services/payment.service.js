@@ -1,133 +1,89 @@
-const CryptoJS = require('crypto-js');
-const moment = require('moment');
 const { db } = require('../config/firebase.config');
-const zalopayConfig = require('../config/zalopay.config');
+const { BANK_CONFIG } = require('../config/sepay.config');
 
-const generateMac = (data, key1) => {
-    const dataString = data.app_id + '|' + data.app_trans_id + '|' + data.app_user + '|' + data.amount + '|' +
-        data.app_time + '|' + data.embed_data + '|' + data.item;
+const createSepayPayment = async (orderId) => {
+    try {
+        const transId = `SEPAY-${Date.now()}-${orderId}`;
+        const orderDoc = await db.collection('orders').doc(orderId).get();
+        if (!orderDoc.exists) {
+            throw new Error('Order not found');
+        }
+        const orderData = orderDoc.data();
+        const total = orderData.total;
+        const description = `Thanh toán đơn hàng #${orderId}`;
+        const desEncoded = encodeURIComponent(description);
 
-    return CryptoJS.HmacSHA256(dataString, key1).toString();
+        const qrUrl = `https://qr.sepay.vn/img?bank=${BANK_CONFIG.BANK_ID}&acc=${BANK_CONFIG.ACCOUNT_NO}&template=${BANK_CONFIG.TEMPLATE}&amount=${total}&des=${desEncoded}`;
+        // const qrUrl = `https://qr.sepay.vn/img?bank=VCB&acc=1040829489&template=compact&amount=1000&des=Thanh_toán_đơn_hàng_abc123`;
+
+        await db.collection('orders').doc(orderId).update({
+            paymentMethod: 'SEPAY',
+            status: 'WAITING_PAYMENT'
+        })
+
+        return {
+            transId,
+            qrUrl,
+            amount: total,
+            description
+        };
+    } catch (error) {
+        throw new Error(`Failed to create SEPAY payment: ${error.message}`);
+    }
 }
 
-const createZaloPayOrder = async (order_id) => {
-    const orderDoc = await db.collection('orders').doc(order_id).get();
-    if (!orderDoc.exists) {
-        throw new Error("Order not found");
-    }
-    const orderData = orderDoc.data();
-
-    // get data from order
-    const userId = orderData.userId;
-    const items = orderData.items;
-    const amount = orderData.total;
-    const embed_data = { redirecturl: "demozpdk://app" }; // khop voi scheme trong AndroidManifest
-    const transID = Math.floor(Math.random() * 1000000);
-    const description = `Thanh toán đơn hàng #${transID}`;
-
-    const order = {
-        app_id: parseInt(zalopayConfig.app_id),
-        app_trans_id: `${moment().format('YYMMDD')}_${transID}`,
-        app_user: `${userId}`,
-        app_time: Date.now(), // milliseconds
-        item: JSON.stringify(items),
-        embed_data: JSON.stringify(embed_data),
-        amount: amount,
-        description: description,
-        bank_code: '',
-        callback_url: zalopayConfig.callback_url
-    };
-
-    // Calculate MAC
-    const data = zalopayConfig.app_id + "|" + order.app_trans_id + "|" + order.app_user + "|" + order.amount + "|" + order.app_time + "|" + order.embed_data + "|" + order.item;
-    order.mac = CryptoJS.HmacSHA256(data, zalopayConfig.key1).toString();
-
-    // Save app_trans_id to order to query status later
-    await db.collection('orders').doc(order_id).update({
-        app_trans_id: order.app_trans_id
-    });
-
+const handleSepayWebhook = async (webhookData) => {
     try {
-        const axios = require('axios');
-        const result = await axios.post(zalopayConfig.endpoint, null, { params: order });
-        return result.data;
-    } catch (err) {
-        console.log(err);
-        throw new Error("ZaloPay API Error");
-    }
-};
+        const { content, transferAmount, id } = webhookData;
+        console.log(">> Webhook Data:", content, transferAmount);
 
-const handleCallback = async (dataStr, reqMac) => {
-    const mac = CryptoJS.HmacSHA256(dataStr, zalopayConfig.key2).toString();
+        const match = content.match(/#([a-zA-Z0-9-_]+)/);
 
-    // verify mac
-    if (reqMac !== mac) {
-        return { return_code: -1, return_message: "mac not equal" };
-    }
-
-    const dataJson = JSON.parse(dataStr);
-    console.log("update order's status = success where app_trans_id =", dataJson['app_trans_id']);
-
-    const ordersSnapshot = await db.collection('orders').where('app_trans_id', '==', dataJson['app_trans_id']).get();
-
-    if (ordersSnapshot.empty) {
-        return { return_code: 0, return_message: "order not found" };
-    }
-
-    const batch = db.batch();
-    ordersSnapshot.forEach(doc => {
-        batch.update(doc.ref, { status: 'PAID' });
-    });
-    await batch.commit();
-
-    return { return_code: 1, return_message: "success" };
-};
-
-const queryOrder = async (app_trans_id) => {
-    const postData = {
-        app_id: zalopayConfig.app_id,
-        app_trans_id: app_trans_id,
-    };
-
-    const data = postData.app_id + "|" + postData.app_trans_id + "|" + zalopayConfig.key1;
-    postData.mac = CryptoJS.HmacSHA256(data, zalopayConfig.key1).toString();
-
-    const postConfig = {
-        method: 'post',
-        url: 'https://sb-openapi.zalopay.vn/v2/query',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        data: new URLSearchParams(postData).toString() // qs.stringify(postData)
-    };
-
-    try {
-        const axios = require('axios');
-        const result = await axios(postConfig);
-
-        // If ZaloPay says success, sync our DB
-        if (result.data && result.data.return_code === 1) {
-            const ordersSnapshot = await db.collection('orders').where('app_trans_id', '==', app_trans_id).get();
-            if (!ordersSnapshot.empty) {
-                const batch = db.batch();
-                ordersSnapshot.forEach(doc => {
-                    if (doc.data().status !== 'PAID') {
-                        batch.update(doc.ref, { status: 'PAID' });
-                    }
-                });
-                await batch.commit();
-            }
+        if (!match) {
+            // Trường hợp khách tự nhập nội dung mà quên dấu # hoặc nhập sai
+            console.log("Không tìm thấy Order ID sau dấu # trong nội dung:", content);
+            return { success: false, message: "Invalid content format" };
         }
 
-        return result.data;
-    } catch (error) {
-        console.log(error);
-        throw new Error("ZaloPay Query Error");
+        const extractedOrderId = match[1];
+
+        const order = await db.collection('orders').doc(extractedOrderId).get();
+        if (!order.exists) {
+            console.log("Không tìm thấy đơn hàng với ID:", extractedOrderId);
+            return { success: false, message: "Order not found" };
+        }
+
+        const orderData = order.data();
+
+        if (Number(orderData.total) !== Number(transferAmount)) {
+            console.log(`Số tiền chuyển (${transferAmount}) không khớp với tổng đơn hàng (${orderData.total}) cho Order ID:`, extractedOrderId);
+            return {
+                success: false,
+                message: "Amount mismatch"
+            };
+        }
+
+        await db.collection('orders').doc(extractedOrderId).update({
+            status: 'PENDING',
+            paidAt: new Date(),
+        });
+
+        console.log(`Đơn hàng ${extractedOrderId} đã thanh toán thành công!`)
+        return {
+            success: true,
+            message: "Payment processed successfully"
+        };
+    }
+    catch (error) {
+        console.error("Lỗi khi xử lý webhook SEPAY:", error);
+        return {
+            success: false,
+            message: "Internal server error"
+        };
     }
 }
 
 module.exports = {
-    createZaloPayOrder,
-    handleCallback,
-    queryOrder
+    createSepayPayment,
+    handleSepayWebhook
 };

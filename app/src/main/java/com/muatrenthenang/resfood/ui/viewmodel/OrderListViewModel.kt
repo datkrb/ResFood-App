@@ -44,6 +44,7 @@ class OrderListViewModel(
     private fun filterOrders(status: String) {
         _orders.value = when (status.lowercase()) {
             "all" -> allOrders
+            "waiting_payment" -> allOrders.filter { it.status == "WAITING_PAYMENT" }
             "pending" -> allOrders.filter { it.status == "PENDING" }
             "processing" -> allOrders.filter { it.status == "PROCESSING" }
             "delivering" -> allOrders.filter { it.status == "DELIVERING" }

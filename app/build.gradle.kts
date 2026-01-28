@@ -32,6 +32,7 @@ android {
         
         // Expose ImgBB API key via BuildConfig
         buildConfigField("String", "IMGBB_API_KEY", "\"${localProperties.getProperty("imgbb.api.key", "YOUR_IMGBB_API_KEY_HERE")}\"")
+        buildConfigField("String", "NGROK_URL", "\"${localProperties.getProperty("NGROK_URL", "NGROK_URL")}\"")
     }
 
     buildTypes {
@@ -112,7 +113,4 @@ dependencies {
     
     // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.18")
-    
-    // ZaloPay SDK (Local AAR)
-    implementation(files("libs/zpdk-release-v3.1.aar"))
 }

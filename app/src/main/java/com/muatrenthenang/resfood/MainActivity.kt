@@ -72,11 +72,6 @@ class MainActivity : ComponentActivity() {
         // Initialize Notification Channels
         com.muatrenthenang.resfood.util.NotificationHelper.createNotificationChannels(this)
         
-        // ZaloPay SDK Init
-        val policy = android.os.StrictMode.ThreadPolicy.Builder().permitAll().build()
-        android.os.StrictMode.setThreadPolicy(policy)
-        vn.zalopay.sdk.ZaloPaySDK.init(2553, vn.zalopay.sdk.Environment.SANDBOX)
-        
         // Initialize Local Notification Service
         val notificationService = com.muatrenthenang.resfood.service.LocalNotificationService(applicationContext)
         
@@ -811,9 +806,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-    override fun onNewIntent(intent: android.content.Intent) {
-        super.onNewIntent(intent)
-        vn.zalopay.sdk.ZaloPaySDK.getInstance().onResult(intent)
     }
 }
