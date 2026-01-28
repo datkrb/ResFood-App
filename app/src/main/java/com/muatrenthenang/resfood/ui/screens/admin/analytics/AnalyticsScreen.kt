@@ -125,7 +125,7 @@ fun AnalyticsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                          Text("Biểu đồ doanh thu", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                          Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+                            colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth().height(300.dp)
                         ) {
@@ -142,7 +142,7 @@ fun AnalyticsScreen(
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                          Text("Trạng thái đơn hàng", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                          Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+                            colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                         ) {

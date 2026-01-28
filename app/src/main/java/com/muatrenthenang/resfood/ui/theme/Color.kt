@@ -23,6 +23,8 @@ val DarkBorder = Color(0xFF2C3942)   // Border khi ở chế độ tối (để 
 // Surface tones used in checkout design
 val SurfaceLight = Color(0xFFFFFFFF)
 val SurfaceDark = Color(0xFF1A2530)
+val SurfaceDarker = Color(0xFF1E2126) // Main Background for Admin Screens
+val SurfaceCard = Color(0xFF2C3038)   // Card Background in Admin
 
 // Accent
 val AccentOrange = Color(0xFFF97316)

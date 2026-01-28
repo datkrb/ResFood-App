@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation(libs.androidx.benchmark.traceprocessor)
+    implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

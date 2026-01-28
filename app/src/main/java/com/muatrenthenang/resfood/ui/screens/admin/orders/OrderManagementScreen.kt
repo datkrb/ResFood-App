@@ -4,6 +4,7 @@ import com.muatrenthenang.resfood.data.model.Order
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,6 +35,12 @@ import com.muatrenthenang.resfood.ui.theme.LightRed
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.ui.theme.SurfaceCard
+import com.muatrenthenang.resfood.ui.theme.AccentOrange
+import com.muatrenthenang.resfood.ui.theme.SuccessGreen
+import com.muatrenthenang.resfood.ui.theme.LightRed
+import androidx.compose.foundation.border
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,12 +67,25 @@ fun OrderManagementScreen(
              "ALL" -> true
              else -> order.status == selectedStatus
         }
+        
+        val matchesDate = when(selectedDateFilter) {
+            "Hôm nay" -> {
+                val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
+                diff < 24 * 60 * 60 * 1000
+            }
+            "Tuần này" -> {
+                val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
+                diff < 7 * 24 * 60 * 60 * 1000
+            }
+            else -> true
+        }
+
         val matchesSearch = if(searchQuery.isBlank()) true else {
             order.id.contains(searchQuery, ignoreCase = true) ||
             order.userName.contains(searchQuery, ignoreCase = true) ||
             order.userPhone.contains(searchQuery)
         }
-        matchesFilter && matchesSearch
+        matchesStatus && matchesDate && matchesSearch
     }.sortedByDescending { it.createdAt }
 
     // State for Reject Dialog

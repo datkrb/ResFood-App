@@ -169,12 +169,8 @@ class AdminViewModel(
          promotionRepository.getAllPromotions().onSuccess { promos ->
              _promotions.value = promos
          }.onFailure {
-             if(_promotions.value.isEmpty()) {
-                 _promotions.value = listOf(
-                     Promotion(id="1", name = "Giảm giá khai trương", code = "OPEN50", discountValue = 50, discountType = 0),
-                     Promotion(id="2", name = "Freeship đơn 200k", code = "FREESHIP", discountValue = 15000, discountType = 1)
-                 )
-             }
+             // Do not load mock data on failure, just log or show error if needed
+             // _promotions.value = emptyList() is already default
          }
     }
     

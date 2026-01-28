@@ -75,13 +75,12 @@ fun FoodManagementScreen(
     val filteredFoods = viewModel.getFilteredFoods()
     val pullRefreshState = rememberPullToRefreshState()
     
-    // Dark theme simulated colors to match image
-    val backgroundColor = Color(0xFF0F1923)
-    val cardColor = Color(0xFF1A2633)
-    val primaryColor = Color(0xFF339CFF)
+    // Dark theme colors from Theme
+    val backgroundColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+    val cardColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard
+    val primaryColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
     
-    // Group foods by dummy categories for visual similarity to image, or just list them
-    // For now, we'll just list them, but add a header
+    // Group foods logic can be added here if needed
     
     Scaffold(
         topBar = {
