@@ -106,8 +106,13 @@ class AdminViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        // Optimizing startup: Seed in background, don't wait for it
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             com.muatrenthenang.resfood.data.DataSeeder().seedAll()
+        }
+        
+        // Load data immediately
+        viewModelScope.launch {
             loadOrders()
             // Initialize analytics with TODAY filter
             setAnalyticsFilter(AnalyticsFilterType.TODAY)
