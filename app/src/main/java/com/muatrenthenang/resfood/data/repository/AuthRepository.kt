@@ -304,4 +304,24 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+    /**
+     * Delete user account
+     * Xóa document trong Firestore và xóa User khỏi Firebase Auth
+     */
+    suspend fun deleteAccount(): Result<Boolean> {
+        return try {
+            val user = auth.currentUser ?: throw Exception("Người dùng chưa đăng nhập")
+            val userId = user.uid
+
+            // 1. Xóa dữ liệu trong Firestore
+            db.collection("users").document(userId).delete().await()
+
+            // 2. Xóa tài khoản Authentication
+            user.delete().await()
+
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

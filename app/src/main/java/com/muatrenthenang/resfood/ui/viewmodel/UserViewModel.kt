@@ -31,6 +31,10 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _isDarkTheme = MutableStateFlow(sharedPreferences.getBoolean("is_dark_theme", false))
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
+    // Push notification state
+    private val _isPushNotificationEnabled = MutableStateFlow(sharedPreferences.getBoolean("push_notification_enabled", true))
+    val isPushNotificationEnabled: StateFlow<Boolean> = _isPushNotificationEnabled.asStateFlow()
+
     // === MeViewModel States ===
     // Order status counts
     private val _orderCounts = MutableStateFlow(MeOrderCounts())
@@ -205,6 +209,34 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
         sharedPreferences.edit().putBoolean("is_dark_theme", isDark).apply()
+    }
+
+    fun togglePushNotification(enabled: Boolean) {
+        _isPushNotificationEnabled.value = enabled
+        sharedPreferences.edit().putBoolean("push_notification_enabled", enabled).apply()
+    }
+
+    fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = authRepository.deleteAccount()
+            _isLoading.value = false
+            
+            result.onSuccess {
+                _userState.value = null
+                 _orderCounts.value = MeOrderCounts()
+                updateUtilityMenu(0)
+                onSuccess()
+            }
+            result.onFailure { e ->
+                val errorMsg = if (e is com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException) {
+                    "Để bảo mật, vui lòng đăng xuất và đăng nhập lại trước khi xóa tài khoản."
+                } else {
+                    e.message ?: "Xóa tài khoản thất bại"
+                }
+                onError(errorMsg)
+            }
+        }
     }
 }
 

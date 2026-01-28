@@ -24,6 +24,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
         Log.d("FCM", "From: ${remoteMessage.from}")
 
+        // Check if push notifications are enabled
+        val prefs = getSharedPreferences("resfood_prefs", Context.MODE_PRIVATE)
+        val isPushEnabled = prefs.getBoolean("push_notification_enabled", true)
+        
+        if (!isPushEnabled) {
+            Log.d("FCM", "Push notifications disabled by user, ignoring message")
+            return
+        }
+
         // Check if message contains a data payload.
         if (remoteMessage.data.isNotEmpty()) {
             Log.d("FCM", "Message data payload: ${remoteMessage.data}")
