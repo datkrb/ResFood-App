@@ -13,6 +13,11 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,27 +39,38 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 @Composable
 fun CustomerManagementScreen(
     viewModel: AdminViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToChat: (String) -> Unit
 ) {
     val customers by viewModel.customers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
     var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf("Tất cả") }
+    
+    // Dialog States
+    var showEditDialog by remember { mutableStateOf(false) }
+    var userToEdit by remember { mutableStateOf<User?>(null) }
     
     // Filtering Logic
     val filteredCustomers = customers.filter { user ->
         val query = searchQuery.trim().lowercase()
-        user.fullName.lowercase().contains(query) || 
-        (user.phone?.contains(query) == true)
+        val matchesSearch = user.fullName.lowercase().contains(query) || (user.phone?.contains(query) == true)
+        
+        val matchesFilter = when(selectedFilter) {
+            "Tất cả" -> true
+            "VIP Gold" -> user.rank == "VIP GOLD"
+            "VIP Silver" -> user.rank == "SILVER"
+            "Bị khóa" -> user.isLocked
+            else -> true
+        }
+        
+        matchesSearch && matchesFilter
     }
 
     // Stats Logic
     val totalCustomers = customers.size
-    // Roughly estimate new customers this month (mock logic if date parsing is complex or just check if recent)
-    // For now assuming 10% are new if no date field easily accessible or verify createdAt
     val newCustomers = customers.filter { 
-        // Simple check: Created within last 30 days. 
-        // createdAt is Long timestamp
         val diff = System.currentTimeMillis() - it.createdAt
         diff < 30L * 24 * 60 * 60 * 1000
     }.size
@@ -66,11 +82,6 @@ fun CustomerManagementScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {}, modifier = Modifier.background(Color(0xFF2196F3), CircleShape)) {
-                        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -143,19 +154,19 @@ fun CustomerManagementScreen(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                IconButton(onClick = {}) {
-                    Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.Gray)
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Filter Chips
             Row(modifier = Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Chip(text = "Tất cả", isSelected = true)
-                Chip(text = "VIP Gold", isSelected = false)
-                Chip(text = "VIP Silver", isSelected = false)
+                listOf("Tất cả", "VIP Gold", "VIP Silver", "Bị khóa").forEach { filter ->
+                    Chip(
+                        text = filter, 
+                        isSelected = selectedFilter == filter,
+                        onClick = { selectedFilter = filter }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -176,11 +187,31 @@ fun CustomerManagementScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredCustomers) { customer ->
-                    CustomerItem(customer)
+                    CustomerItem(
+                        customer = customer,
+                        onChat = { onNavigateToChat(customer.id) },
+                        onEdit = { 
+                            userToEdit = customer
+                            showEditDialog = true
+                        },
+                        onLock = { viewModel.lockUser(customer.id, !customer.isLocked) },
+                        onDelete = { viewModel.deleteUser(customer.id) }
+                    )
                 }
             }
             }
         }
+    }
+    
+    if (showEditDialog && userToEdit != null) {
+        CustomerEditDialog(
+            user = userToEdit!!,
+            onDismiss = { showEditDialog = false },
+            onSave = { updates ->
+                viewModel.updateUser(userToEdit!!.id, updates)
+                showEditDialog = false
+            }
+        )
     }
 }
 
@@ -206,10 +237,11 @@ fun StatCard(modifier: Modifier = Modifier, title: String, value: String, badge:
 }
 
 @Composable
-fun Chip(text: String, isSelected: Boolean) {
+fun Chip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .background(if(isSelected) Color.White else com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(20.dp))
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(text, color = if(isSelected) Color.Black else Color.Gray, fontWeight = FontWeight.Medium)
@@ -217,23 +249,35 @@ fun Chip(text: String, isSelected: Boolean) {
 }
 
 @Composable
-fun CustomerItem(customer: User) {
+fun CustomerItem(
+    customer: User,
+    onChat: () -> Unit,
+    onEdit: () -> Unit,
+    onLock: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
-        shape = RoundedCornerShape(30.dp) // High rounded corners as per mock
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.size(50.dp).clip(CircleShape).background(Color.LightGray)) {
-                // Mock Avatar
                 AsyncImage(model = customer.avatarUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                     Text(customer.fullName, color = Color.White, fontWeight = FontWeight.Bold)
+                     Text(
+                        text = if(customer.isLocked) "${customer.fullName} (Locked)" else customer.fullName, 
+                        color = if(customer.isLocked) Color.Red else Color.White, 
+                        fontWeight = FontWeight.Bold
+                     )
                      Text("${customer.points} Điểm", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold) 
                 }
                 Text(customer.phone ?: "Chưa có SĐT", color = Color.Gray, fontSize = 12.sp)
@@ -249,9 +293,69 @@ fun CustomerItem(customer: User) {
                     Text("• Tham gia: ${java.text.SimpleDateFormat("MM/yyyy").format(java.util.Date(customer.createdAt))}", color = Color.Gray, fontSize = 12.sp)
                 }
             }
-            IconButton(onClick = {}) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.Gray)
+            
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.Gray)
+                }
+                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Chat") },
+                        onClick = { showMenu = false; onChat() },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Chỉnh sửa") },
+                        onClick = { showMenu = false; onEdit() },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(if(customer.isLocked) "Mở khóa" else "Khóa") },
+                        onClick = { showMenu = false; onLock() },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Xóa", color = Color.Red) },
+                        onClick = { showMenu = false; onDelete() },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red) }
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+fun CustomerEditDialog(user: User, onDismiss: () -> Unit, onSave: (Map<String, Any>) -> Unit) {
+    var fullName by remember { mutableStateOf(user.fullName) }
+    var points by remember { mutableStateOf(user.points.toString()) }
+    var rank by remember { mutableStateOf(user.rank) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Chỉnh sửa khách hàng") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text("Tên") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = points, onValueChange = { points = it }, label = { Text("Điểm tích lũy") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = rank, onValueChange = { rank = it }, label = { Text("Hạng (VIP GOLD, SILVER, THÀNH VIÊN)") }, modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                onSave(mapOf(
+                    "fullName" to fullName,
+                    "points" to (points.toIntOrNull() ?: 0),
+                    "rank" to rank
+                ))
+            }) {
+                Text("Lưu")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        }
+    )
 }

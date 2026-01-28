@@ -621,7 +621,8 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             CustomerManagementScreen(
                                 viewModel = adminViewModel,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") }
                             )
                         }
 

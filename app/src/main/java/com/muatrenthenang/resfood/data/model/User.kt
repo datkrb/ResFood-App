@@ -14,6 +14,7 @@ data class User(
     val addresses: List<Address> = emptyList(), // Danh sách địa chỉ của user
     val rank: String = "Bạc", // Mặc định
     val points: Int = 0,
+    val isLocked: Boolean = false, // Trạng thái khóa tài khoản
     val createdAt: Long = System.currentTimeMillis(), // Giữ nguyên Long để tương thích dữ liệu cũ
     
     // === Referral fields ===

@@ -47,6 +47,42 @@ class UserRepository {
         }
     }
 
+    /**
+     * Cập nhật trạng thái khóa của user
+     */
+    suspend fun updateUserStatus(userId: String, isLocked: Boolean): Result<Boolean> {
+        return try {
+            usersRef.document(userId).update("isLocked", isLocked).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Xóa user (Xóa document trong Firestore)
+     */
+    suspend fun deleteUser(userId: String): Result<Boolean> {
+        return try {
+            usersRef.document(userId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Cập nhật thông tin User (Rank, Points, Phone) - Dùng cho Admin sửa
+     */
+    suspend fun updateUser(userId: String, updates: Map<String, Any>): Result<Boolean> {
+        return try {
+            usersRef.document(userId).update(updates).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     // ==================== ADDRESS CRUD OPERATIONS ====================
 
     /**
