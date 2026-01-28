@@ -718,7 +718,19 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                                onNavigateToOrders = { navController.navigate("admin_orders") },
+                                onNavigateToBranch = { navController.navigate("admin_branch") }
+                            )
+                        }
+
+                        composable("admin_branch") { backStackEntry ->
+                            com.muatrenthenang.resfood.ui.screens.admin.BranchManagementScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToMap = { lat, lng ->
+                                    val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                    navController.navigate(route)
+                                },
+                                savedStateHandle = backStackEntry.savedStateHandle
                             )
                         }
 

@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
+import com.muatrenthenang.resfood.data.repository.BranchRepository
+
 class CartViewModel(
-    private val _repository: CartRepository = CartRepository()
+    private val _repository: CartRepository = CartRepository(),
+    private val _branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
@@ -24,11 +27,22 @@ class CartViewModel(
     private val _needLogin = MutableStateFlow(false)
     val needLogin = _needLogin.asStateFlow()
 
-    private val _shippingFee = 15000L
+    // Dynamic shipping fee loaded from Branch
+    private val _shippingFee = MutableStateFlow(15000L)
+    val shippingFee = _shippingFee.asStateFlow()
 
     init {
         _isLoading.value = true
         loadCart()
+        loadShippingFee()
+    }
+
+    private fun loadShippingFee() {
+        viewModelScope.launch {
+            _branchRepository.getPrimaryBranch().onSuccess { branch ->
+                _shippingFee.value = branch.shippingFee
+            }
+        }
     }
 
     fun loadCart() {
@@ -113,7 +127,7 @@ class CartViewModel(
 
     fun total(): Long {
         val subtotal = subTotal()
-        return if (subtotal > 0) subtotal + _shippingFee else 0L
+        return if (subtotal > 0) subtotal + _shippingFee.value else 0L
     }
 
     fun formatCurrency(value: Long): String {

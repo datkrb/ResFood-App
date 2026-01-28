@@ -21,18 +21,9 @@ class NotificationViewModel : ViewModel() {
         // Start listening immediately
         viewModelScope.launch {
             try {
-                repository.getUserNotifications().collect {
-                    _notifications.value = it
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        
-        viewModelScope.launch {
-            try {
-                repository.getUnreadCount().collect {
-                    _unreadCount.value = it
+                repository.getUserNotifications().collect { list ->
+                    _notifications.value = list
+                    _unreadCount.value = list.count { !it.isRead }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

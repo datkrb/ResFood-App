@@ -1,6 +1,5 @@
 package com.muatrenthenang.resfood.ui.screens.admin
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +27,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,10 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -63,7 +58,6 @@ import com.muatrenthenang.resfood.data.model.Food
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -100,8 +94,6 @@ fun FoodManagementScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
     val cardColor = MaterialTheme.colorScheme.surface
     val primaryColor = MaterialTheme.colorScheme.primary
-
-    // Group foods logic can be added here if needed
 
     Scaffold(
         topBar = {
@@ -187,64 +179,13 @@ fun FoodManagementScreen(
                 )
             )
 
-            // Filters Row
+            // Filters Row - Only Category and Status (removed Branch)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                 // Branch Filter
-                 Box(modifier = Modifier.weight(1f)) {
-                     var expanded by remember { mutableStateOf(false) }
-                     ExposedDropdownMenuBox(
-                         expanded = expanded,
-                         onExpandedChange = { expanded = !expanded }
-                     ) {
-                         OutlinedTextField(
-                             value = state.selectedBranch?.name ?: "Tất cả",
-                             onValueChange = {},
-                             readOnly = true,
-                             label = { Text("Chi nhánh", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                             colors = OutlinedTextFieldDefaults.colors(
-                                 focusedContainerColor = cardColor,
-                                 unfocusedContainerColor = cardColor,
-                                 focusedBorderColor = Color.Transparent,
-                                 unfocusedBorderColor = Color.Transparent,
-                                 focusedLabelColor = primaryColor,
-                                 unfocusedLabelColor = Color.Gray
-                             ),
-                             singleLine = true
-                         )
-                         ExposedDropdownMenu(
-                             expanded = expanded,
-                             onDismissRequest = { expanded = false },
-                             modifier = Modifier.background(cardColor)
-                         ) {
-                             DropdownMenuItem(
-                                 text = { Text("Tất cả", color = MaterialTheme.colorScheme.onSurface) },
-                                 onClick = {
-                                     viewModel.setBranchFilter(null)
-                                     expanded = false
-                                 },
-                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                             )
-                             state.branches.forEach { branch ->
-                                 DropdownMenuItem(
-                                     text = { Text(branch.name, color = MaterialTheme.colorScheme.onSurface) },
-                                     onClick = {
-                                         viewModel.setBranchFilter(branch)
-                                         expanded = false
-                                     },
-                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                 )
-                             }
-                         }
-                     }
-                 }
-
                  // Category Filter
                  Box(modifier = Modifier.weight(1f)) {
                      var expanded by remember { mutableStateOf(false) }
