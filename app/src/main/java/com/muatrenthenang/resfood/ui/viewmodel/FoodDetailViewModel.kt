@@ -24,7 +24,7 @@ class FoodDetailViewModel(
     private val _cartRepository: CartRepository = CartRepository(),
     private val _favoritesRepository: FavoritesRepository = FavoritesRepository(),
     private val _orderRepository: OrderRepository = OrderRepository(),
-    private val _toppingRepository: ToppingRepository = ToppingRepository()
+    private val _toppingRepository: ToppingRepository = ToppingRepository(),
     private val _authRepository: AuthRepository = AuthRepository()
 
 ) : ViewModel() {
