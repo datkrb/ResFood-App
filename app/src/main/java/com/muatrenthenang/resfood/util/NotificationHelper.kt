@@ -16,8 +16,8 @@ import androidx.core.content.ContextCompat
 
 object NotificationHelper {
 
-    const val ADMIN_CHANNEL_ID = "admin_channel"
-    const val CUSTOMER_CHANNEL_ID = "customer_channel"
+    const val ADMIN_CHANNEL_ID = "admin_channel_v2"
+    const val CUSTOMER_CHANNEL_ID = "customer_channel_v2"
     
     // Notification IDs
     private const val ORDER_NOTIFICATION_ID = 1001
@@ -31,14 +31,16 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notifications for new orders and reservations"
+                enableVibration(true)
             }
 
             val customerChannel = NotificationChannel(
                 CUSTOMER_CHANNEL_ID,
                 "Order Updates",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH // Upgraded to HIGH for popup
             ).apply {
                 description = "Notifications for order status updates"
+                enableVibration(true)
             }
 
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -66,6 +68,8 @@ object NotificationHelper {
             .setContentTitle("New Order Received!")
             .setContentText("Order #$orderId - Total: ${total}đ")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound + Vibrate
+            .setVibrate(longArrayOf(0, 500)) // Explicit vibration
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -93,7 +97,9 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with app icon
             .setContentTitle("Order Update")
             .setContentText("Your order #$orderId is now $status")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // Upgraded to HIGH
+            .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound + Vibrate
+            .setVibrate(longArrayOf(0, 500)) // Explicit vibration
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 

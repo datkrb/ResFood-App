@@ -76,6 +76,23 @@ class MainActivity : ComponentActivity() {
         val notificationService = com.muatrenthenang.resfood.service.LocalNotificationService(applicationContext)
         
         setContent {
+            // Request Notification Permission (Android 13+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                    onResult = { isGranted ->
+                        // Handle if needed, e.g., show rationale
+                    }
+                )
+                
+                LaunchedEffect(Unit) {
+                    val permission = android.Manifest.permission.POST_NOTIFICATIONS
+                    if (androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        permissionLauncher.launch(permission)
+                    }
+                }
+            }
+
             // Khởi tạo ViewModel
             val userViewModel: UserViewModel = viewModel()
             // Lấy trạng thái theme từ ViewModel
