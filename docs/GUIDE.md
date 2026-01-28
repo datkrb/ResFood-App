@@ -71,4 +71,6 @@ BANK_ID= mã viết tắt ngân hàng của m (VCB, MB, ACB, BIDV gì đó)
 ACCOUNT_NO= số tài khoản ngân hàng m liên kết với sepay
 ```
 
-xong thì run app android + ngrok + backend r chạy thử.
+xong thì run app android + ngrok + backend r chạy thử. T có test dưới postman là chạy r ấy, giờ link dô với tài khoản thật thôi.
+
+- Lưu ý: Chuyển này là chuyển tiền thật dô cái tài khoản ngân hàng liên kết với sepay nha, nên dùng momo chuyển sang ngân hàng để test nha, có gì tạo thêm mấy món giá thấp thấp để chuyển thử là dc
