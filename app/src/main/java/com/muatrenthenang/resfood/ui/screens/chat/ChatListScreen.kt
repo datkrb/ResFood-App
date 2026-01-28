@@ -8,11 +8,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,13 +63,14 @@ fun ChatListScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                items(chats) { chat ->
+                items(chats, key = { it.id }) { chat ->
                     ChatItem(
                         name = chat.customerName,
                         lastMessage = chat.lastMessage,
                         time = java.text.SimpleDateFormat("HH:mm").format(chat.lastMessageTime.toDate()),
                         unreadCount = chat.unreadCountAdmin,
-                        onClick = { onNavigateToChat(chat.id) }
+                        onClick = { onNavigateToChat(chat.id) },
+                        onDelete = { viewModel.deleteChat(chat.id) }
                     )
                     HorizontalDivider(modifier = Modifier.padding(start = 72.dp))
                 }
@@ -79,8 +85,11 @@ fun ChatItem(
     lastMessage: String,
     time: String,
     unreadCount: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -118,7 +127,8 @@ fun ChatItem(
                     color = if (unreadCount > 0) MaterialTheme.colorScheme.onSurface else Color.Gray,
                     fontWeight = if (unreadCount > 0) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
                 if (unreadCount > 0) {
                     Box(
@@ -134,6 +144,28 @@ fun ChatItem(
                         )
                     }
                 }
+            }
+        }
+
+        // 3-Dot Menu
+        Box {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Xóa trò chuyện", color = Color.Red) },
+                    onClick = {
+                        showMenu = false
+                        onDelete()
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red)
+                    }
+                )
             }
         }
     }

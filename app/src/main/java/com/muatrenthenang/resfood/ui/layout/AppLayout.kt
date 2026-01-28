@@ -28,8 +28,20 @@ fun AppLayout(
     val context = LocalContext.current
     
     // Quick user check to drive bubble logic
-    val viewModel: com.muatrenthenang.resfood.ui.viewmodel.UserViewModel = viewModel()
-    val userState by viewModel.userState.collectAsState()
+    val userViewModel: com.muatrenthenang.resfood.ui.viewmodel.UserViewModel = viewModel()
+    val chatViewModel: com.muatrenthenang.resfood.ui.viewmodel.ChatViewModel = viewModel() // Add ChatViewModel
+    val userState by userViewModel.userState.collectAsState()
+    val unreadChatCount by chatViewModel.totalUnreadCount.collectAsState()
+
+    // Monitor chat unread count
+    androidx.compose.runtime.LaunchedEffect(userState) {
+        if (userState != null) {
+            chatViewModel.startUnreadCountMonitor(
+                isAdmin = userState?.role == "admin",
+                userId = userState!!.id
+            )
+        }
+    }
 
     // Routes waiting for hiding Bottom Bar
     // Note: Better to organize this list in a constant file eventually
@@ -93,6 +105,7 @@ fun AppLayout(
                     contentAlignment = androidx.compose.ui.Alignment.BottomEnd
                 ) {
                    DraggableChatBubble(
+                        unreadCount = unreadChatCount,
                         onClick = {
                             if (userState?.role == "admin") {
                                 navController.navigate("chat_list")

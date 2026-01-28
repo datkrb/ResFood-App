@@ -144,4 +144,16 @@ class ChatRepository {
             Result.failure(e)
         }
     }
+
+    // Delete a chat conversation
+    suspend fun deleteChat(chatId: String): Result<Boolean> {
+        return try {
+            chatsRef.document(chatId).delete().await()
+            // Note: Does not delete subcollection 'messages' automatically. 
+            // For this scope, hiding the chat from list (by deleting parent doc) is sufficient.
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

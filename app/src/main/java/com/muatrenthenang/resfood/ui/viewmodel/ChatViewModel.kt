@@ -31,9 +31,47 @@ class ChatViewModel : ViewModel() {
     private val _currentChat = MutableStateFlow<Chat?>(null)
     val currentChat: StateFlow<Chat?> = _currentChat.asStateFlow()
 
+    // Total unread count for Badge (Global)
+    private val _totalUnreadCount = MutableStateFlow(0)
+    val totalUnreadCount: StateFlow<Int> = _totalUnreadCount.asStateFlow()
+
     init {
         // If user is admin, they might want to see list. If customer, they only care about their own chat.
         // We can expose a function to load what is needed.
+    }
+    
+    // Call this from AppLayout or MainViewModel to start monitoring unread count
+    fun startUnreadCountMonitor(isAdmin: Boolean, userId: String) {
+        viewModelScope.launch {
+            if (isAdmin) {
+                // For Admin: Monitor ALL chats to sum up unreadCountAdmin
+                repository.getAllChatsFlow().collect { chats ->
+                    val total = chats.sumOf { it.unreadCountAdmin }
+                    _totalUnreadCount.value = total
+                    _allChats.value = chats
+                }
+            } else {
+                // For Customer: Monitor THEIR chat to get unreadCountCustomer
+                // We listen to the specific chat document
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                db.collection("chats").document(userId)
+                    .addSnapshotListener { snapshot, _ ->
+                        if (snapshot != null && snapshot.exists()) {
+                            val chat = snapshot.toObject(Chat::class.java)
+                            _totalUnreadCount.value = chat?.unreadCountCustomer ?: 0
+                        } else {
+                            _totalUnreadCount.value = 0
+                        }
+                    }
+            }
+        }
+    }
+
+    fun deleteChat(chatId: String) {
+        viewModelScope.launch {
+            repository.deleteChat(chatId)
+            // If admin, the list stream will auto-update.
+        }
     }
 
     fun loadAllChatsForAdmin() {
@@ -90,6 +128,7 @@ class ChatViewModel : ViewModel() {
     fun markAsRead(chatId: String, isAdmin: Boolean) {
         viewModelScope.launch {
             repository.markAsRead(chatId, isAdmin)
+            // Currently viewing, so we might want to locally reset count too if stream is slow
         }
     }
     
