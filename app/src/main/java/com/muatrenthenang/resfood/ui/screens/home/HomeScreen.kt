@@ -36,6 +36,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
     onFoodClick: (Food) -> Unit,
+    onNavigateToBooking: () -> Unit,
     paddingValues: PaddingValues = PaddingValues()
 ){
     val uiState by homeViewModel.uiState.collectAsState()
@@ -71,7 +72,7 @@ fun HomeScreen(
                         searchText = uiState.searchQuery,
                         onSearchTextChanged = { homeViewModel.setSearchQuery(it) }
                     )
-                    BookingBanner(onClick = {})
+                    BookingBanner(onClick = onNavigateToBooking)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween

@@ -33,6 +33,8 @@ import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 
 @Composable
 fun CardFood(
@@ -81,6 +83,24 @@ fun CardFood(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Rating
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                     androidx.compose.material3.Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = Color(0xFFFFC107),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = String.format("%.1f", food.rating),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(6.dp))
 

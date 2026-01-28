@@ -84,6 +84,7 @@ fun RegisterScreen(
         GoogleSignIn.getClient(context, gso)
     }
 
+    // TODO: Implement Google Sign-In in AuthRepository first
     // Launcher để mở cửa sổ chọn tài khoản Google
     val googleAuthLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -91,9 +92,8 @@ fun RegisterScreen(
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
             val account = task.getResult(ApiException::class.java)
-            // Lấy được ID Token thì gửi sang ViewModel để đăng nhập Firebase
             account.idToken?.let { idToken ->
-                viewModel.registerWithGoogle(idToken)
+                viewModel.registerWithGoogle(idToken) // Not implemented yet
             }
         } catch (e: ApiException) {
             Toast.makeText(context, "Google Sign-In thất bại: ${e.statusCode}", Toast.LENGTH_SHORT).show()

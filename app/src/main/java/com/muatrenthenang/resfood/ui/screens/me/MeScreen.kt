@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,9 +32,10 @@ import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
 import com.muatrenthenang.resfood.ui.theme.rankColor
-import com.muatrenthenang.resfood.ui.viewmodel.MeViewModel
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.MeOrderCounts
-import com.muatrenthenang.resfood.ui.viewmodel.MeUserProfile
+// Removed MeUserProfile import
+import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeCount
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeDot
 import com.muatrenthenang.resfood.ui.screens.me.components.IconCircleButton
@@ -54,76 +56,114 @@ fun MeScreen(
     onNavigateToAddresses: () -> Unit = {},
     onNavigateToHelpCenter: () -> Unit = {},
     onNavigateToPaymentMethods: () -> Unit = {},
+    onNavigateToMembership: () -> Unit = {},
+    onNavigateToSpendingStatistics: () -> Unit = {},
+    onNavigateToReservations: (String) -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
-    vm: MeViewModel = viewModel()
+    vm: UserViewModel = viewModel(),
+    reservationVm: com.muatrenthenang.resfood.ui.viewmodel.ReservationManagementViewModel = viewModel()
 ) {
-    val userProfile by vm.userProfile.collectAsState()
+    val userState by vm.userState.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
-    // val voucherCount by vm.voucherCount.collectAsState() // Not used directly anymore
     val referralPromo by vm.referralPromo.collectAsState()
     val utilityMenu by vm.utilityMenu.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
+    
+    val reservationState by reservationVm.uiState.collectAsState()
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            MeTopBar(
-                onSettingsClick = onNavigateToSettings,
-                onNotificationsClick = onNavigateToNotifications
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(bottom = paddingValuesFromParent.calculateBottomPadding())
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(4.dp))
+    LaunchedEffect(Unit) {
+        reservationVm.loadReservations()
+    }
 
-            // Profile Header Section
-            ProfileHeaderCard(
-                userProfile = userProfile,
-                onEditProfileClick = onNavigateToEditProfile
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                MeTopBar(
+                    onSettingsClick = onNavigateToSettings,
+                    onNotificationsClick = onNavigateToNotifications
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(bottom = paddingValuesFromParent.calculateBottomPadding())
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
+                // Profile Header Section - Dùng dữ liệu thật từ UserViewModel
+                ProfileHeaderCard(
+                    user = userState,
+                    onEditProfileClick = onNavigateToEditProfile
+                )
 
-            // Orders Status Section
-            OrdersStatusSection(
-                orderCounts = orderCounts,
-                onViewAll = { onNavigateToOrders("all") },
-                onOrderStatusClick = { status -> onNavigateToOrders(status) }
-            )
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
-            // Referral Promo Card
-            ReferralPromoCard(
-                promoData = referralPromo,
-                onInviteClick = onNavigateToReferral
-            )
+                // Orders Status Section
+                OrdersStatusSection(
+                    orderCounts = orderCounts,
+                    onViewAll = { onNavigateToOrders("all") },
+                    onOrderStatusClick = { status -> onNavigateToOrders(status) }
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
-            // Utilities Menu List
-            UtilitiesSection(
-                utilityMenu = utilityMenu,
-                onOptionClick = { id ->
-                    when (id) {
-                        "vouchers" -> onNavigateToVouchers()
-                        "addresses" -> onNavigateToAddresses()
-                        "help" -> onNavigateToHelpCenter()
-                        "payment" -> onNavigateToPaymentMethods()
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // Reservation Status Section
+                ReservationStatusSection(
+                    uiState = reservationState,
+                    onViewAll = { onNavigateToReservations("ALL") },
+                    onStatusClick = { status -> onNavigateToReservations(status) }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                // Referral Promo Card
+                ReferralPromoCard(
+                    promoData = referralPromo,
+                    onInviteClick = onNavigateToReferral
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                // Utilities Menu List
+                UtilitiesSection(
+                    utilityMenu = utilityMenu,
+                    onOptionClick = { id ->
+                        when (id) {
+                            "membership" -> onNavigateToMembership()
+                            "spending_statistics" -> onNavigateToSpendingStatistics()
+                            "vouchers" -> onNavigateToVouchers()
+                            "addresses" -> onNavigateToAddresses()
+                            "help" -> onNavigateToHelpCenter()
+                            "payment" -> onNavigateToPaymentMethods()
+                        }
                     }
-                }
-            )
+                )
 
 
-            Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(100.dp))
+            }
+        }
+        
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryColor)
+            }
         }
     }
 }
+// Remove the original Scaffold block since we wrapped it
+@Composable
+private fun MeTopBarHidden( // Dummy function to avoid compilation error if I delete MeTopBar
+) {}
 
 @Composable
 private fun MeTopBar(
@@ -171,7 +211,7 @@ private fun MeTopBar(
 
 @Composable
 private fun ProfileHeaderCard(
-    userProfile: MeUserProfile,
+    user: User?,
     onEditProfileClick: () -> Unit
 ) {
     Surface(
@@ -194,7 +234,7 @@ private fun ProfileHeaderCard(
                     .clickable { onEditProfileClick() }
             ) {
                 AsyncImage(
-                    model = userProfile.avatarUrl,
+                    model = user?.avatarUrl ?: "https://i.pravatar.cc/150?img=3", // Default avatar if null
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .fillMaxSize()
@@ -208,12 +248,12 @@ private fun ProfileHeaderCard(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onEditProfileClick() }
             ) {
                 Text(
-                    text = userProfile.name,
+                    text = user?.fullName ?: "Đang tải...",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onEditProfileClick() }
                 )
 
                 Row(
@@ -228,7 +268,7 @@ private fun ProfileHeaderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = userProfile.rankDisplayName,
+                        text = "Thành viên ${user?.rank}",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -347,6 +387,70 @@ private fun OrderStatusItem(
 }
 
 @Composable
+private fun ReservationStatusSection(
+    uiState: com.muatrenthenang.resfood.ui.viewmodel.ReservationUiState,
+    onViewAll: () -> Unit,
+    onStatusClick: (String) -> Unit
+) {
+    val counts = if (uiState is com.muatrenthenang.resfood.ui.viewmodel.ReservationUiState.Success) uiState.counts else emptyMap()
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Đặt bàn của tôi",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            TextButton(onClick = onViewAll) {
+                Text(
+                    text = "Lịch sử",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+        }
+
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp, // Improved shadow
+            tonalElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                OrderStatusItem(
+                    icon = Icons.Default.Event,
+                    label = "Chờ xác nhận",
+                    count = counts["PENDING"] ?: 0,
+                    onClick = { onStatusClick("PENDING") }
+                )
+                OrderStatusItem(
+                    icon = Icons.Default.EventAvailable,
+                    label = "Đã xác nhận",
+                    count = counts["CONFIRMED"] ?: 0,
+                    onClick = { onStatusClick("CONFIRMED") }
+                )
+                OrderStatusItem(
+                    icon = Icons.Default.TaskAlt,
+                    label = "Hoàn thành",
+                    count = counts["COMPLETED"] ?: 0,
+                    onClick = { onStatusClick("COMPLETED") }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ReferralPromoCard(
     promoData: ReferralPromoData,
     onInviteClick: () -> Unit
@@ -441,20 +545,24 @@ private fun UtilitiesSection(
 // Helper to map enum to Vector
 private fun getIconForType(type: UtilityIconType): androidx.compose.ui.graphics.vector.ImageVector {
     return when (type) {
+        UtilityIconType.RANK -> Icons.Default.Star // Or WorkspacePremium
         UtilityIconType.VOUCHER -> Icons.Default.ConfirmationNumber
         UtilityIconType.ADDRESS -> Icons.Default.LocationOn
         UtilityIconType.HELP -> Icons.Default.HelpCenter
         UtilityIconType.PAYMENT -> Icons.Default.Payment
+        UtilityIconType.STATISTICS -> Icons.Default.PieChart
     }
 }
 
 // Helper to map enum to Color
 private fun getColorForType(type: UtilityIconType): Color {
     return when (type) {
+        UtilityIconType.RANK -> Color(0xFFF2B90D) // Gold
         UtilityIconType.VOUCHER -> Color(0xFF3B82F6) // Blue
         UtilityIconType.ADDRESS -> SuccessGreen
         UtilityIconType.HELP -> Color(0xFF8B5CF6) // Purple
         UtilityIconType.PAYMENT -> Color(0xFFF97316) // Orange
+        UtilityIconType.STATISTICS -> Color(0xFF10B981) // Emerald Green
     }
 }
 

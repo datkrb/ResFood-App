@@ -42,12 +42,14 @@ class OrderListViewModel(
     }
 
     private fun filterOrders(status: String) {
-        _orders.value = when (status) {
+        _orders.value = when (status.lowercase()) {
             "all" -> allOrders
             "pending" -> allOrders.filter { it.status == "PENDING" }
             "processing" -> allOrders.filter { it.status == "PROCESSING" }
             "delivering" -> allOrders.filter { it.status == "DELIVERING" }
-            "review" -> allOrders.filter { it.status == "COMPLETED" } 
+            "completed" -> allOrders.filter { it.status == "COMPLETED" }
+            "cancelled" -> allOrders.filter { it.status == "CANCELLED" || it.status == "REJECTED" }
+            "review" -> allOrders.filter { it.status == "COMPLETED" && !it.isReviewed } 
             "history" -> allOrders.filter { it.status == "COMPLETED" || it.status == "CANCELLED" || it.status == "REJECTED" }
             else -> allOrders
         }

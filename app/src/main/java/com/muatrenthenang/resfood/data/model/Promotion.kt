@@ -28,7 +28,7 @@ data class Promotion(
     @get:PropertyName("isActive") @set:PropertyName("isActive")
     var isActive: Boolean = true,
     
-    val applyFor: String = "ALL", // ALL, FOOD_ID, SHIP
+    val applyFor: String = "ALL", // ALL, SHIP
     
     // === Cho voucher PUBLIC (tất cả mọi người) ===
     val assignedUserIds: List<String> = emptyList(), // Rỗng = public

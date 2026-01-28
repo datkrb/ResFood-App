@@ -91,7 +91,6 @@
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)
-                // Lấy được ID Token thì gửi sang ViewModel để đăng nhập Firebase
                 account.idToken?.let { idToken ->
                     viewModel.loginWithGoogle(idToken)
                 }
