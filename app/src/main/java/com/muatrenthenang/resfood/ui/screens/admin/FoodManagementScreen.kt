@@ -68,6 +68,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodManagementScreen(
@@ -83,6 +87,10 @@ fun FoodManagementScreen(
     val state by viewModel.foodManagementUiState.collectAsState()
     val filteredFoods = state.filteredFoods
     val pullRefreshState = rememberPullToRefreshState()
+    
+    // Delete Confirmation State
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var foodToDelete by remember { mutableStateOf<Food?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.refreshData()
@@ -343,7 +351,11 @@ fun FoodManagementScreen(
                         food = food,
                         cardColor = cardColor,
                         primaryColor = primaryColor,
-                        onEditClick = { onNavigateToEdit(food.id) }
+                        onEditClick = { onNavigateToEdit(food.id) },
+                        onDeleteClick = {
+                            foodToDelete = food
+                            showDeleteDialog = true
+                        }
                     )
                 }
             }
@@ -362,6 +374,41 @@ fun FoodManagementScreen(
             }
         }
     } // End PullToRefreshBox
+    
+    // Delete Confirmation Dialog
+    if (showDeleteDialog && foodToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteDialog = false
+                foodToDelete = null
+            },
+            title = { Text(text = "Xác nhận xóa") },
+            text = { Text(text = "Bạn có chắc chắn muốn xóa món '${foodToDelete?.name}' không?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        foodToDelete?.let { food ->
+                            viewModel.deleteFood(food.id)
+                        }
+                        showDeleteDialog = false
+                        foodToDelete = null
+                    }
+                ) {
+                    Text("Xóa", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        foodToDelete = null
+                    }
+                ) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
     } // End Scaffold
 } // End Screen
 
@@ -389,7 +436,8 @@ fun FoodItemCard(
     food: Food,
     cardColor: Color,
     primaryColor: Color,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -454,9 +502,16 @@ fun FoodItemCard(
             )
         }
         
-        // Edit Button
-        IconButton(onClick = onEditClick) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column {
+            // Edit Button
+            IconButton(onClick = onEditClick) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            
+            // Delete Button
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+            }
         }
     }
 }
