@@ -99,7 +99,7 @@ fun CartScreen(
 
                 Text(
                     text = "Giỏ hàng",
-                    fontSize = 24.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
                 )

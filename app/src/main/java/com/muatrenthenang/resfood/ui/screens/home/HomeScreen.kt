@@ -42,6 +42,7 @@ fun HomeScreen(
     onFoodClick: (Food) -> Unit,
     onNavigateToBooking: () -> Unit,
     onNavigateToNotifications: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     paddingValues: PaddingValues = PaddingValues()
 ){
     val context = LocalContext.current
@@ -86,7 +87,8 @@ fun HomeScreen(
                     HeaderSection(
                         user = userState,
                         unreadCount = unreadCount,
-                        onNotificationClick = onNavigateToNotifications
+                        onNotificationClick = onNavigateToNotifications,
+                        onProfileClick = onNavigateToProfile
                     )
                     SearchBar(
                         searchText = uiState.searchQuery,

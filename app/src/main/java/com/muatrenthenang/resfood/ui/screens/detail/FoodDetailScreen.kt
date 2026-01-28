@@ -132,7 +132,8 @@ fun FoodDetailScreen(
                             },
                             onReviewClick = {
                                 food?.id?.let { onNavigateToReview(it) }
-                            }
+                            },
+                            reviewCount = food?.reviews?.size ?: 0
                         )        // btn chia se + danh gia
                         FoodDescription(food)   // mo ta mon an
 

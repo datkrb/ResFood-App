@@ -160,6 +160,13 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToNotifications = {
                                     navController.navigate("notification_list")
                                 },
+                                onNavigateToProfile = {
+                                    navController.navigate("me") {
+                                        popUpTo("home") { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                                 paddingValues = innerPadding
                             )
                         }
