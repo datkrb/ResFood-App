@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -82,6 +83,10 @@ fun FoodManagementScreen(
     val state by viewModel.foodManagementUiState.collectAsState()
     val filteredFoods = state.filteredFoods
     val pullRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
 
     // Theme colors
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -179,8 +184,59 @@ fun FoodManagementScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                 // Branch Filter
+                 Box(modifier = Modifier.weight(1f)) {
+                     var expanded by remember { mutableStateOf(false) }
+                     ExposedDropdownMenuBox(
+                         expanded = expanded,
+                         onExpandedChange = { expanded = !expanded }
+                     ) {
+                         OutlinedTextField(
+                             value = state.selectedBranch?.name ?: "Tất cả",
+                             onValueChange = {},
+                             readOnly = true,
+                             label = { Text("Chi nhánh", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                             modifier = Modifier.menuAnchor().fillMaxWidth(),
+                             colors = OutlinedTextFieldDefaults.colors(
+                                 focusedContainerColor = cardColor,
+                                 unfocusedContainerColor = cardColor,
+                                 focusedBorderColor = Color.Transparent,
+                                 unfocusedBorderColor = Color.Transparent,
+                                 focusedLabelColor = primaryColor,
+                                 unfocusedLabelColor = Color.Gray
+                             ),
+                             singleLine = true
+                         )
+                         ExposedDropdownMenu(
+                             expanded = expanded,
+                             onDismissRequest = { expanded = false },
+                             modifier = Modifier.background(cardColor)
+                         ) {
+                             DropdownMenuItem(
+                                 text = { Text("Tất cả", color = MaterialTheme.colorScheme.onSurface) },
+                                 onClick = {
+                                     viewModel.setBranchFilter(null)
+                                     expanded = false
+                                 },
+                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                             )
+                             state.branches.forEach { branch ->
+                                 DropdownMenuItem(
+                                     text = { Text(branch.name, color = MaterialTheme.colorScheme.onSurface) },
+                                     onClick = {
+                                         viewModel.setBranchFilter(branch)
+                                         expanded = false
+                                     },
+                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                 )
+                             }
+                         }
+                     }
+                 }
+
                  // Category Filter
                  Box(modifier = Modifier.weight(1f)) {
                      var expanded by remember { mutableStateOf(false) }
@@ -192,7 +248,7 @@ fun FoodManagementScreen(
                              value = if(state.selectedCategory == "All") "Tất cả" else state.selectedCategory,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Danh mục") },
+                             label = { Text("Danh mục", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -202,7 +258,8 @@ fun FoodManagementScreen(
                                  unfocusedBorderColor = Color.Transparent,
                                  focusedLabelColor = primaryColor,
                                  unfocusedLabelColor = Color.Gray
-                             )
+                             ),
+                             singleLine = true
                          )
                          ExposedDropdownMenu(
                              expanded = expanded,
@@ -234,7 +291,7 @@ fun FoodManagementScreen(
                              value = state.selectedStatus.displayName,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Trạng thái") },
+                             label = { Text("Trạng thái", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -244,7 +301,8 @@ fun FoodManagementScreen(
                                  unfocusedBorderColor = Color.Transparent,
                                  focusedLabelColor = primaryColor,
                                  unfocusedLabelColor = Color.Gray
-                             )
+                             ),
+                             singleLine = true
                          )
                          ExposedDropdownMenu(
                              expanded = expanded,

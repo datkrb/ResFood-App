@@ -19,5 +19,13 @@ class BranchRepository {
         }
     }
 
-
+    suspend fun updateBranch(branch: Branch): Result<Boolean> {
+        return try {
+            val branchId = branch.id.ifEmpty { return Result.failure(Exception("Branch ID is empty")) }
+            branchesRef.document(branchId).set(branch).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
