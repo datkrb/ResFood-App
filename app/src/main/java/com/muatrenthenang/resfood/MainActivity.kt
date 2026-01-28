@@ -41,12 +41,14 @@ import com.muatrenthenang.resfood.ui.screens.detail.FoodDetailScreen
 import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesScreen
 import com.muatrenthenang.resfood.ui.screens.home.HomeScreen
 import com.muatrenthenang.resfood.ui.screens.settings.SettingScreen
+import com.muatrenthenang.resfood.ui.screens.booking.BookingTableScreen
 
 import com.muatrenthenang.resfood.ui.screens.settings.profile.ProfileScreen
 import com.muatrenthenang.resfood.ui.screens.me.MeScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralScreen
 import com.muatrenthenang.resfood.ui.screens.me.ReferralHistoryScreen
 import com.muatrenthenang.resfood.ui.screens.me.VoucherScreen
+import com.muatrenthenang.resfood.ui.screens.me.SpendingStatisticsScreen
 import com.muatrenthenang.resfood.ui.screens.order.OrderListScreen
 import com.muatrenthenang.resfood.ui.screens.order.UserOrderDetailScreen
 import androidx.navigation.navArgument
@@ -102,6 +104,9 @@ class MainActivity : ComponentActivity() {
                         composable("login") {
                             LoginScreen(
                                 onLoginSuccess = { isAdmin ->
+                                    // Refresh user profile after login
+                                    userViewModel.fetchUserProfile()
+                                    
                                     // Khi login thành công -> Chuyển sang Home hoặc Dashboard và xóa Login khỏi lịch sử back
                                     val destination = if (isAdmin) "admin_dashboard" else "home"
                                     navController.navigate(destination) {
@@ -123,7 +128,9 @@ class MainActivity : ComponentActivity() {
                                 onFoodClick = { food ->
                                     navController.navigate("detail/${food.id}")
                                 },
-
+                                onNavigateToBooking = {
+                                    navController.navigate("booking_table")
+                                },
                                 paddingValues = innerPadding
                             )
                         }
@@ -332,6 +339,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 paddingValuesFromParent = innerPadding,
                                 onNavigateToMembership = { navController.navigate("membership") },
+                                onNavigateToSpendingStatistics = { navController.navigate("spending_statistics") },
                                 vm = userViewModel
                             )
                         }
@@ -339,6 +347,20 @@ class MainActivity : ComponentActivity() {
                         // Màn hình Hạng thành viên
                         composable("membership") {
                             com.muatrenthenang.resfood.ui.screens.me.MembershipScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        // Màn hình Đặt bàn
+                        composable("booking_table") {
+                            BookingTableScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }  
+                        
+                        // Màn hình Thống kê chi tiêu
+                        composable("spending_statistics") {
+                            SpendingStatisticsScreen(
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
