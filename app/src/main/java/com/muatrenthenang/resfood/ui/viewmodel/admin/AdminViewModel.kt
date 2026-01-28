@@ -16,6 +16,10 @@ import com.muatrenthenang.resfood.data.repository.TableRepository
 import com.muatrenthenang.resfood.data.model.Branch
 import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.repository.ReservationRepository
+import com.muatrenthenang.resfood.data.repository.NotificationRepository
+import com.muatrenthenang.resfood.data.model.Notification
+import com.google.firebase.Timestamp
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -530,7 +534,8 @@ class AdminViewModel(
     private val _reservations = MutableStateFlow<List<TableReservation>>(emptyList())
     val reservations: StateFlow<List<TableReservation>> = _reservations.asStateFlow()
     private val reservationRepository = ReservationRepository()
-    
+    private val notificationRepository = NotificationRepository()
+
     fun loadReservations() {
         viewModelScope.launch {
             // Load all reservations for admin
@@ -574,5 +579,39 @@ class AdminViewModel(
 
     fun getReservationById(reservationId: String): TableReservation? {
         return _reservations.value.find { it.id == reservationId }
+    }
+
+    // Notifications
+    fun sendPromotionNotification(userIds: List<String>, title: String, message: String) {
+        viewModelScope.launch {
+            userIds.forEach { uid ->
+                val notif = Notification(
+                    userId = uid,
+                    title = title,
+                    body = message,
+                    type = "promotion",
+                    isRead = false,
+                    createdAt = Timestamp.now()
+                )
+                notificationRepository.createNotification(notif)
+            }
+        }
+    }
+
+    fun sendBroadcastNotification(title: String, message: String) {
+        viewModelScope.launch {
+            val allUsers = customers.value
+            allUsers.forEach { user ->
+                val notif = Notification(
+                    userId = user.id,
+                    title = title,
+                    body = message,
+                    type = "promotion",
+                    isRead = false,
+                    createdAt = Timestamp.now()
+                )
+                notificationRepository.createNotification(notif)
+            }
+        }
     }
 }
