@@ -42,7 +42,7 @@ NGROK_URL=https://abcd1234.ngrok-free.dev/
     + Khi tài khoản ngân hàng là: Chọn cái tài khoản ngân hàng mà m vừa liên kết ở bước 2
     + Bỏ qua nếu nội dung giao dịch không có Code thanh toán?: Không
 - Thuộc tính WebHooks
-    + Gọi đến URL: `${NGROK_URL}/api/payments/sepay/webhook` (link ở bước 1)
+    + Gọi đến URL: `${NGROK_URL}/api/v1/payments/sepay/webhook` (link ở bước 1)
     + Là WebHooks xác thực thanh toán?: Đúng
 -  Gọi lại Webhooks khi? HTTP Status Code không nằm trong phạm vi từ 200 đến 299.: tick dô luôn nha,
 
