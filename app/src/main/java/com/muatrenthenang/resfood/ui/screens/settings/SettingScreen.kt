@@ -1,10 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.settings
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -14,16 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.data.model.User
-import com.muatrenthenang.resfood.ui.viewmodel.SettingsViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 
 
@@ -39,6 +31,7 @@ fun SettingScreen(
     val userState by userViewModel.userState.collectAsState()
     val user = userState ?: User(fullName = "Đang tải...", rank = "...") // Placeholder khi loading
     val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
+    val isPushNotificationEnabled by userViewModel.isPushNotificationEnabled.collectAsState()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -66,39 +59,18 @@ fun SettingScreen(
                 }
             )
 
-            // 3. Thông báo - Visual only
+            // 3. Thông báo
             SectionHeader(title = "THÔNG BÁO")
-            SettingToggleRow(title = "Thông báo đẩy", checked = false)
-            SettingToggleRow(title = "Cập nhật đơn hàng", checked = true)
-            SettingToggleRow(title = "Khuyến mãi & Ưu đãi", checked = false)
-
-            // 4. Sức khỏe - Visual only
-            SectionHeader(title = "SỨC KHỎE", badge = "MỚI")
-            SettingToggleRow(title = "Nhắc nhở ăn uống", subtitle = "Giúp duy trì thói quen lành mạnh", checked = true)
-
-            // Slider giả lập cho giống hình
-            Slider(value = 0.3f, onValueChange = {}, modifier = Modifier.fillMaxWidth())
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("1 GIỜ", color = TextColorSecondary, fontSize = 12.sp)
-                Text("12 GIỜ", color = TextColorSecondary, fontSize = 12.sp)
-            }
+            SettingToggleRow(
+                title = "Thông báo đẩy",
+                subtitle = "Nhận thông báo về đơn hàng và ưu đãi",
+                checked = isPushNotificationEnabled,
+                onCheckedChange = { isEnabled: Boolean ->
+                    userViewModel.togglePushNotification(isEnabled)
+                }
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
-
-            // 5. Nút Đăng xuất
-            Button(
-                onClick = {
-                    userViewModel.logout(onLogoutSuccess = onNavigateToLogin)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-            ) {
-                Text(text = "Đăng xuất", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
-            }
 
             // Footer Version
             Column(

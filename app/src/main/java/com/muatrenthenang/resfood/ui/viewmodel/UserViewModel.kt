@@ -31,6 +31,10 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _isDarkTheme = MutableStateFlow(sharedPreferences.getBoolean("is_dark_theme", false))
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
+    // Push notification state
+    private val _isPushNotificationEnabled = MutableStateFlow(sharedPreferences.getBoolean("push_notification_enabled", true))
+    val isPushNotificationEnabled: StateFlow<Boolean> = _isPushNotificationEnabled.asStateFlow()
+
     // === MeViewModel States ===
     // Order status counts
     private val _orderCounts = MutableStateFlow(MeOrderCounts())
@@ -205,6 +209,11 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
         sharedPreferences.edit().putBoolean("is_dark_theme", isDark).apply()
+    }
+
+    fun togglePushNotification(enabled: Boolean) {
+        _isPushNotificationEnabled.value = enabled
+        sharedPreferences.edit().putBoolean("push_notification_enabled", enabled).apply()
     }
 }
 
