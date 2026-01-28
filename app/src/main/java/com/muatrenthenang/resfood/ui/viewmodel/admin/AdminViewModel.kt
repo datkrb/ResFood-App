@@ -430,7 +430,18 @@ class AdminViewModel(
     fun deleteFood(foodId: String) {
          viewModelScope.launch {
             foodRepository.deleteFood(foodId).onSuccess {
+                // Remove foodId from any branch that contains it
+                branchRepository.getBranches().onSuccess { branches ->
+                    branches.forEach { branch ->
+                        if (branch.foodIds.contains(foodId)) {
+                             val updatedBranch = branch.copy(foodIds = branch.foodIds - foodId)
+                             branchRepository.updateBranch(updatedBranch)
+                        }
+                    }
+                }
+                
                 loadFoods()
+                loadBranches()
             }
         }
     }
