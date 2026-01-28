@@ -32,6 +32,7 @@ import com.muatrenthenang.resfood.ui.screens.admin.orders.OrderDetailScreen
 import com.muatrenthenang.resfood.ui.screens.admin.orders.OrderManagementScreen
 import com.muatrenthenang.resfood.ui.screens.admin.settings.AdminSettingsScreen
 import com.muatrenthenang.resfood.ui.screens.admin.tables.TableManagementScreen
+import com.muatrenthenang.resfood.ui.screens.admin.reviews.ReviewManagementScreen
 import com.muatrenthenang.resfood.ui.screens.auth.ForgotPasswordScreen
 import com.muatrenthenang.resfood.ui.screens.auth.LoginScreen
 import com.muatrenthenang.resfood.ui.screens.auth.RegisterScreen
@@ -524,7 +525,16 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                                onNavigateToSettings = { navController.navigate("admin_settings") }
+                                onNavigateToSettings = { navController.navigate("admin_settings") },
+                                onNavigateToReviews = { navController.navigate("admin_reviews") }
+                            )
+                        }
+
+                        composable("admin_reviews") {
+                            val adminViewModel: AdminViewModel = viewModel()
+                            ReviewManagementScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 

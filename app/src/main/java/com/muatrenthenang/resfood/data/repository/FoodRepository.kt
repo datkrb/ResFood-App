@@ -101,6 +101,12 @@ class FoodRepository {
                     ?: throw Exception("Food not found")
                 
                 val currentReviews = currentFood.reviews.toMutableList()
+                
+                // Check if user already reviewed
+                if (currentReviews.any { it.userId == review.userId }) {
+                    throw Exception("Bạn đã đánh giá món ăn này rồi")
+                }
+
                 currentReviews.add(0, review) // Add new review to top
                 
                 // Recalculate rating
@@ -114,6 +120,41 @@ class FoodRepository {
                 transaction.update(docRef, "rating", newRating)
             }.await()
             
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    // Xóa review (chỉ admin)
+    suspend fun deleteReview(foodId: String, review: Review): Result<Boolean> {
+        checkAdmin().onFailure { return Result.failure(it) }
+        return try {
+            val docRef = db.collection("foods").document(foodId)
+
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                val currentFood = snapshot.toObject(Food::class.java)
+                    ?: throw Exception("Food not found")
+
+                val currentReviews = currentFood.reviews.toMutableList()
+                // Remove the matching review
+                val removed = currentReviews.removeIf {
+                    it.userId == review.userId && it.createdAt == review.createdAt
+                }
+
+                if (!removed) throw Exception("Review not found")
+
+                // Recalculate rating
+                val newRating = if (currentReviews.isNotEmpty()) {
+                    currentReviews.map { it.star }.average().toFloat()
+                } else {
+                    0f
+                }
+
+                transaction.update(docRef, "reviews", currentReviews)
+                transaction.update(docRef, "rating", newRating)
+            }.await()
+
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
