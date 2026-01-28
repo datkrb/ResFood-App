@@ -71,6 +71,10 @@ class CheckoutViewModel(
     val paymentQrUrl = _paymentQrUrl.asStateFlow()
 
     private val _currentOrderId = MutableStateFlow<String?>(null)
+    
+    // Payment Success Trigger
+    private val _paymentSuccess = MutableStateFlow(false)
+    val paymentSuccess = _paymentSuccess.asStateFlow()
 
     private val _shippingFee = 15000L
 
@@ -393,6 +397,21 @@ class CheckoutViewModel(
                                 _selectedProductVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
                                 _selectedShippingVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
                                 
+                                // Reset payment success state
+                                _paymentSuccess.value = false
+                                
+                                // Start listening for status change
+                                launch {
+                                    _orderRepository.getOrderByIdFlow(orderId).collect { ord ->
+                                        if (ord != null && ord.status == "PENDING") {
+                                            // Payment confirmed!
+                                            _paymentSuccess.value = true
+                                            _repository.removeSelectedItems() // Clear cart only now or when confirmed
+                                            _currentOrderId.value = null 
+                                        }
+                                    }
+                                }
+
                                 // _repository.removeSelectedItems()
 
                          } catch (e: Exception) {
@@ -417,14 +436,16 @@ class CheckoutViewModel(
                 val orderResult = _orderRepository.getOrderById(orderId)
                 if (orderResult.isSuccess) {
                     val order = orderResult.getOrNull()
+                    // Allow deleting WAITING_PAYMENT if user cancels
                     if (order != null && order.status == "WAITING_PAYMENT") {
-                        _orderRepository.deleteOrder(orderId)
+                         _orderRepository.deleteOrder(orderId)
                     }
                 }
                 _currentOrderId.value = null
             }
         }
         _paymentQrUrl.value = null
+        _paymentSuccess.value = false
     }
 
     fun clearResult(){ _actionResult.value = null }

@@ -91,6 +91,62 @@ fun CheckoutScreen(
         return
     }
 
+    val paymentSuccess by vm.paymentSuccess.collectAsState()
+
+    if (paymentSuccess) {
+        // Payment Success UI
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = SuccessGreen,
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Thanh toán thành công!",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Cảm ơn bạn đã mua hàng tại ResFood.",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Button(
+                onClick = { 
+                    vm.clearPaymentQr() // This also resets paymentSuccess
+                    onPaymentConfirmed() // Navigate to OrderList
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(25.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+            ) {
+                Text(
+                    text = "Xem đơn hàng",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+        return
+    }
+
     if (paymentQrUrl != null) {
         AlertDialog(
             onDismissRequest = { 
