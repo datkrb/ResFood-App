@@ -3,10 +3,12 @@ package com.muatrenthenang.resfood.ui.screens.admin.orders
 import com.muatrenthenang.resfood.data.model.Order
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -158,6 +160,20 @@ fun OrderManagementScreen(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it }
             )
+
+            // Date Filter Chips
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("Tất cả", "Hôm nay", "Tuần này").forEach { filter ->
+                    FilterChip(
+                        selected = selectedDateFilter == filter,
+                        onClick = { selectedDateFilter = filter },
+                        label = { Text(filter) }
+                    )
+                }
+            }
             
             // Tabs
             ScrollableTabRow(
