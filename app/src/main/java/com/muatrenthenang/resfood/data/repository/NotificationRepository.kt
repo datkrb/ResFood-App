@@ -32,7 +32,9 @@ class NotificationRepository {
                 }
 
                 if (snapshot != null) {
-                    var notifications = snapshot.toObjects(Notification::class.java)
+                    var notifications = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(Notification::class.java)?.copy(id = doc.id)
+                    }
                     // Sort in memory
                     notifications = notifications.sortedByDescending { it.createdAt }
                     trySend(notifications)
@@ -77,17 +79,22 @@ class NotificationRepository {
     suspend fun markAllAsRead() {
         val userId = auth.currentUser?.uid ?: return
         try {
-            // Batch update for better performance
+            // Updated to fetch all by user then filter, to avoid composite index requirement
             val snapshot = notificationsCollection
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("isRead", false)
                 .get().await()
 
             val batch = db.batch()
+            var updateCount = 0
             for (doc in snapshot.documents) {
-               batch.update(doc.reference, "isRead", true)
+               if (doc.getBoolean("isRead") != true) {
+                   batch.update(doc.reference, "isRead", true)
+                   updateCount++
+               }
             }
-            batch.commit().await()
+            if (updateCount > 0) {
+                batch.commit().await()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

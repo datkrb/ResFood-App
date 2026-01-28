@@ -56,6 +56,7 @@ fun ProfileScreen(
     
     // Change password dialog states
     var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -379,7 +380,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             TextButton(
-                onClick = { /* Delete Account Logic */ },
+                onClick = { showDeleteConfirmDialog = true },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.textButtonColors(
@@ -556,6 +557,51 @@ fun ProfileScreen(
                         confirmPassword = ""
                     }
                 ) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+    // Delete Account Dialog
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            icon = {
+                Icon(
+                    Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(48.dp)
+                )
+            },
+            title = { Text("Xóa tài khoản?") },
+            text = { 
+                Text(
+                    "Hành động này không thể hoàn tác. Mọi dữ liệu của bạn sẽ bị xóa vĩnh viễn.",
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                ) 
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        userViewModel.deleteAccount(
+                            onSuccess = {
+                                onLogout() // Reuse logout navigation logic
+                            },
+                            onError = { msg ->
+                                errorMessage = msg
+                                showErrorDialog = true
+                            }
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Xóa vĩnh viễn", color = MaterialTheme.colorScheme.onError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
                     Text("Hủy")
                 }
             }

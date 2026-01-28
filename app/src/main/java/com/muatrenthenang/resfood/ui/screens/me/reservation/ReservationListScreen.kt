@@ -83,7 +83,7 @@ fun ReservationListScreen(
                     )
                 }
 
-                // Scrollable Tab Row
+                // Scrollable Tab Row with Badge
                 ScrollableTabRow(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Color.Transparent,
@@ -99,16 +99,52 @@ fun ReservationListScreen(
                     },
                     divider = {}
                 ) {
-                    tabs.forEachIndexed { index, title ->
+                    tabs.forEachIndexed { index, status ->
+                        // Get count from state
+                        val counts = (uiState as? ReservationUiState.Success)?.counts ?: emptyMap()
+                        val count = when(status) {
+                            "ALL" -> (uiState as? ReservationUiState.Success)?.reservations?.size ?: 0
+                            else -> counts[status] ?: 0
+                        }
+                        
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
                             text = {
-                                Text(
-                                    text = tabTitles[index],
-                                    color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = tabTitles[index],
+                                        color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    // Badge with count
+                                    if (count > 0) {
+                                        val badgeColor = when(status) {
+                                            "PENDING" -> Color(0xFFF59E0B) // Orange
+                                            "CONFIRMED" -> Color(0xFF3B82F6) // Blue
+                                            "COMPLETED" -> SuccessGreen
+                                            "CANCELLED" -> Color.Gray
+                                            else -> PrimaryColor
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(badgeColor.copy(alpha = if (selectedTabIndex == index) 1f else 0.2f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (count > 99) "99+" else count.toString(),
+                                                color = if (selectedTabIndex == index) Color.White else badgeColor,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         )
                     }

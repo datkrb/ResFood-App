@@ -43,17 +43,9 @@ fun AppLayout(
         }
     }
 
-    // Routes waiting for hiding Bottom Bar
-    // Note: Better to organize this list in a constant file eventually
-    val hideBottomBarRoutes = listOf(
-        "login", "register", "forgot_password", "splash",
-        "admin_dashboard", "admin_food_management", "admin_promotion_add",
-        "admin_orders", "admin_customers", "admin_tables", "admin_analytics", "admin_settings",
-        "detail/{foodId}", "cart", "checkout", "booking_table", "chat_list", "chat_detail/{chatId}"
-    )
-
-    // Also hide if route starts with admin
-    val showBottom = currentRoute !in hideBottomBarRoutes && !currentRoute.startsWith("admin_")
+    // Only show Bottom Bar on the main 4 tabs
+    val showBottomBarRoutes = listOf("home", "cart", "favorites", "me")
+    val showBottom = currentRoute in showBottomBarRoutes
 
     Scaffold(
         bottomBar = {

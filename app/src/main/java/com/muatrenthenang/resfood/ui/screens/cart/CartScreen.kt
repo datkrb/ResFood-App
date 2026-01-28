@@ -59,6 +59,7 @@ fun CartScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val result by viewModel.actionResult.collectAsState()
     val needLogin by viewModel.needLogin.collectAsState()
+    val currentShippingFee by viewModel.shippingFee.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deletingItemId by remember { mutableStateOf<String?>(null) }
     var showClearAllDialog by remember { mutableStateOf(false) }
@@ -135,14 +136,14 @@ fun CartScreen(
                             }
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                                 Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = viewModel.formatCurrency(15000L), fontWeight = FontWeight.Medium)
+                                Text(text = viewModel.formatCurrency(currentShippingFee), fontWeight = FontWeight.Medium)
                             }
                             Divider()
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Column {
                                     Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
                                 }
-                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + 15000L), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
+                                Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + currentShippingFee), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
                             }
                         }
                     }

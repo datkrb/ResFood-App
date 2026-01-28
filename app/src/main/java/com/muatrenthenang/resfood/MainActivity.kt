@@ -423,7 +423,8 @@ class MainActivity : ComponentActivity() {
                             OrderListScreen(
                                 status = status,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") }
+                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") },
+                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
                             )
                         }
 
@@ -434,7 +435,8 @@ class MainActivity : ComponentActivity() {
                             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
                             UserOrderDetailScreen(
                                 orderId = orderId,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
                             )
                         }
 
@@ -478,18 +480,23 @@ class MainActivity : ComponentActivity() {
                             FoodDetailScreen(
                                 foodId = foodId,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToReview = { id -> navController.navigate("review/$id") }
+                                onNavigateToReview = { id -> navController.navigate("review/$id/true") }
                             )
                         }
 
                         composable(
-                            route = "review/{foodId}",
-                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                            route = "review/{foodId}/{isReadOnly}",
+                            arguments = listOf(
+                                navArgument("foodId") { type = NavType.StringType },
+                                navArgument("isReadOnly") { type = NavType.BoolType }
+                            )
                         ) { backStackEntry ->
                             val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                            val isReadOnly = backStackEntry.arguments?.getBoolean("isReadOnly") ?: false
                             ReviewScreen(
                                 foodId = foodId,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                isReadOnly = isReadOnly
                             )
                         }
 
@@ -551,7 +558,8 @@ class MainActivity : ComponentActivity() {
                             PromotionManagementScreen(
                                 viewModel = adminViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                                onNavigateToAdd = { navController.navigate("admin_promotion_add") },
+                                onNavigateToEdit = { promo -> navController.navigate("admin_promotion_edit/${promo.id}") }
                             )
                         }
 
@@ -621,13 +629,26 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             CustomerManagementScreen(
                                 viewModel = adminViewModel,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") }
                             )
                         }
 
                         composable("admin_promotion_add") {
                             PromotionAddScreen(
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = null
+                            )
+                        }
+
+                        composable(
+                            "admin_promotion_edit/{promotionId}",
+                            arguments = listOf(navArgument("promotionId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val promotionId = backStackEntry.arguments?.getString("promotionId")
+                            PromotionAddScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = promotionId
                             )
                         }
 
@@ -672,6 +693,7 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             AdminSettingsScreen(
                                 viewModel = adminViewModel,
+                                userViewModel = userViewModel,
                                 onNavigateBack = { navController.popBackStack() },
                                 onLogout = {
                                     // Clear backstack and go to login
@@ -686,7 +708,19 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                                onNavigateToOrders = { navController.navigate("admin_orders") },
+                                onNavigateToBranch = { navController.navigate("admin_branch") }
+                            )
+                        }
+
+                        composable("admin_branch") { backStackEntry ->
+                            com.muatrenthenang.resfood.ui.screens.admin.BranchManagementScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToMap = { lat, lng ->
+                                    val route = if (lat != null && lng != null) "map_picker?lat=$lat&lng=$lng" else "map_picker"
+                                    navController.navigate(route)
+                                },
+                                savedStateHandle = backStackEntry.savedStateHandle
                             )
                         }
 

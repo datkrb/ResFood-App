@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +41,7 @@ import java.util.Locale
 fun UserOrderDetailScreen(
     orderId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToReview: (String) -> Unit,
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Ensure mock data is loaded (simulating loading from shared ViewModel/Repository)
@@ -52,6 +54,7 @@ fun UserOrderDetailScreen(
     val orders by viewModel.orders.collectAsState()
     val order = orders.find { it.id == orderId }
     var showCancelDialog by remember { mutableStateOf(false) }
+    var showReviewSelection by remember { mutableStateOf(false) }
 
     if (order == null) {
         // Loading or not found state
@@ -85,6 +88,17 @@ fun UserOrderDetailScreen(
             tonalElevation = 6.dp
         )
     }
+    
+    if (showReviewSelection) {
+        ReviewSelectionDialog(
+            order = order,
+            onDismiss = { showReviewSelection = false },
+            onItemSelect = { foodId ->
+                showReviewSelection = false
+                onNavigateToReview(foodId)
+            }
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -92,7 +106,11 @@ fun UserOrderDetailScreen(
             OrderDetailTopBar(onBack = onNavigateBack)
         },
         bottomBar = {
-            OrderDetailBottomBar(order = order, viewModel = viewModel)
+            OrderDetailBottomBar(
+                order = order, 
+                viewModel = viewModel,
+                onReviewClick = { showReviewSelection = true }
+            )
         }
     ) { paddingValues ->
         Column(
@@ -617,7 +635,7 @@ fun PaymentMethodCard(order: Order) {
 }
 
 @Composable
-fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel) {
+fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewClick: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
@@ -628,7 +646,7 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel) {
             if (order.status == "COMPLETED") {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedButton(
-                        onClick = { viewModel.reviewOrder(order.id) },
+                        onClick = onReviewClick,
                         modifier = Modifier.weight(1f).height(48.dp),
                     ) {
                         Text("Đánh giá")
@@ -669,4 +687,51 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel) {
             }
         }
     }
+}
+
+@Composable
+fun ReviewSelectionDialog(
+    order: Order,
+    onDismiss: () -> Unit,
+    onItemSelect: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Đánh giá sản phẩm") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text("Chọn sản phẩm bạn muốn đánh giá:")
+                order.items.forEach { item ->
+                    Surface(
+                        onClick = { onItemSelect(item.foodId) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            AsyncImage(
+                                model = item.foodImage,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(item.foodName, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.rotate(180f))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Đóng") }
+        }
+    )
 }

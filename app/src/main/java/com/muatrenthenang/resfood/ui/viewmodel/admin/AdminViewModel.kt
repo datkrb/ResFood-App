@@ -13,9 +13,11 @@ import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.data.repository.TableRepository
-import com.muatrenthenang.resfood.data.model.Branch
-import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.repository.ReservationRepository
+import com.muatrenthenang.resfood.data.repository.NotificationRepository
+import com.muatrenthenang.resfood.data.model.Notification
+import com.google.firebase.Timestamp
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,9 +55,7 @@ data class FoodManagementUiState(
     val error: String? = null,
     val selectedCategory: String = "All",
     val selectedStatus: FoodStatus = FoodStatus.ALL,
-    val categories: List<String> = listOf("All"),
-    val branches: List<Branch> = emptyList(),
-    val selectedBranch: Branch? = null
+    val categories: List<String> = listOf("All")
 )
 
 enum class FoodStatus(val displayName: String) {
@@ -90,8 +90,7 @@ class AdminViewModel(
     private val orderRepository: OrderRepository = OrderRepository(),
     private val userRepository: UserRepository = UserRepository(),
     private val promotionRepository: PromotionRepository = PromotionRepository(),
-    private val tableRepository: TableRepository = TableRepository(),
-    private val branchRepository: BranchRepository = BranchRepository()
+    private val tableRepository: TableRepository = TableRepository()
 ) : ViewModel() {
 
     private val _dashboardUiState = MutableStateFlow(DashboardUiState())
@@ -119,12 +118,7 @@ class AdminViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
-        // Run seeding in background - don't block UI data loading
-        // viewModelScope.launch {
-        //     com.muatrenthenang.resfood.data.DataSeeder().seedAll()
-        // }
-        
-        // Load UI data immediately without waiting for seeding
+        // Load UI data immediately
         viewModelScope.launch {
             loadOrders()
             // Initialize analytics with TODAY filter
@@ -143,19 +137,17 @@ class AdminViewModel(
 
     private suspend fun loadData() {
         _isLoading.value = true
-        // Load all data in parallel to speed up start time (like Guest Main Page)
+        // Load all data in parallel to speed up start time
         val jobFoods = viewModelScope.async { loadFoods() }
         val jobCustomers = viewModelScope.async { loadCustomers() }
         val jobPromotions = viewModelScope.async { loadPromotions() }
         val jobTables = viewModelScope.async { loadTables() }
-        val jobBranches = viewModelScope.async { loadBranches() }
         
         // Wait for all to complete
         jobFoods.await()
         jobCustomers.await()
         jobPromotions.await()
         jobTables.await()
-        jobBranches.await()
         
         _isLoading.value = false
     }
@@ -194,12 +186,27 @@ class AdminViewModel(
         }
     }
     
+    fun deleteUser(userId: String) {
+        viewModelScope.launch {
+            userRepository.deleteUser(userId).onSuccess {
+                loadCustomers()
+            }
+        }
+    }
+    
+    fun updateUser(userId: String, updates: Map<String, Any>) {
+        viewModelScope.launch {
+            userRepository.updateUser(userId, updates).onSuccess {
+                loadCustomers()
+            }
+        }
+    }
+    
     private suspend fun loadPromotions() {
          promotionRepository.getAllPromotions().onSuccess { promos ->
              _promotions.value = promos
          }.onFailure {
-             // Do not load mock data on failure, just log or show error if needed
-             // _promotions.value = emptyList() is already default
+             // Do not load mock data on failure
          }
     }
     
@@ -219,12 +226,6 @@ class AdminViewModel(
             }
         }.onFailure {
             _tables.value = emptyList()
-        }
-    }
-
-    private suspend fun loadBranches() {
-        branchRepository.getBranches().onSuccess { loadedBranches ->
-            _foodManagementUiState.value = _foodManagementUiState.value.copy(branches = loadedBranches)
         }
     }
 
@@ -344,7 +345,7 @@ class AdminViewModel(
         // Filter orders by time range
         val now = System.currentTimeMillis()
         val filteredOrders = orderList.filter { order ->
-            if (order.createdAt == null) return@filter false // Should not happen with real data
+            if (order.createdAt == null) return@filter false
             val time = order.createdAt.toDate().time
             val diff = now - time
             when (range) {
@@ -398,11 +399,6 @@ class AdminViewModel(
         updateFilteredFoods()
     }
 
-    fun setBranchFilter(branch: Branch?) {
-        _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedBranch = branch)
-        updateFilteredFoods()
-    }
-
     fun setStatusFilter(status: FoodStatus) {
         _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedStatus = status)
         updateFilteredFoods()
@@ -417,12 +413,7 @@ class AdminViewModel(
                 FoodStatus.AVAILABLE -> food.isAvailable
                 FoodStatus.OUT_OF_STOCK -> !food.isAvailable
             }
-            // Branch filtering: if a branch is selected, food must be in branch.foodIds
-            val matchesBranch = state.selectedBranch?.let { branch ->
-                branch.foodIds.contains(food.id)
-            } ?: true
-            
-            matchesCategory && matchesStatus && matchesBranch
+            matchesCategory && matchesStatus
         }
         _foodManagementUiState.value = _foodManagementUiState.value.copy(filteredFoods = filtered)
     }
@@ -430,18 +421,7 @@ class AdminViewModel(
     fun deleteFood(foodId: String) {
          viewModelScope.launch {
             foodRepository.deleteFood(foodId).onSuccess {
-                // Remove foodId from any branch that contains it
-                branchRepository.getBranches().onSuccess { branches ->
-                    branches.forEach { branch ->
-                        if (branch.foodIds.contains(foodId)) {
-                             val updatedBranch = branch.copy(foodIds = branch.foodIds - foodId)
-                             branchRepository.updateBranch(updatedBranch)
-                        }
-                    }
-                }
-                
                 loadFoods()
-                loadBranches()
             }
         }
     }
@@ -477,10 +457,23 @@ class AdminViewModel(
         return _orders.value.find { it.id == orderId }
     }
     
-    fun addPromotion(name: String, code: String, value: Int, type: Int) {
+    fun addPromotion(promotion: Promotion) {
         viewModelScope.launch {
-            val promo = Promotion(name = name, code = code, discountValue = value, discountType = type)
-            promotionRepository.createPromotion(promo)
+            promotionRepository.createPromotion(promotion)
+            loadPromotions()
+        }
+    }
+
+    fun updatePromotion(promotion: Promotion) {
+        viewModelScope.launch {
+            promotionRepository.updatePromotion(promotion)
+            loadPromotions()
+        }
+    }
+
+    fun deletePromotion(promotionId: String) {
+        viewModelScope.launch {
+            promotionRepository.deletePromotion(promotionId)
             loadPromotions()
         }
     }
@@ -517,7 +510,8 @@ class AdminViewModel(
     private val _reservations = MutableStateFlow<List<TableReservation>>(emptyList())
     val reservations: StateFlow<List<TableReservation>> = _reservations.asStateFlow()
     private val reservationRepository = ReservationRepository()
-    
+    private val notificationRepository = NotificationRepository()
+
     fun loadReservations() {
         viewModelScope.launch {
             // Load all reservations for admin
@@ -561,5 +555,39 @@ class AdminViewModel(
 
     fun getReservationById(reservationId: String): TableReservation? {
         return _reservations.value.find { it.id == reservationId }
+    }
+
+    // Notifications
+    fun sendPromotionNotification(userIds: List<String>, title: String, message: String) {
+        viewModelScope.launch {
+            userIds.forEach { uid ->
+                val notif = Notification(
+                    userId = uid,
+                    title = title,
+                    body = message,
+                    type = "promotion",
+                    isRead = false,
+                    createdAt = Timestamp.now()
+                )
+                notificationRepository.createNotification(notif)
+            }
+        }
+    }
+
+    fun sendBroadcastNotification(title: String, message: String) {
+        viewModelScope.launch {
+            val allUsers = customers.value
+            allUsers.forEach { user ->
+                val notif = Notification(
+                    userId = user.id,
+                    title = title,
+                    body = message,
+                    type = "promotion",
+                    isRead = false,
+                    createdAt = Timestamp.now()
+                )
+                notificationRepository.createNotification(notif)
+            }
+        }
     }
 }

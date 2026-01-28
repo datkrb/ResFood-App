@@ -27,6 +27,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 fun ReviewScreen(
     foodId: String,
     onNavigateBack: () -> Unit,
+    isReadOnly: Boolean = false,
     viewModel: FoodDetailViewModel = viewModel()
 ) {
     val food by viewModel.food.collectAsState()
@@ -51,7 +52,7 @@ fun ReviewScreen(
             )
         },
         floatingActionButton = {
-//            if (canReview) {
+            if (canReview && !isReadOnly) {
                 FloatingActionButton(
                     onClick = { showReviewDialog = true },
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -59,7 +60,7 @@ fun ReviewScreen(
                 ) {
                     Text("Thêm đánh giá", modifier = Modifier.padding(horizontal = 16.dp))
                 }
-//            }
+            }
         }
     ) { paddingValues ->
         LazyColumn(

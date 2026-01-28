@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
@@ -18,37 +18,42 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
-
+import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminSettingsScreen(
     viewModel: AdminViewModel,
+    userViewModel: UserViewModel,
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToMenu: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToOrders: () -> Unit
+    onNavigateToOrders: () -> Unit,
+    onNavigateToBranch: () -> Unit = {}
 ) {
     // State
     var showProfileDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(true) } // Default for Admin
-    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    // Theme state from UserViewModel
+    val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
+    val isPushNotificationEnabled by userViewModel.isPushNotificationEnabled.collectAsState()
 
     Scaffold(
         topBar = {
@@ -56,13 +61,13 @@ fun AdminSettingsScreen(
                 title = { Text("Cài đặt", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -76,11 +81,11 @@ fun AdminSettingsScreen(
                 onFabClick = onNavigateToOrders
             )
         },
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             // Account Section
-            Text("Tài khoản", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            Text("Tài khoản", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
             SettingsItem(
                 icon = Icons.Default.Person, 
                 title = "Thông tin cá nhân", 
@@ -94,19 +99,29 @@ fun AdminSettingsScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Restaurant Section
+            Text("Nhà hàng", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            SettingsItem(
+                icon = Icons.Default.Store, 
+                title = "Quản lý chi nhánh", 
+                onClick = onNavigateToBranch
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
             // App Settings
-            Text("Ứng dụng", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            Text("Ứng dụng", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
             SettingsItem(
                 icon = Icons.Default.Notifications, 
                 title = "Thông báo", 
-                onClick = { notificationsEnabled = !notificationsEnabled },
+                onClick = { userViewModel.togglePushNotification(!isPushNotificationEnabled) },
                 trailing = {
                     Switch(
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it },
+                        checked = isPushNotificationEnabled,
+                        onCheckedChange = { userViewModel.togglePushNotification(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -115,14 +130,14 @@ fun AdminSettingsScreen(
              SettingsItem(
                 icon = Icons.Default.DarkMode, 
                 title = "Giao diện tối", 
-                onClick = { darkModeEnabled = !darkModeEnabled },
+                onClick = { userViewModel.toggleTheme(!isDarkTheme) },
                 trailing = {
                     Switch(
-                        checked = darkModeEnabled,
-                        onCheckedChange = { darkModeEnabled = it },
+                        checked = isDarkTheme,
+                        onCheckedChange = { userViewModel.toggleTheme(it) },
                          colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -133,14 +148,15 @@ fun AdminSettingsScreen(
             // Logout
             Button(
                 onClick = onLogout,
-                colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
                 shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Logout, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.LightRed)
+                    Icon(Icons.Default.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Đăng xuất", color = com.muatrenthenang.resfood.ui.theme.LightRed, fontWeight = FontWeight.Bold)
+                    Text("Đăng xuất", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -163,12 +179,12 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard,
-        titleContentColor = Color.White,
-        textContentColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor)
+                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Cập nhật thông tin")
             }
@@ -182,11 +198,11 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                     Box(
                         modifier = Modifier
                             .size(80.dp)
-                            .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker, CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                             .clickable { /* Pick Image */ },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor, modifier = Modifier.size(32.dp))
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -197,14 +213,12 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                     label = { Text("Họ tên") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray) }
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -214,11 +228,11 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false,
                     colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = Color.Gray,
-                        disabledBorderColor = Color.DarkGray,
-                        disabledLabelColor = Color.DarkGray
+                        disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray) }
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -227,25 +241,23 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                     label = { Text("Số điện thoại") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
-                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray) }
+                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor)) {
-                Text("Lưu", color = Color.White)
+            Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                Text("Lưu", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = Color.Gray)
+                Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -260,12 +272,12 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard,
-        titleContentColor = Color.White,
-        textContentColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default. Lock, contentDescription = null, tint = com.muatrenthenang.resfood.ui.theme.PrimaryColor)
+                Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Đổi mật khẩu")
             }
@@ -279,14 +291,12 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
-                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray) }
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -296,14 +306,12 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
-                     leadingIcon = { Icon(Icons.Default.VpnKey, contentDescription = null, tint = Color.Gray) }
+                     leadingIcon = { Icon(Icons.Default.VpnKey, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -313,29 +321,27 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                        unfocusedLabelColor = Color.Gray
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     ),
-                     leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color.Gray) }
+                     leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = onDismiss, // Mock logic
-                colors = ButtonDefaults.buttonColors(containerColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = currentPassword.isNotEmpty() && newPassword.isNotEmpty() && newPassword == confirmPassword
             ) {
-                Text("Đổi mật khẩu", color = Color.White)
+                Text("Đổi mật khẩu", color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = Color.Gray)
+                Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -349,29 +355,34 @@ fun SettingsItem(
     showBadge: Boolean = false,
     trailing: @Composable (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(12.dp))
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color.White)
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(title, color = Color.White, fontSize = 16.sp)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (showBadge) {
-                Box(modifier = Modifier.size(8.dp).background(Color.Red, androidx.compose.foundation.shape.CircleShape))
-                Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
             }
-            if (trailing != null) {
-                trailing()
-            } else {
-                Icon(Icons.Default.ArrowForwardIos, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showBadge) {
+                    Box(modifier = Modifier.size(8.dp).background(Color.Red, CircleShape))
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                if (trailing != null) {
+                    trailing()
+                } else {
+                    Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                }
             }
         }
     }

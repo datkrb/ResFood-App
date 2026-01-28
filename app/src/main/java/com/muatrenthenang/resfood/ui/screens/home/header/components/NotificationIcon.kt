@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.MaterialTheme
 
 
@@ -29,7 +29,7 @@ fun NotificationIcon(
         modifier = Modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.5f))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -37,18 +37,27 @@ fun NotificationIcon(
             imageVector = Icons.Default.Notifications,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(24.dp)
         )
         
         if (unreadCount > 0) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset((-2).dp, 2.dp)
-                    .size(10.dp)
+                    .offset(x = 4.dp, y = (-4).dp)
                     .background(Color.Red, CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape)
-            )
+                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                    .size(18.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.Text(
+                    text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+            }
         }
     }
 }

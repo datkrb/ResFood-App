@@ -177,7 +177,7 @@ fun TableManagementScreen(
                     }
                 }
 
-                // Tabs
+                // Tabs with Badge
                 ScrollableTabRow(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = MaterialTheme.colorScheme.background,
@@ -190,16 +190,52 @@ fun TableManagementScreen(
                         )
                     }
                 ) {
-                    tabs.forEachIndexed { index, _ ->
+                    tabs.forEachIndexed { index, status ->
+                        // Calculate count for this status
+                        val count = when(status) {
+                            "ALL" -> reservations.size
+                            else -> reservations.count { it.status == status }
+                        }
+                        
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
                             text = {
-                                Text(
-                                    text = tabTitles[index],
-                                    color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = tabTitles[index],
+                                        color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    // Badge with count
+                                    if (count > 0) {
+                                        val badgeColor = when(status) {
+                                            "PENDING" -> Color(0xFFF59E0B)
+                                            "CONFIRMED" -> Color(0xFF3B82F6)
+                                            "COMPLETED" -> SuccessGreen
+                                            "CANCELLED" -> Color.Gray
+                                            "REJECTED" -> LightRed
+                                            else -> MaterialTheme.colorScheme.primary
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(badgeColor.copy(alpha = if (selectedTabIndex == index) 1f else 0.2f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (count > 99) "99+" else count.toString(),
+                                                color = if (selectedTabIndex == index) Color.White else badgeColor,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         )
                     }

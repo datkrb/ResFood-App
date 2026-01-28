@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +48,7 @@ fun AdminBottomNavigation(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(80.dp)
-                .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker) // Dark background
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)) // Use surface with elevation for better contrast
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -87,14 +88,14 @@ fun AdminBottomNavigation(
                 .size(64.dp)
                 .shadow(8.dp, CircleShape)
                 .clip(CircleShape)
-                .background(Color(0xFFFFC107)) // Yellow/Orange accent
+                .background(MaterialTheme.colorScheme.primary) // Use primary color
                 .clickable { onFabClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.ReceiptLong,
                 contentDescription = "Orders",
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(32.dp)
             )
         }
@@ -108,7 +109,7 @@ private fun NavIcon(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val color = if (isSelected) Color(0xFFFFC107) else Color.Gray
+    val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier

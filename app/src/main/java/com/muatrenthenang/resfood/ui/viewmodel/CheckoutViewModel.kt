@@ -15,10 +15,11 @@ import com.muatrenthenang.resfood.data.repository.AuthRepository
 import com.muatrenthenang.resfood.data.repository.CheckoutRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
-import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import com.muatrenthenang.resfood.data.repository.BranchRepository
+import com.muatrenthenang.resfood.data.model.Promotion
 
 enum class PaymentMethod { SEPAY, COD }
 
@@ -26,7 +27,8 @@ class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository(),
     private val _userRepository: UserRepository = UserRepository(),
     private val _orderRepository: OrderRepository = OrderRepository(),
-    private val _authRepository: AuthRepository = AuthRepository()
+    private val _authRepository: AuthRepository = AuthRepository(),
+    private val _branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
     private val _promotionRepository: PromotionRepository = PromotionRepository()
 
@@ -82,6 +84,18 @@ class CheckoutViewModel(
         loadSelectedCartItems()
         loadDefaultAddress()
         loadPromotions()
+        loadShippingFee()
+    }
+
+    /**
+     * Load shipping fee from primary branch
+     */
+    private fun loadShippingFee() {
+        viewModelScope.launch {
+            _branchRepository.getPrimaryBranch().onSuccess { branch ->
+                _shippingFee.value = branch.shippingFee
+            }
+        }
     }
 
     /**
@@ -213,7 +227,7 @@ class CheckoutViewModel(
              voucher.discountValue.toLong()
         } else {
              if (voucher.discountType == 0) {
-                (_shippingFee * voucher.discountValue) / 100
+                (_shippingFee.value * voucher.discountValue) / 100
             } else {
                 voucher.discountValue.toLong()
             }

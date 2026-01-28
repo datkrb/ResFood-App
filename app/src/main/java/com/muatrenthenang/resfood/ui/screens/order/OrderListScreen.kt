@@ -42,6 +42,7 @@ fun OrderListScreen(
     status: String,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
+    onNavigateToReview: (String) -> Unit = {},
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Tabs matching ReservationListScreen style
@@ -69,6 +70,8 @@ fun OrderListScreen(
     }
 
     val orders by viewModel.orders.collectAsState()
+    var showReviewDialogForOrder by remember { mutableStateOf<Order?>(null) }
+    val allOrdersList by viewModel.allOrders.collectAsState()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -76,7 +79,7 @@ fun OrderListScreen(
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
                 OrderListTopBar(title = "Đơn hàng của tôi", onBack = onNavigateBack)
                 
-                // Tabs
+                // Tabs with Badge
                 ScrollableTabRow(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Color.Transparent,
@@ -92,16 +95,59 @@ fun OrderListScreen(
                     },
                     divider = {}
                 ) {
-                    tabs.forEachIndexed { index, title ->
+                    tabs.forEachIndexed { index, status ->
+                        // Calculate count for this status
+                        val count = when(status) {
+                            "ALL" -> allOrdersList.size
+                            "PENDING" -> allOrdersList.count { it.status == "PENDING" }
+                            "PROCESSING" -> allOrdersList.count { it.status == "PROCESSING" }
+                            "DELIVERING" -> allOrdersList.count { it.status == "DELIVERING" }
+                            "COMPLETED" -> allOrdersList.count { it.status == "COMPLETED" }
+                            "CANCELLED" -> allOrdersList.count { it.status == "CANCELLED" || it.status == "REJECTED" }
+                            "REVIEW" -> allOrdersList.count { it.status == "COMPLETED" && !it.isReviewed }
+                            else -> 0
+                        }
+                        
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
                             text = {
-                                Text(
-                                    text = tabTitles[index],
-                                    color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text(
+                                        text = tabTitles[index],
+                                        color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    // Badge with count
+                                    if (count > 0) {
+                                        val badgeColor = when(status) {
+                                            "PENDING" -> PrimaryColor
+                                            "PROCESSING" -> Color(0xFFF97316)
+                                            "DELIVERING" -> Color(0xFF3B82F6)
+                                            "COMPLETED" -> SuccessGreen
+                                            "CANCELLED" -> Color.Red
+                                            "REVIEW" -> Color(0xFFF59E0B)
+                                            else -> PrimaryColor
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(badgeColor.copy(alpha = if (selectedTabIndex == index) 1f else 0.2f))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (count > 99) "99+" else count.toString(),
+                                                color = if (selectedTabIndex == index) Color.White else badgeColor,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         )
                     }
@@ -144,10 +190,26 @@ fun OrderListScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(orders) { order ->
-                    OrderCard(order = order, viewModel = viewModel, onClick = { onNavigateToDetail(order.id) })
+                    OrderCard(
+                        order = order, 
+                        viewModel = viewModel, 
+                        onClick = { onNavigateToDetail(order.id) },
+                        onReviewClick = { showReviewDialogForOrder = order }
+                    )
                 }
             }
         }
+    }
+    
+    if (showReviewDialogForOrder != null) {
+        com.muatrenthenang.resfood.ui.screens.order.ReviewSelectionDialog(
+            order = showReviewDialogForOrder!!,
+            onDismiss = { showReviewDialogForOrder = null },
+            onItemSelect = { foodId ->
+                showReviewDialogForOrder = null
+                onNavigateToReview(foodId)
+            }
+        )
     }
 }
 
@@ -183,7 +245,7 @@ fun OrderListTopBar(title: String, onBack: () -> Unit) {
 }
 
 @Composable
-fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) {
+fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, onReviewClick: () -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
     
     Surface(
@@ -195,7 +257,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
     ) {
         Column {
             // Status Header
-             Row(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -234,7 +296,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
             Column(modifier = Modifier.padding(16.dp)) {
                 
                 displayItems.forEach { item ->
-                     Row(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
@@ -286,16 +348,16 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                     }
                 }
                 
-                 val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
-                 
-                 Row(
-                     modifier = Modifier
-                         .fillMaxWidth()
-                         .padding(top = 8.dp),
-                     horizontalArrangement = Arrangement.SpaceBetween,
-                     verticalAlignment = Alignment.CenterVertically
-                 ) {
-                     Text(
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
                         text = "Ngày đặt: " + dateFormat.format(order.createdAt.toDate()),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
@@ -303,7 +365,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                     
                     if (order.status == "COMPLETED") {
                         Button(
-                            onClick = { viewModel.reviewOrder(order.id) },
+                            onClick = onReviewClick,
                             modifier = Modifier.height(32.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -314,7 +376,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                             Text("Đánh giá", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
-                 }
+                }
             }
         }
     }
