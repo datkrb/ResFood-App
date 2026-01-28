@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun NotificationIcon(
+    unreadCount: Int,
     onClick: () -> Unit
 ) {
     Box(
@@ -38,13 +39,16 @@ fun NotificationIcon(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp)
         )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset((-2).dp, 2.dp)
-                .size(10.dp)
-                .background(Color.Red, CircleShape)
-                .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape)
-        )
+        
+        if (unreadCount > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset((-2).dp, 2.dp)
+                    .size(10.dp)
+                    .background(Color.Red, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape)
+            )
+        }
     }
 }

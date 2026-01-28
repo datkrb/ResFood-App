@@ -35,12 +35,15 @@ import com.muatrenthenang.resfood.ui.components.FoodItemSkeleton
 fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
+    notificationViewModel: com.muatrenthenang.resfood.ui.viewmodel.NotificationViewModel = viewModel(),
     onFoodClick: (Food) -> Unit,
     onNavigateToBooking: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
     paddingValues: PaddingValues = PaddingValues()
 ){
     val uiState by homeViewModel.uiState.collectAsState()
     val userState by userViewModel.userState.collectAsState()
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
 
     if (uiState.isLoading) {
         Box(
@@ -67,7 +70,11 @@ fun HomeScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    HeaderSection(userState)
+                    HeaderSection(
+                        user = userState,
+                        unreadCount = unreadCount,
+                        onNotificationClick = onNavigateToNotifications
+                    )
                     SearchBar(
                         searchText = uiState.searchQuery,
                         onSearchTextChanged = { homeViewModel.setSearchQuery(it) }

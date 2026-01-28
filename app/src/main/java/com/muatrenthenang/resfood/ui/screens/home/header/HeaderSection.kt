@@ -19,7 +19,11 @@ import com.muatrenthenang.resfood.ui.screens.home.header.components.TagRanking
 
 
 @Composable
-fun HeaderSection(user: User?) {
+fun HeaderSection(
+    user: User?,
+    unreadCount: Int = 0,
+    onNotificationClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,7 +47,7 @@ fun HeaderSection(user: User?) {
 
             // name user
             Text(
-                text = "Chào buổi sáng, ${user?.fullName}!",
+                text = "Chào buổi sáng, ${user?.fullName ?: "Bạn"}!",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
@@ -56,6 +60,9 @@ fun HeaderSection(user: User?) {
         }
 
         // icon thong bao
-        NotificationIcon(onClick = {})
+        NotificationIcon(
+            unreadCount = unreadCount,
+            onClick = onNotificationClick
+        )
     }
 }

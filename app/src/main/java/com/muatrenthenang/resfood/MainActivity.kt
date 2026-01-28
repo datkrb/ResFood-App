@@ -69,6 +69,12 @@ import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScree
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Initialize Notification Channels
+        com.muatrenthenang.resfood.util.NotificationHelper.createNotificationChannels(this)
+        
+        // Initialize Local Notification Service
+        val notificationService = com.muatrenthenang.resfood.service.LocalNotificationService(applicationContext)
+        
         setContent {
             // Khởi tạo ViewModel
             val userViewModel: UserViewModel = viewModel()
@@ -133,6 +139,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToBooking = {
                                     navController.navigate("booking_table")
+                                },
+                                onNavigateToNotifications = {
+                                    navController.navigate("notification_list")
                                 },
                                 paddingValues = innerPadding
                             )
@@ -713,6 +722,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+
+                        composable("notification_list") {
+                            com.muatrenthenang.resfood.ui.screens.notification.NotificationListScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { orderId -> 
+                                    // Assuming orders for now. Future: check type
+                                    navController.navigate("order_detail/$orderId") 
+                                }
+                            )
+                        }
 
                     }
                 }
