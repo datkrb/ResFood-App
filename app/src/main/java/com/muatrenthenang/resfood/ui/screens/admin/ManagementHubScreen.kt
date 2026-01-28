@@ -107,9 +107,13 @@ fun ManagementHubScreen(
                         onClick = onNavigateToCategory
                     )
                 }
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Section 2: Operations (Orders, Tables)
             Text(
