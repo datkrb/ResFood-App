@@ -114,10 +114,13 @@ class AdminViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
+        // Run seeding in background - don't block UI data loading
+        // viewModelScope.launch {
+        //     com.muatrenthenang.resfood.data.DataSeeder().seedAll()
+        // }
+        
+        // Load UI data immediately without waiting for seeding
         viewModelScope.launch {
-            // Auto-seed data if collections are empty (User requested)
-            com.muatrenthenang.resfood.data.DataSeeder().seedAll()
-            
             loadOrders()
             // Initialize analytics with TODAY filter
             setAnalyticsFilter(AnalyticsFilterType.TODAY)
