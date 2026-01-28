@@ -78,7 +78,8 @@ class CheckoutViewModel(
     private val _paymentSuccess = MutableStateFlow(false)
     val paymentSuccess = _paymentSuccess.asStateFlow()
 
-    private val _shippingFee = 15000L
+    private val _shippingFee = MutableStateFlow(15000L)
+    val shippingFee = _shippingFee.asStateFlow()
 
     init {
         loadSelectedCartItems()
@@ -219,7 +220,7 @@ class CheckoutViewModel(
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     // Tính toán discount từ Shipping Voucher
-    val shippingDiscount = kotlinx.coroutines.flow.combine(_selectedShippingVoucher, subTotal) { voucher, sub ->
+    val shippingDiscount = kotlinx.coroutines.flow.combine(_selectedShippingVoucher, subTotal, _shippingFee) { voucher, sub, fee ->
         if (voucher == null) return@combine 0L
         if (sub < voucher.minOrderValue) return@combine 0L
 
@@ -227,7 +228,7 @@ class CheckoutViewModel(
              voucher.discountValue.toLong()
         } else {
              if (voucher.discountType == 0) {
-                (_shippingFee.value * voucher.discountValue) / 100
+                (fee * voucher.discountValue) / 100
             } else {
                 voucher.discountValue.toLong()
             }
@@ -237,14 +238,14 @@ class CheckoutViewModel(
             discount = voucher.maxDiscountValue.toLong()
         }
         // Cannot exceed shipping fee
-        minOf(discount, _shippingFee)
+        minOf(discount, fee)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     val totalDiscount = kotlinx.coroutines.flow.combine(productDiscount, shippingDiscount) { p, s -> p + s }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    val total = kotlinx.coroutines.flow.combine(subTotal, totalDiscount) { sub, disc ->
-        maxOf(0L, sub + _shippingFee - disc)
+    val total = kotlinx.coroutines.flow.combine(subTotal, totalDiscount, _shippingFee) { sub, disc, fee ->
+        maxOf(0L, sub + fee - disc)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     /**
@@ -294,7 +295,7 @@ class CheckoutViewModel(
                     items = orderItems,
                     subtotal = subTotal.value.toInt(),
                     discount = totalDiscount.value.toInt(),
-                    deliveryFee = _shippingFee.toInt(),
+                    deliveryFee = _shippingFee.value.toInt(),
                     total = total.value.toInt(),
                     status = "PENDING",
                     paymentMethod = when (_paymentMethod.value) {
@@ -380,9 +381,9 @@ class CheckoutViewModel(
                     items = orderItems,
                     subtotal = subTotal.value.toInt(),
                     discount = totalDiscount.value.toInt(),
-                    deliveryFee = _shippingFee.toInt(),
+                    deliveryFee = _shippingFee.value.toInt(),
                     total = total.value.toInt(),
-                    status = "WAITING_PAYMENT", // Changed from PENDING to hide from Order List until paid
+                    status = "WAITING_PAYMENT",
                     paymentMethod = "SEPAY",
                     createdAt = Timestamp.now(),
                     productVoucherCode = _selectedProductVoucher.value?.code,
