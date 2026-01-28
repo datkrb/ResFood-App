@@ -107,7 +107,7 @@ class HomeViewModel (
 
     fun addToCart(foodId: String) {
         viewModelScope.launch {
-            val result = _cartRepository.addOrUpdateCartItem(foodId, 1, null)
+            val result = _cartRepository.addOrUpdateCartItem(foodId, 1, null, isAccumulate = true)
             if (result.isSuccess) {
                 _addToCartResult.value = "Đã thêm vào giỏ hàng"
             } else {

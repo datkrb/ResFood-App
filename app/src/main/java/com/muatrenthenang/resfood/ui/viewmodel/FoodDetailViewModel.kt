@@ -142,7 +142,9 @@ class FoodDetailViewModel(
             val result = _cartRepository.addOrUpdateCartItem(
                 foodId = foodItem.id ?: return@launch,
                 quantity = _quantity.value,
-                note = null
+                note = null,
+                toppings = _selectedToppings.value.toList(),
+                isAccumulate = true
             )
             if (result.isSuccess) {
                 Log.d("FoodDetailViewModel", "Added to cart successfully")

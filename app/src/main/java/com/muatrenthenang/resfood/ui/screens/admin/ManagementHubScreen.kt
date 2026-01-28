@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Icecream
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +30,8 @@ fun ManagementHubScreen(
     onNavigateToCustomers: () -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToTables: () -> Unit,
+    onNavigateToTopping: () -> Unit,
+    onNavigateToBranch: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToSettings: () -> Unit
@@ -105,6 +108,22 @@ fun ManagementHubScreen(
                         icon = Icons.Default.Category,
                         color = Color(0xFF2196F3), // Blue
                         onClick = onNavigateToCategory
+                    )
+                }
+                item {
+                     ManagementHubItem(
+                        title = "Topping",
+                        icon = Icons.Default.Icecream,
+                        color = Color(0xFFE91E63), // Pink
+                        onClick = onNavigateToTopping
+                    )
+                }
+                item {
+                     ManagementHubItem(
+                        title = "Chi nhánh",
+                        icon = Icons.Default.Store,
+                        color = Color(0xFF795548), // Brown
+                        onClick = onNavigateToBranch
                     )
                 }
                 item {

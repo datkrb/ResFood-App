@@ -183,65 +183,52 @@ class CheckoutViewModel(
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setAddress(a: Address) { _address.value = a }
 
-    fun subTotal(): Long = _items.value.sumOf { it.food.price.toLong() * it.quantity }
+    fun subTotal(): Long = _items.value.sumOf { (it.food.price.toLong() + it.toppings.sumOf { t -> t.price }) * it.quantity }
 
-    // Tính toán discount từ Product Voucher
     fun productDiscount(): Long {
         val voucher = _selectedProductVoucher.value ?: return 0L
-        val subtotal = subTotal()
-
-        if (subtotal < voucher.minOrderValue) return 0L
-
-        var discount = if (voucher.discountType == 1) { // Amount
-            voucher.discountValue.toLong()
-        } else { // Percent check (assuming 0 is percent)
-            // Logic percent here if supported, current logic mainly supports amount based on previous code
-            // Assuming discountValue is percent if type 0? Or maybe fixed amount only for now?
-            // Existing model says: discountType: Int = 0, // 0: %, 1: Amount
-            if (voucher.discountType == 0) {
-                (subtotal * voucher.discountValue) / 100
-            } else {
-                voucher.discountValue.toLong()
-            }
-        }
+        val subTotal = subTotal()
         
-        // Cap at max discount if set
-        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
-            discount = voucher.maxDiscountValue.toLong()
-        }
+        // Check minimum order value
+        if (subTotal < voucher.minOrderValue) return 0L
 
+        var discount = 0L
+        // 0: PERCENT, 1: AMOUNT (from Promotion.kt comments)
+        if (voucher.discountType == 0) {
+            discount = (subTotal * voucher.discountValue / 100).toLong()
+            if (voucher.maxDiscountValue > 0) {
+                discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
+            }
+        } else {
+            discount = voucher.discountValue.toLong()
+        }
         return discount
     }
 
-    // Tính toán discount từ Shipping Voucher
     fun shippingDiscount(): Long {
         val voucher = _selectedShippingVoucher.value ?: return 0L
-        val subtotal = subTotal()
-        
-        if (subtotal < voucher.minOrderValue) return 0L
+        val shippingFee = _shippingFee.value
 
-        var discount = if (voucher.discountType == 1) {
-             voucher.discountValue.toLong()
-        } else {
-            // Percent of shipping fee
-             if (voucher.discountType == 0) {
-                (_shippingFee.value * voucher.discountValue) / 100
-            } else {
-                voucher.discountValue.toLong()
+        var discount = 0L
+        if (voucher.discountType == 0) {
+            discount = (shippingFee * voucher.discountValue / 100).toLong()
+            if (voucher.maxDiscountValue > 0) {
+                discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
             }
+        } else {
+            discount = voucher.discountValue.toLong()
         }
-        
-        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
-            discount = voucher.maxDiscountValue.toLong()
-        }
-        
-        // Cannot exceed shipping fee
-        return minOf(discount, _shippingFee.value)
+        // Cannot discount more than the shipping fee itself
+        return discount.coerceAtMost(shippingFee)
     }
 
     fun totalDiscount(): Long = productDiscount() + shippingDiscount()
 
-    fun total(): Long = maxOf(0L, subTotal() + _shippingFee.value - totalDiscount())
+    fun total(): Long {
+        return (subTotal() + _shippingFee.value - totalDiscount()).coerceAtLeast(0L)
+    }
+
+    // ... (rest of functions) ...
 
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
@@ -275,8 +262,9 @@ class CheckoutViewModel(
                         foodName = cartItem.food.name,
                         foodImage = cartItem.food.imageUrl,
                         quantity = cartItem.quantity,
-                        price = cartItem.food.price,
-                        note = null
+                        price = cartItem.food.price + cartItem.toppings.sumOf { it.price }, // Price includes toppings
+                        note = cartItem.note,
+                        selectedToppings = cartItem.toppings
                     )
                 }
 
