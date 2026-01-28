@@ -551,7 +551,8 @@ class MainActivity : ComponentActivity() {
                             PromotionManagementScreen(
                                 viewModel = adminViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                                onNavigateToAdd = { navController.navigate("admin_promotion_add") },
+                                onNavigateToEdit = { promo -> navController.navigate("admin_promotion_edit/${promo.id}") }
                             )
                         }
 
@@ -628,7 +629,19 @@ class MainActivity : ComponentActivity() {
 
                         composable("admin_promotion_add") {
                             PromotionAddScreen(
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = null
+                            )
+                        }
+
+                        composable(
+                            "admin_promotion_edit/{promotionId}",
+                            arguments = listOf(navArgument("promotionId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val promotionId = backStackEntry.arguments?.getString("promotionId")
+                            PromotionAddScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = promotionId
                             )
                         }
 
