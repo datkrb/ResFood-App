@@ -180,7 +180,7 @@ fun PromotionAddScreen(
                 AdminTextField(
                     value = promoName,
                     onValueChange = { promoName = it },
-                    placeholder = "Ví dụ: Chào hè sôi động"
+                    placeholder = "Nhập tên chương trình"
                 )
             }
 
@@ -189,7 +189,7 @@ fun PromotionAddScreen(
                 AdminTextField(
                     value = promoCode,
                     onValueChange = { promoCode = it.uppercase() },
-                    placeholder = "Ví dụ: HE2024",
+                    placeholder = "Nhập mã giảm giá",
                     trailingIcon = { 
                         IconButton(onClick = { generateCode() }) {
                            Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = Color(0xFF2196F3)) 
