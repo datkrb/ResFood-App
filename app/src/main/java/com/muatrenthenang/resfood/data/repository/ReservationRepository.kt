@@ -106,4 +106,36 @@ class ReservationRepository {
             Result.failure(e)
         }
     }
+
+    // Admin functions
+    suspend fun getAllReservations(): Result<List<TableReservation>> {
+        return try {
+            val snapshot = reservationsRef.orderBy("created_at", com.google.firebase.firestore.Query.Direction.DESCENDING).get().await()
+            val list = snapshot.documents.mapNotNull { it.toObject(TableReservation::class.java) }
+            Result.success(list)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateReservationStatus(reservationId: String, status: String): Result<Boolean> {
+        return try {
+            reservationsRef.document(reservationId)
+                .update("status", status)
+                .await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getReservationById(reservationId: String): Result<TableReservation?> {
+        return try {
+            val snapshot = reservationsRef.document(reservationId).get().await()
+            val reservation = snapshot.toObject(TableReservation::class.java)
+            Result.success(reservation)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

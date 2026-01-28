@@ -136,7 +136,7 @@ fun ManagementHubScreen(
                 )
                 ManagementHubLargeItem(
                     modifier = Modifier.weight(1f),
-                    title = "Bàn & Đặt chỗ",
+                    title = "Đặt bàn",
                     icon = Icons.Default.TableRestaurant,
                     color = Color(0xFF009688), // Teal
                     onClick = onNavigateToTables
