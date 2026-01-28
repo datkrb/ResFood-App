@@ -39,30 +39,33 @@ import java.util.*
 fun PromotionAddScreen(
     onNavigateBack: () -> Unit,
     viewModel: AdminViewModel = viewModel(),
-    promotionToEdit: Promotion? = null
+    promotionId: String? = null
 ) {
+    val promotions by viewModel.promotions.collectAsState()
+    val promotionToEdit = remember(promotions, promotionId) { promotions.find { it.id == promotionId } }
+
     // If editing, use existing values, otherwise defaults
-    var promoName by remember { mutableStateOf(promotionToEdit?.name ?: "") }
-    var promoCode by remember { mutableStateOf(promotionToEdit?.code ?: "") }
-    var discountValue by remember { mutableStateOf(promotionToEdit?.discountValue?.toString() ?: "") }
-    var discountType by remember { mutableStateOf(promotionToEdit?.discountType ?: 0) } // 0: %, 1: VND
-    var minOrderValue by remember { mutableStateOf(promotionToEdit?.minOrderValue?.toString() ?: "") }
-    var maxDiscountValue by remember { mutableStateOf(promotionToEdit?.maxDiscountValue?.toString() ?: "") }
-    var isActive by remember { mutableStateOf(promotionToEdit?.isActive ?: true) }
+    var promoName by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.name ?: "") }
+    var promoCode by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.code ?: "") }
+    var discountValue by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.discountValue?.toString() ?: "") }
+    var discountType by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.discountType ?: 0) } // 0: %, 1: VND
+    var minOrderValue by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.minOrderValue?.toString() ?: "") }
+    var maxDiscountValue by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.maxDiscountValue?.toString() ?: "") }
+    var isActive by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.isActive ?: true) }
     
     // New Fields
-    var applyFor by remember { mutableStateOf(promotionToEdit?.applyFor ?: "ALL") } // ALL, SHIP
-    var isPublic by remember { mutableStateOf(promotionToEdit?.isPublic() ?: true) } // Public vs Private
-    var totalQuantity by remember { mutableStateOf(if (promotionToEdit != null && (promotionToEdit.totalQuantity > 0 || promotionToEdit.userQuantities.isNotEmpty())) {
+    var applyFor by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.applyFor ?: "ALL") } // ALL, SHIP
+    var isPublic by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.isPublic() ?: true) } // Public vs Private
+    var totalQuantity by remember(promotionToEdit) { mutableStateOf(if (promotionToEdit != null && (promotionToEdit.totalQuantity > 0 || promotionToEdit.userQuantities.isNotEmpty())) {
         if(promotionToEdit.isPublic()) promotionToEdit.totalQuantity.toString()
         else promotionToEdit.userQuantities.values.firstOrNull()?.toString() ?: ""
     } else "") } 
     
-    var assignedUserIds by remember { mutableStateOf(promotionToEdit?.assignedUserIds ?: emptyList()) } // For Private
-    var userQuantities by remember { mutableStateOf(promotionToEdit?.userQuantities ?: emptyMap()) } // For Private
+    var assignedUserIds by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.assignedUserIds ?: emptyList()) } // For Private
+    var userQuantities by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.userQuantities ?: emptyMap()) } // For Private
     
-    var startDate by remember { mutableStateOf(promotionToEdit?.startDate?.toDate()?.time ?: System.currentTimeMillis()) }
-    var endDate by remember { mutableStateOf(promotionToEdit?.endDate?.toDate()?.time ?: (System.currentTimeMillis() + 86400000L * 7)) }
+    var startDate by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.startDate?.toDate()?.time ?: System.currentTimeMillis()) }
+    var endDate by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.endDate?.toDate()?.time ?: (System.currentTimeMillis() + 86400000L * 7)) }
 
     val context = LocalContext.current
     val customers by viewModel.customers.collectAsState()
@@ -131,7 +134,7 @@ fun PromotionAddScreen(
             isActive = isActive,
             applyFor = applyFor,
             assignedUserIds = if (isPublic) emptyList() else assignedUserIds,
-            totalQuantity = if (isPublic) quantity else 0,
+            totalQuantity = if (isPublic) quantity else (assignedUserIds.size * privateQuantity),
             userQuantities = userQtyMap,
             usedByUserIds = promotionToEdit?.usedByUserIds ?: emptyList() // Preserve usage history
         )
