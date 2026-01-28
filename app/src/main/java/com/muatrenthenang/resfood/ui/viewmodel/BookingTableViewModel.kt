@@ -3,10 +3,10 @@ package com.muatrenthenang.resfood.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Timestamp
-import com.muatrenthenang.resfood.data.model.Address
 import com.muatrenthenang.resfood.data.model.Branch
 import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.data.repository.AuthRepository
+import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.repository.ReservationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,26 +28,23 @@ sealed class BookingState {
 class BookingTableViewModel : ViewModel() {
 
     private val reservationRepository = ReservationRepository()
+    private val branchRepository = BranchRepository()
     private val authRepository = AuthRepository()
-    private val branchRepository = com.muatrenthenang.resfood.data.repository.BranchRepository()
 
-    // 1. Branches State
-    private val _branches = MutableStateFlow<List<Branch>>(emptyList())
-    val branches: StateFlow<List<Branch>> = _branches.asStateFlow()
+    // Branch (Single branch from Firestore)
+    private val _branch = MutableStateFlow<Branch?>(null)
+    val branch: StateFlow<Branch?> = _branch.asStateFlow()
 
-    // 2. Dates (Next 14 days)
+    // Dates (Next 14 days)
     private val _dates = MutableStateFlow<List<LocalDate>>(emptyList())
     val dates: StateFlow<List<LocalDate>> = _dates.asStateFlow()
 
-    // 3. Time Selection Data
+    // Time Selection Data
     val availableHours = (10..22).toList()
     val availableMinutes = listOf(0, 15, 30, 45)
 
     // --- Selection State ---
     
-    private val _selectedBranch = MutableStateFlow<Branch?>(null)
-    val selectedBranch: StateFlow<Branch?> = _selectedBranch.asStateFlow()
-
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
 
@@ -71,14 +68,13 @@ class BookingTableViewModel : ViewModel() {
 
     init {
         generateDates()
-        loadBranches()
+        loadBranch()
     }
 
-    private fun loadBranches() {
+    private fun loadBranch() {
         viewModelScope.launch {
-            // Fetch list
-            branchRepository.getBranches().onSuccess { list ->
-                _branches.value = list
+            branchRepository.getPrimaryBranch().onSuccess { loadedBranch ->
+                _branch.value = loadedBranch
             }
         }
     }
@@ -94,13 +90,8 @@ class BookingTableViewModel : ViewModel() {
 
     // --- Actions ---
 
-    fun selectBranch(branch: Branch) {
-        _selectedBranch.value = branch
-    }
-
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
-        // Logic to refresh available tables could go here
     }
 
     fun selectHour(hour: Int) {
@@ -126,16 +117,16 @@ class BookingTableViewModel : ViewModel() {
     }
 
     fun confirmBooking() {
-        val branch = _selectedBranch.value
         val userId = authRepository.getCurrentUserId()
+        val currentBranch = _branch.value
 
         if (userId == null) {
             _bookingState.value = BookingState.Error("Vui lòng đăng nhập để đặt bàn!")
             return
         }
 
-        if (branch == null) {
-            _bookingState.value = BookingState.Error("Vui lòng chọn chi nhánh!")
+        if (currentBranch == null) {
+            _bookingState.value = BookingState.Error("Đang tải thông tin nhà hàng, vui lòng thử lại!")
             return
         }
 
@@ -150,12 +141,12 @@ class BookingTableViewModel : ViewModel() {
 
                 val totalGuests = _guestCountAdult.value + _guestCountChild.value
 
-                // 1. Check Availability
+                // 1. Check Availability using branch info from Firestore
                 val availabilityResult = reservationRepository.checkAvailability(
-                    branchId = branch.id,
+                    branchId = currentBranch.id,
                     requestedTime = timestamp,
                     requestedGuests = totalGuests,
-                    maxCapacity = branch.maxCapacity
+                    maxCapacity = currentBranch.maxCapacity
                 )
 
                 if (availabilityResult.isFailure) {
@@ -168,8 +159,8 @@ class BookingTableViewModel : ViewModel() {
                     // 2. Create Reservation
                     val reservation = TableReservation(
                         userId = userId,
-                        branchId = branch.id,
-                        branchName = branch.name,
+                        branchId = currentBranch.id,
+                        branchName = currentBranch.name,
                         timeSlot = timestamp,
                         guestCountAdult = _guestCountAdult.value,
                         guestCountChild = _guestCountChild.value,
@@ -184,7 +175,7 @@ class BookingTableViewModel : ViewModel() {
                         _bookingState.value = BookingState.Error("Lỗi tạo đặt bàn: ${createResult.exceptionOrNull()?.message}")
                     }
                 } else {
-                    _bookingState.value = BookingState.Error("Xin lỗi, chi nhánh đã hết bàn vào khung giờ này!")
+                    _bookingState.value = BookingState.Error("Xin lỗi, nhà hàng đã hết chỗ vào khung giờ này!")
                 }
 
             } catch (e: Exception) {
