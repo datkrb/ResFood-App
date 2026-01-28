@@ -20,7 +20,11 @@ data class User(
     val referralCode: String = "",              // Mã giới thiệu của user (6 ký tự)
     val referredBy: String? = null,             // userId của người đã giới thiệu
     val referredUsers: List<String> = emptyList(), // Danh sách userId đã mời thành công
-    val referralUsedAt: Long? = null            // Thời gian nhập mã (null = chưa nhập)
+    val referralUsedAt: Long? = null,            // Thời gian nhập mã (null = chưa nhập)
+    
+    // === Rank & Rewards ===
+    val totalSpending: Double = 0.0,             // Tổng chi tiêu tích lũy
+    val claimedRewards: List<String> = emptyList() // Danh sách ID các phần thưởng đã nhận
 ) {
     /**
      * Lấy địa chỉ mặc định của user

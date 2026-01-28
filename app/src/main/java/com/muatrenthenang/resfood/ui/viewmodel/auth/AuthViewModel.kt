@@ -23,7 +23,7 @@ class AuthViewModel : ViewModel() {
         val currentUser = repository.getCurrentUser()
         if (currentUser != null) {
             viewModelScope.launch {
-                val result = repository.getUserDetails(currentUser.uid)
+                val result = repository.getUserProfile(currentUser.uid)
                 result.onSuccess { user ->
                     val isAdmin = user.role == "admin"
                     _authState.value = AuthState.Authenticated(isAdmin)

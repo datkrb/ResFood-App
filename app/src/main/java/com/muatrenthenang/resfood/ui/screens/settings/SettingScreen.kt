@@ -33,7 +33,6 @@ private val TextColorSecondary = Color.Gray
 fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateToProfile: () -> Unit, // Chức năng xem hồ sơ
     paddingValuesFromParent: PaddingValues = PaddingValues(),
     userViewModel: UserViewModel
 ) {
@@ -56,17 +55,8 @@ fun SettingScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 1. Trung tâm tài khoản (Account Center)
-            AccountCenterCard(
-                name = user.fullName,  // Dữ liệu từ Firebase
-                rank = "Thành viên ${user.rank}",
-                onProfileClick = onNavigateToProfile
-            )
-
-            // 2. Các mục giao diện tĩnh (Hiển thị & Ngôn ngữ) - Visual only
-            SectionHeader(title = "HIỂN THỊ & NGÔN NGỮ")
-            SettingItemRow(title = "Ngôn ngữ", subtitle = "Tiếng Việt", showArrow = true)
-            //SettingToggleRow(title = "Chế độ tối", subtitle = "Giảm mỏi mắt vào ban đêm", checked = true)
+            // Hiển thị
+            SectionHeader(title = "HIỂN THỊ")
             SettingToggleRow(
                 title = "Chế độ tối",
                 subtitle = "Giảm mỏi mắt vào ban đêm",
@@ -144,57 +134,6 @@ fun SettingsTopBar(onBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-fun AccountCenterCard(name: String, rank: String, onProfileClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Màu card động
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Avatar (Placeholder)
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                // Thay bằng Image thật khi có resource
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background), // Dùng tạm icon mặc định
-                    contentDescription = "Avatar",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(text = rank, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-            }
-
-            // Nút Hồ sơ
-            Button(
-                onClick = onProfileClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                modifier = Modifier.height(32.dp)
-            ) {
-                Text("Hồ sơ", fontSize = 12.sp)
-            }
-        }
     }
 }
 

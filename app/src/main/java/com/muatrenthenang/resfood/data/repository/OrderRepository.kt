@@ -91,4 +91,38 @@ class OrderRepository {
             }
         awaitClose { listener.remove() }
     }
+    
+    /**
+     * Recalculates total spending dynamically from COMPLETED orders.
+     * This ensures data consistency.
+     */
+    suspend fun recalculateUserSpending(userId: String): Result<Double> {
+        return try {
+            val snapshot = ordersRef
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "COMPLETED")
+                .get()
+                .await()
+                
+            val total = snapshot.documents.sumOf { doc -> 
+                doc.getLong("total") ?: 0L 
+            }.toDouble()
+            
+            // Sync with User Profile
+            val userRef = db.collection("users").document(userId)
+            
+            // Calculate Rank based on new total
+            val newRank = com.muatrenthenang.resfood.data.model.Rank.getRankFromSpending(total)
+            
+            // Update User
+            userRef.update(mapOf(
+                "totalSpending" to total,
+                "rank" to newRank.displayName
+            )).await()
+            
+            Result.success(total)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
