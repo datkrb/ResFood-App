@@ -3,11 +3,14 @@ package com.muatrenthenang.resfood.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.muatrenthenang.resfood.data.model.Food
+import com.muatrenthenang.resfood.data.model.Review
 import kotlinx.coroutines.tasks.await
 
 class FoodRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+
+    private fun getCurrentUserId(): String? = auth.currentUser?.uid
 
     private suspend fun checkAdmin(): Result<Unit> {
         val user = auth.currentUser ?: return Result.failure(Exception("User chưa đăng nhập"))
@@ -74,6 +77,36 @@ class FoodRepository {
         checkAdmin().onFailure { return Result.failure(it) }
         return try {
             db.collection("foods").document(foodId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    // Thêm review (người dùng bình thường)
+    suspend fun addReview(foodId: String, review: Review): Result<Boolean> {
+        return try {
+            val docRef = db.collection("foods").document(foodId)
+            
+            // Run transaction to ensure atomic update of reviews and rating
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                val currentFood = snapshot.toObject(Food::class.java) 
+                    ?: throw Exception("Food not found")
+                
+                val currentReviews = currentFood.reviews.toMutableList()
+                currentReviews.add(0, review) // Add new review to top
+                
+                // Recalculate rating
+                val newRating = if (currentReviews.isNotEmpty()) {
+                    currentReviews.map { it.star }.average().toFloat()
+                } else {
+                    0f
+                }
+                
+                transaction.update(docRef, "reviews", currentReviews)
+                transaction.update(docRef, "rating", newRating)
+            }.await()
+            
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)

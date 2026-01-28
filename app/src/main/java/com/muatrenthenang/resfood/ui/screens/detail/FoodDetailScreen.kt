@@ -1,5 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.detail
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +36,26 @@ import com.muatrenthenang.resfood.ui.screens.detail.components.NameAndPriceFood
 import com.muatrenthenang.resfood.ui.screens.detail.components.ShareAndReview
 import com.muatrenthenang.resfood.ui.screens.detail.components.ToppingBonusCard
 import com.muatrenthenang.resfood.ui.theme.LightRed
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 
 @Composable
 fun FoodDetailScreen(
     foodId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToReview: (String) -> Unit,
     viewModel: FoodDetailViewModel = viewModel()
 ) {
     val quantity by viewModel.quantity.collectAsState()
@@ -100,7 +118,18 @@ fun FoodDetailScreen(
 
                         NameAndPriceFood(food)  // ten mon an + gia tien
                         FoodStats(food)         // thong so mon an
-                        ShareAndReview()        // btn chia se + danh gia
+                        val context = LocalContext.current
+                        ShareAndReview(
+                            onShareClick = {
+                                val foodName = food?.name ?: "Món ngon"
+                                val imageUrl = food?.imageUrl ?: "https://via.placeholder.com/600x400.png?text=ResFood"
+                                val foodId = food?.id ?: ""
+                                shareFood(context, foodName, imageUrl, foodId)
+                            },
+                            onReviewClick = {
+                                food?.id?.let { onNavigateToReview(it) }
+                            }
+                        )        // btn chia se + danh gia
                         FoodDescription(food)   // mo ta mon an
 
                         Column(
@@ -182,8 +211,50 @@ fun FoodDetailScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Test(){
-    FoodDetailScreen("2", {})
+fun shareFood(context: Context, foodName: String, imageUrl: String, foodId: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        // Download image using Coil
+        val loader = ImageLoader(context)
+        val request = ImageRequest.Builder(context)
+            .data(imageUrl)
+            .allowHardware(false)
+            .build()
+
+        val result = (loader.execute(request) as? SuccessResult)?.drawable
+        val bitmap = (result as? BitmapDrawable)?.bitmap
+
+        if (bitmap != null) {
+            // Save bitmap to cache directory
+            val cachePath = File(context.cacheDir, "images")
+            cachePath.mkdirs() // creation of directory
+            val file = File(cachePath, "shared_food_image.png")
+            val stream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            stream.close()
+
+            val contentUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+
+            if (contentUri != null) {
+                val shareIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    setDataAndType(contentUri, context.contentResolver.getType(contentUri))
+                    putExtra(Intent.EXTRA_STREAM, contentUri)
+                    putExtra(Intent.EXTRA_TEXT, "Hãy thử món $foodName tại ResFood! \nNgon tuyệt cú mèo!\n\nXem chi tiết tại: resfood://food/$foodId")
+                    type = "image/png"
+                }
+                val chooser = Intent.createChooser(shareIntent, "Chia sẻ món ăn qua")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(context, chooser, null)
+            }
+        } else {
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, "Hãy thử món $foodName tại ResFood! Ngon tuyệt cú mèo!\n\nXem chi tiết tại: resfood://food/$foodId")
+                type = "text/plain"
+            }
+            val shareIntent = Intent.createChooser(sendIntent, "Chia sẻ món ăn qua")
+            startActivity(context, shareIntent, null)
+        }
+    }
 }
