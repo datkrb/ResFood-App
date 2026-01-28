@@ -1,5 +1,7 @@
 package com.muatrenthenang.resfood.data.model
 
+import com.google.firebase.firestore.PropertyName
+
 data class Food(
     /** ID món ăn */
     val id: String = "",
@@ -20,6 +22,8 @@ data class Food(
     /** Danh sách đánh giá */
     val reviews: List<Review> = emptyList(),
     /** Còn bán hay không */
+    @get:PropertyName("isAvailable")
+    @PropertyName("isAvailable")
     val isAvailable: Boolean = true,
     /** Loại món ăn */
     val category: String = ""
