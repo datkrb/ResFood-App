@@ -341,6 +341,7 @@ class MainActivity : ComponentActivity() {
                                 paddingValuesFromParent = innerPadding,
                                 onNavigateToMembership = { navController.navigate("membership") },
                                 onNavigateToSpendingStatistics = { navController.navigate("spending_statistics") },
+                                onNavigateToReservations = { status -> navController.navigate("reservations/$status") },
                                 vm = userViewModel
                             )
                         }
@@ -624,6 +625,48 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToMenu = { navController.navigate("admin_food_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                            AdminSettingsScreen(
+                                viewModel = adminViewModel,
+                                onNavigateBack = { navController.popBackStack() },
+                                onLogout = {
+                                    // Clear backstack and go to login
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToHome = {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("admin_dashboard") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToAnalytics = { navController.navigate("admin_analytics") },
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
+                            )
+                        }
+                        
+                        // Reservation Routes
+                        composable(
+                            route = "reservations/{status}",
+                            arguments = listOf(navArgument("status") { defaultValue = "ALL" })
+                        ) { backStackEntry ->
+                            val status = backStackEntry.arguments?.getString("status") ?: "ALL"
+                            com.muatrenthenang.resfood.ui.screens.me.reservation.ReservationListScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToDetail = { id -> navController.navigate("reservation_detail/$id") },
+                                initialTab = status
+                            )
+                        }
+
+                        composable(
+                            route = "reservation_detail/{id}",
+                            arguments = listOf(navArgument("id") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("id") ?: ""
+                            com.muatrenthenang.resfood.ui.screens.me.reservation.ReservationDetailScreen(
+                                reservationId = id,
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 

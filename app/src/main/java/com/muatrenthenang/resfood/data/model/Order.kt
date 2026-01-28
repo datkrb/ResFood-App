@@ -24,7 +24,10 @@ data class Order(
     val shippingVoucherCode: String? = null,  // Mã voucher giảm ship
     val shippingVoucherId: String? = null,    // ID promotion
     val productDiscount: Int = 0,             // Tiền giảm từ voucher sản phẩm
-    val shippingDiscount: Int = 0             // Tiền giảm từ voucher ship
+    val shippingDiscount: Int = 0,            // Tiền giảm từ voucher ship
+    
+    // === REVIEW ===
+    val isReviewed: Boolean = false
 )
 
 data class OrderItem(

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +56,22 @@ fun MembershipScreen(
     
     val uiState by viewModel.uiState.collectAsState()
 
+    // THEME LOGIC
+    val isSystemDark = isSystemInDarkTheme()
+    val isPremiumRank = currentRank == Rank.GOLD || currentRank == Rank.DIAMOND
+    
+    // Premium ranks force a dark gradient background, so we always want white content there.
+    // Standard ranks follow the system theme (White bg in Light mode -> Dark content).
+    val forceDarkBackground = isPremiumRank
+    val useDarkContent = !forceDarkBackground && !isSystemDark
+    
+    val contentColor = if (useDarkContent) MaterialTheme.colorScheme.onBackground else Color.White
+    val secondaryContentColor = contentColor.copy(alpha = 0.6f)
+    
+    // Glass/Border colors that adapt to the text contrast
+    val glassBorderColor = contentColor.copy(alpha = 0.15f)
+    val glassBgColor = contentColor.copy(alpha = 0.05f)
+
     // Background colors based on rank for a subtle effect
     val bgModifier = when (currentRank) {
         Rank.DIAMOND -> Modifier.background(Brush.verticalGradient(
@@ -89,12 +106,13 @@ fun MembershipScreen(
                         onClick = onNavigateBack,
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                            .background(glassBgColor, CircleShape)
+                            .border(1.dp, glassBorderColor, CircleShape)
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = contentColor
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -102,7 +120,7 @@ fun MembershipScreen(
                         "Hạng thành viên & Ưu đãi",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = contentColor
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.size(40.dp))
@@ -114,7 +132,10 @@ fun MembershipScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 // Progress Section
-                GlassCard {
+                GlassCard(
+                    backgroundColor = glassBgColor,
+                    borderColor = glassBorderColor
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -125,7 +146,7 @@ fun MembershipScreen(
                                 Text(
                                     "TIẾN TRÌNH THĂNG HẠNG",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White.copy(alpha = 0.6f),
+                                    color = secondaryContentColor,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 1.sp
                                 )
@@ -135,12 +156,12 @@ fun MembershipScreen(
                                         currencyFormatter.format(totalSpending),
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = contentColor
                                     )
                                     Text(
                                         " / ${currencyFormatter.format(nextRankTarget)}",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White.copy(alpha = 0.4f),
+                                        color = secondaryContentColor,
                                         modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
                                     )
                                 }
@@ -164,7 +185,7 @@ fun MembershipScreen(
                                     "${(progress * 100).toInt()}%",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = contentColor
                                 )
                             }
                         }
@@ -179,7 +200,7 @@ fun MembershipScreen(
                                 .height(10.dp)
                                 .clip(RoundedCornerShape(5.dp)),
                             color = PrimaryColor,
-                            trackColor = Color.White.copy(alpha = 0.1f)
+                            trackColor = glassBorderColor
                         )
                         
                         if (currentRank != Rank.DIAMOND) {
@@ -215,10 +236,10 @@ fun MembershipScreen(
                         "Các mốc hạng thành viên",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = contentColor
                     )
                     Text(
-                        "Chi tiết",
+                        "",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = PrimaryColor
@@ -233,7 +254,10 @@ fun MembershipScreen(
                         rank = rank, 
                         currentRank = currentRank, 
                         rewards = rewardsList.filter { it.reward.rankRequired == rank },
-                        onClaim = { viewModel.claimReward(it) }
+                        onClaim = { viewModel.claimReward(it) },
+                        contentColor = contentColor,
+                        secondaryContentColor = secondaryContentColor,
+                        lineColor = glassBorderColor
                     )
                 }
                 
@@ -330,11 +354,15 @@ fun PremiumRankCard(rank: Rank, name: String) {
 }
 
 @Composable
-fun GlassCard(content: @Composable () -> Unit) {
+fun GlassCard(
+    backgroundColor: Color = Color.White.copy(alpha = 0.05f),
+    borderColor: Color = Color.White.copy(alpha = 0.1f),
+    content: @Composable () -> Unit
+) {
     Surface(
-        color = Color.White.copy(alpha = 0.05f),
+        color = backgroundColor,
         shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
         modifier = Modifier.fillMaxWidth()
     ) {
         content()
@@ -346,7 +374,10 @@ fun RankTimelineItem(
     rank: Rank,
     currentRank: Rank,
     rewards: List<RankRewardItem>,
-    onClaim: (RankReward) -> Unit
+    onClaim: (RankReward) -> Unit,
+    contentColor: Color = Color.White,
+    secondaryContentColor: Color = Color.White.copy(alpha = 0.5f),
+    lineColor: Color = Color.White.copy(alpha = 0.1f)
 ) {
     val isPassed = rank.threshold <= currentRank.threshold
     val isCurrent = rank == currentRank
@@ -365,8 +396,8 @@ fun RankTimelineItem(
         Rank.DIAMOND -> Color(0xFF818CF8)
     }
     
-    val iconBg = if (isCurrent) iconColor.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f)
-    val iconBorder = if (isCurrent) iconColor.copy(alpha = 0.5f) else Color.White.copy(alpha = 0.1f)
+    val iconBg = if (isCurrent) iconColor.copy(alpha = 0.2f) else lineColor.copy(alpha = 0.5f)
+    val iconBorder = if (isCurrent) iconColor.copy(alpha = 0.5f) else lineColor
 
     Row(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min) // Intrinsic height for connecting line
@@ -384,7 +415,6 @@ fun RankTimelineItem(
                     .border(1.dp, iconBorder, CircleShape)
                     .graphicsLayer { 
                         if (isCurrent) {
-                            shadowElevation = 10.dp.toPx()
                             this.shape = CircleShape
                             this.clip = true
                         }
@@ -399,7 +429,7 @@ fun RankTimelineItem(
                     modifier = Modifier
                         .width(2.dp)
                         .fillMaxHeight()
-                        .background(Color.White.copy(alpha = 0.1f))
+                        .background(lineColor)
                         .padding(vertical = 4.dp)
                 )
             }
@@ -424,12 +454,12 @@ fun RankTimelineItem(
                         rank.displayName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = contentColor
                     )
                     Text(
                         if (rank.threshold == 0.0) "Mốc khởi đầu" else "Chi tiêu > ${NumberFormat.getIntegerInstance().format(rank.threshold)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.5f)
+                        color = secondaryContentColor
                     )
                 }
                 
@@ -438,7 +468,7 @@ fun RankTimelineItem(
                     isPassed -> "ĐÃ QUA"
                     else -> "LOCKED"
                 }
-                val statusColor = if (isCurrent) PrimaryColor else Color.White.copy(alpha = 0.3f)
+                val statusColor = if (isCurrent) PrimaryColor else secondaryContentColor.copy(alpha = 0.5f)
                 val statusBg = statusColor.copy(alpha = 0.1f)
                 
                 Surface(
@@ -457,7 +487,12 @@ fun RankTimelineItem(
             
             // Rewards
             rewards.forEach { rewardItem ->
-                RankRewardCard(item = rewardItem, onClaim = { onClaim(rewardItem.reward) })
+                RankRewardCard(
+                    item = rewardItem, 
+                    onClaim = { onClaim(rewardItem.reward) },
+                    contentColor = contentColor,
+                    secondaryContentColor = secondaryContentColor
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -465,17 +500,22 @@ fun RankTimelineItem(
 }
 
 @Composable
-fun RankRewardCard(item: RankRewardItem, onClaim: () -> Unit) {
+fun RankRewardCard(
+    item: RankRewardItem, 
+    onClaim: () -> Unit,
+    contentColor: Color,
+    secondaryContentColor: Color
+) {
     val alpha = if (item.status == RewardStatus.LOCKED) 0.5f else 1f
     val bgColor = when(item.reward.rankRequired) {
         Rank.GOLD -> Color(0xFFFACC15).copy(alpha = 0.1f)
         Rank.DIAMOND -> Color(0xFF6366F1).copy(alpha = 0.1f)
-        else -> Color.White.copy(alpha = 0.05f)
+        else -> contentColor.copy(alpha = 0.05f)
     }
     val borderColor = when(item.reward.rankRequired) {
         Rank.GOLD -> Color(0xFFFACC15).copy(alpha = 0.3f)
         Rank.DIAMOND -> Color(0xFF6366F1).copy(alpha = 0.3f)
-        else -> Color.White.copy(alpha = 0.1f)
+        else -> contentColor.copy(alpha = 0.15f)
     }
 
     Row(
@@ -497,7 +537,7 @@ fun RankRewardCard(item: RankRewardItem, onClaim: () -> Unit) {
             Icon(
                 if (item.reward.type == RankRewardType.FREE_SHIP) Icons.Default.LocalShipping else Icons.Default.ConfirmationNumber,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.8f)
+                tint = contentColor.copy(alpha = 0.8f)
             )
         }
         
@@ -508,15 +548,15 @@ fun RankRewardCard(item: RankRewardItem, onClaim: () -> Unit) {
                 item.reward.title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = contentColor
             )
             Text(
                 item.status.name, // Or description? Let's use status for now for UX feedback
                 style = MaterialTheme.typography.labelSmall,
                 color = when(item.status) {
                     RewardStatus.AVAILABLE -> PrimaryColor
-                    RewardStatus.CLAIMED -> Color.White.copy(alpha = 0.5f)
-                    else -> Color.White.copy(alpha = 0.3f)
+                    RewardStatus.CLAIMED -> secondaryContentColor
+                    else -> secondaryContentColor.copy(alpha = 0.6f)
                 },
                 fontWeight = FontWeight.Bold
             )

@@ -58,15 +58,23 @@ fun MeScreen(
     onNavigateToPaymentMethods: () -> Unit = {},
     onNavigateToMembership: () -> Unit = {},
     onNavigateToSpendingStatistics: () -> Unit = {},
+    onNavigateToReservations: (String) -> Unit = {},
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
-    vm: UserViewModel = viewModel()
+    vm: UserViewModel = viewModel(),
+    reservationVm: com.muatrenthenang.resfood.ui.viewmodel.ReservationManagementViewModel = viewModel()
 ) {
     val userState by vm.userState.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
     val referralPromo by vm.referralPromo.collectAsState()
     val utilityMenu by vm.utilityMenu.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
+    
+    val reservationState by reservationVm.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        reservationVm.loadReservations()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -101,6 +109,15 @@ fun MeScreen(
                     orderCounts = orderCounts,
                     onViewAll = { onNavigateToOrders("all") },
                     onOrderStatusClick = { status -> onNavigateToOrders(status) }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // Reservation Status Section
+                ReservationStatusSection(
+                    uiState = reservationState,
+                    onViewAll = { onNavigateToReservations("ALL") },
+                    onStatusClick = { status -> onNavigateToReservations(status) }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -366,6 +383,70 @@ private fun OrderStatusItem(
             textAlign = TextAlign.Center,
             maxLines = 1
         )
+    }
+}
+
+@Composable
+private fun ReservationStatusSection(
+    uiState: com.muatrenthenang.resfood.ui.viewmodel.ReservationUiState,
+    onViewAll: () -> Unit,
+    onStatusClick: (String) -> Unit
+) {
+    val counts = if (uiState is com.muatrenthenang.resfood.ui.viewmodel.ReservationUiState.Success) uiState.counts else emptyMap()
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Đặt bàn của tôi",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            TextButton(onClick = onViewAll) {
+                Text(
+                    text = "Lịch sử",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+        }
+
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp, // Improved shadow
+            tonalElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                OrderStatusItem(
+                    icon = Icons.Default.Event,
+                    label = "Chờ xác nhận",
+                    count = counts["PENDING"] ?: 0,
+                    onClick = { onStatusClick("PENDING") }
+                )
+                OrderStatusItem(
+                    icon = Icons.Default.EventAvailable,
+                    label = "Đã xác nhận",
+                    count = counts["CONFIRMED"] ?: 0,
+                    onClick = { onStatusClick("CONFIRMED") }
+                )
+                OrderStatusItem(
+                    icon = Icons.Default.TaskAlt,
+                    label = "Hoàn thành",
+                    count = counts["COMPLETED"] ?: 0,
+                    onClick = { onStatusClick("COMPLETED") }
+                )
+            }
+        }
     }
 }
 

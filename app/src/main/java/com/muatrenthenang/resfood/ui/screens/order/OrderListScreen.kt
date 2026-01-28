@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,26 +44,69 @@ fun OrderListScreen(
     onNavigateToDetail: (String) -> Unit = {},
     viewModel: OrderListViewModel = viewModel()
 ) {
-    LaunchedEffect(status) {
-        viewModel.loadOrders(status)
+    // Tabs matching ReservationListScreen style
+    val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "REVIEW", "COMPLETED", "CANCELLED", "ALL")
+    val tabTitles = listOf("Chờ xác nhận", "Đang chế biến", "Đang giao", "Đánh giá", "Hoàn thành", "Đã hủy", "Tất cả")
+    
+    // Determine initial index based on passed status
+    val initialIndex = when(status.uppercase()) {
+        "PENDING" -> 0
+        "PROCESSING" -> 1
+        "DELIVERING" -> 2
+        "REVIEW" -> 3
+        "COMPLETED" -> 4
+        "CANCELLED" -> 5
+        "ALL" -> 6
+        else -> 0 // Default to first if unknown or "all" passed generically
+    }
+    
+    var selectedTabIndex by remember { mutableStateOf(initialIndex) }
+    
+    // Load data when tab changes
+    LaunchedEffect(selectedTabIndex) {
+        val currentStatus = tabs[selectedTabIndex]
+        viewModel.loadOrders(if (currentStatus == "ALL") "all" else currentStatus)
     }
 
     val orders by viewModel.orders.collectAsState()
 
-    // Determine title based on status
-    val title = when (status) {
-        "pending" -> "Chờ xác nhận"
-        "processing" -> "Đang chế biến"
-        "delivering" -> "Đang giao"
-        "review" -> "Đánh giá"
-        "history" -> "Lịch sử mua hàng"
-        else -> "Đơn hàng của tôi"
-    }
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            OrderListTopBar(title = title, onBack = onNavigateBack)
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+                OrderListTopBar(title = "Đơn hàng của tôi", onBack = onNavigateBack)
+                
+                // Tabs
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = PrimaryColor,
+                    edgePadding = 16.dp,
+                    indicator = { tabPositions ->
+                        if (selectedTabIndex < tabPositions.size) {
+                            TabRowDefaults.SecondaryIndicator(
+                                Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                color = PrimaryColor
+                            )
+                        }
+                    },
+                    divider = {}
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = {
+                                Text(
+                                    text = tabTitles[index],
+                                    color = if (selectedTabIndex == index) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         if (orders.isEmpty()) {
