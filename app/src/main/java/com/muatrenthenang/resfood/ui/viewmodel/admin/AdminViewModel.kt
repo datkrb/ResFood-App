@@ -400,6 +400,14 @@ class AdminViewModel(
         }
     }
     
+    fun startDelivery(orderId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            orderRepository.updateOrderStatus(orderId, "DELIVERING").onSuccess {
+                onSuccess()
+            }
+        }
+    }
+    
     fun getOrderById(orderId: String): Order? {
         return _orders.value.find { it.id == orderId }
     }
