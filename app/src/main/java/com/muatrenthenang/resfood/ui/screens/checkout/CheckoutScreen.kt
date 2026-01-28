@@ -66,6 +66,7 @@ fun CheckoutScreen(
     val availablePromotions by vm.availablePromotions.collectAsState()
     val productVoucher by vm.selectedProductVoucher.collectAsState()
     val shippingVoucher by vm.selectedShippingVoucher.collectAsState()
+    val currentShippingFee by vm.shippingFee.collectAsState()
 
     // Calculated values
     val subTotal = vm.subTotal()
@@ -326,7 +327,7 @@ fun CheckoutScreen(
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
-                                Text(text = vm.formatCurrency(15000L), fontWeight = FontWeight.Medium)
+                                Text(text = vm.formatCurrency(currentShippingFee), fontWeight = FontWeight.Medium)
                             }
                             
                             if (productDiscount > 0) {

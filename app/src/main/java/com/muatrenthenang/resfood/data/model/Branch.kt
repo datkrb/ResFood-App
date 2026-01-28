@@ -14,7 +14,8 @@ data class Branch(
     @get:PropertyName("max_capacity") @set:PropertyName("max_capacity") var maxCapacity: Int = 50,
     @get:PropertyName("image_url") @set:PropertyName("image_url") var imageUrl: String? = null,
     var phone: String = "",
-    @get:PropertyName("opening_hours") @set:PropertyName("opening_hours") var openingHours: String = "10:00 - 22:00"
+    @get:PropertyName("opening_hours") @set:PropertyName("opening_hours") var openingHours: String = "10:00 - 22:00",
+    @get:PropertyName("shipping_fee") @set:PropertyName("shipping_fee") var shippingFee: Long = 15000
 ) {
     companion object {
         const val PRIMARY_BRANCH_ID = "main_branch"
