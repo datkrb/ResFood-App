@@ -72,6 +72,10 @@ fun MeScreen(
     
     val reservationState by reservationVm.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        reservationVm.loadReservations()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
@@ -413,8 +417,9 @@ private fun ReservationStatusSection(
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp, // Improved shadow
             tonalElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
         ) {
             Row(
                 modifier = Modifier

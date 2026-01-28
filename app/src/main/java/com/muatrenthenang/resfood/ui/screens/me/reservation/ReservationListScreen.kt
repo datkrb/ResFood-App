@@ -36,19 +36,24 @@ fun ReservationListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
-    // Tabs: ALL, PENDING, CONFIRMED, COMPLETED, CANCELLED
-    val tabs = listOf("ALL", "PENDING", "CONFIRMED", "COMPLETED", "CANCELLED")
-    val tabTitles = listOf("Tất cả", "Chờ xác nhận", "Đã xác nhận", "Hoàn thành", "Đã hủy") // Vietnamese titles
+    LaunchedEffect(Unit) {
+        viewModel.loadReservations()
+    }
+    
+    // Tabs: PENDING, CONFIRMED, COMPLETED, CANCELLED, ALL
+    val tabs = listOf("PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "ALL")
+    val tabTitles = listOf("Chờ xác nhận", "Đã xác nhận", "Hoàn thành", "Đã hủy", "Tất cả") // Vietnamese titles
     
     // Determine initial index
     var selectedTabIndex by remember { 
         mutableStateOf(
             when(initialTab.uppercase()) {
-                "PENDING" -> 1
-                "CONFIRMED" -> 2
-                "COMPLETED" -> 3
-                "CANCELLED" -> 4
-                else -> 0
+                "PENDING" -> 0
+                "CONFIRMED" -> 1
+                "COMPLETED" -> 2
+                "CANCELLED" -> 3
+                "ALL" -> 4
+                else -> 4
             }
         )
     }
@@ -174,10 +179,12 @@ fun ReservationItem(
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 6.dp, // Added more shadow
         tonalElevation = 2.dp,
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .padding(2.dp) // Padding to show shadow
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(

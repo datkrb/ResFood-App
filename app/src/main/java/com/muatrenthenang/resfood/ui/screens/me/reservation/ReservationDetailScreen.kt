@@ -82,9 +82,10 @@ fun ReservationDetailScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.cancelReservation(reservationId)
-                        showCancelDialog = false
-                        onNavigateBack() // Go back after cancel or stay? Let's go back for now
+                        viewModel.cancelReservation(reservationId) {
+                            showCancelDialog = false
+                            onNavigateBack()
+                        }
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = LightRed)
                 ) {
@@ -152,6 +153,7 @@ fun ReservationDetailScreen(
             Surface(
                 color = statusColor.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp),
+                shadowElevation = 4.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(

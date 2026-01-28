@@ -73,12 +73,13 @@ class ReservationManagementViewModel : ViewModel() {
         }
     }
 
-    fun cancelReservation(id: String) {
+    fun cancelReservation(id: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             repository.cancelReservation(id)
                 .onSuccess {
                     // Refresh data
                     loadReservations()
+                    onSuccess()
                 }
                 .onFailure {
                     // Ideally show toast/snackbar, but for now we rely on UI state error or just refresh
