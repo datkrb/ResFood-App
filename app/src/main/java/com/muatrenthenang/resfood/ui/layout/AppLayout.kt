@@ -83,13 +83,14 @@ fun AppLayout(
         Box(modifier = Modifier.fillMaxSize()) {
             content(padding)
             
-            // Floating Chat Bubble (Only show if logged in and not on auth/splash screens)
-            if (userState != null && currentRoute != "splash" && currentRoute != "login" && currentRoute != "register") {
+            // Floating Chat Bubble
+            // Only show on Customer Home or Admin Dashboard
+            if (userState != null && (currentRoute == "home" || currentRoute == "admin_dashboard")) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = if (showBottom) 90.dp else 24.dp, end = 24.dp), // Fixed padding
-                    contentAlignment = androidx.compose.ui.Alignment.BottomEnd // Align bottom-right
+                        .padding(bottom = 120.dp, end = 24.dp), 
+                    contentAlignment = androidx.compose.ui.Alignment.BottomEnd
                 ) {
                    DraggableChatBubble(
                         onClick = {

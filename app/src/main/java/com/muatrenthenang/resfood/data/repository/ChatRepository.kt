@@ -111,12 +111,12 @@ class ChatRepository {
                     
                     if (isCustomerSender) {
                         updates["unreadCountAdmin"] = currentUnreadAdmin + 1
+                        if (senderName != null) {
+                             updates["customerName"] = senderName // Update name only if sent by customer
+                        }
                     } else {
                         updates["unreadCountCustomer"] = currentUnreadCustomer + 1
-                    }
-                    
-                    if (senderName != null) {
-                         updates["customerName"] = senderName // Update name if changed
+                        // Do NOT update customerName if Admin sends message
                     }
                     
                     transaction.update(chatDocRef, updates)

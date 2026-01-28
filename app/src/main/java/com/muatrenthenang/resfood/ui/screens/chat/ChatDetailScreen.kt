@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -77,10 +78,32 @@ fun ChatDetailScreen(
                 reverseLayout = true,
                 state = listState
             ) {
-                items(messages) { message ->
+                itemsIndexed(messages) { index, message ->
                     val isMe = message.senderId == currentUserId
-                    MessageBubble(message.text, isMe)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    val nextMessage = messages.getOrNull(index + 1) // Visually above (older)
+                    val showTime = if (nextMessage != null) {
+                        (message.timestamp.seconds - nextMessage.timestamp.seconds) > 60
+                    } else {
+                        true // First message (visually top) always shows time
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
+                    ) {
+                        // Time Header (Visually above the bubble)
+                        if (showTime) {
+                            Text(
+                                text = java.text.SimpleDateFormat("HH:mm dd/MM").format(message.timestamp.toDate()),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(vertical = 8.dp).align(Alignment.CenterHorizontally)
+                            )
+                        }
+
+                        MessageBubble(message.text, isMe)
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
                 }
             }
 
