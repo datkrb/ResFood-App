@@ -176,4 +176,22 @@ class PromotionRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun updatePromotion(promotion: Promotion): Result<Boolean> {
+        return try {
+            promosRef.document(promotion.id).set(promotion).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deletePromotion(promotionId: String): Result<Boolean> {
+        return try {
+            promosRef.document(promotionId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

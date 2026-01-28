@@ -551,7 +551,8 @@ class MainActivity : ComponentActivity() {
                             PromotionManagementScreen(
                                 viewModel = adminViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToAdd = { navController.navigate("admin_promotion_add") }
+                                onNavigateToAdd = { navController.navigate("admin_promotion_add") },
+                                onNavigateToEdit = { promo -> navController.navigate("admin_promotion_edit/${promo.id}") }
                             )
                         }
 
@@ -621,13 +622,26 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             CustomerManagementScreen(
                                 viewModel = adminViewModel,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") }
                             )
                         }
 
                         composable("admin_promotion_add") {
                             PromotionAddScreen(
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = null
+                            )
+                        }
+
+                        composable(
+                            "admin_promotion_edit/{promotionId}",
+                            arguments = listOf(navArgument("promotionId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val promotionId = backStackEntry.arguments?.getString("promotionId")
+                            PromotionAddScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                promotionId = promotionId
                             )
                         }
 
@@ -777,6 +791,29 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            )
+                        }
+
+                        // Chat Routes
+                        composable("chat_list") {
+                            com.muatrenthenang.resfood.ui.screens.chat.ChatListScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { chatId -> navController.navigate("chat_detail/$chatId") }
+                            )
+                        }
+
+                        composable(
+                            route = "chat_detail/{chatId}",
+                            arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+                            val userState by userViewModel.userState.collectAsState()
+                            val isAdmin = userState?.role == "admin"
+                            
+                            com.muatrenthenang.resfood.ui.screens.chat.ChatDetailScreen(
+                                chatId = chatId,
+                                onNavigateBack = { navController.popBackStack() },
+                                isAdmin = isAdmin
                             )
                         }
 
