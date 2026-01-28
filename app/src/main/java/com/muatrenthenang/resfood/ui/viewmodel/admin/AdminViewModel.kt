@@ -194,14 +194,6 @@ class AdminViewModel(
         }
     }
     
-    fun lockUser(userId: String, isLocked: Boolean) {
-        viewModelScope.launch {
-            userRepository.updateUserStatus(userId, isLocked).onSuccess {
-                loadCustomers()
-            }
-        }
-    }
-    
     fun deleteUser(userId: String) {
         viewModelScope.launch {
             userRepository.deleteUser(userId).onSuccess {

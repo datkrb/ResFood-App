@@ -48,18 +48,6 @@ class UserRepository {
     }
 
     /**
-     * Cập nhật trạng thái khóa của user
-     */
-    suspend fun updateUserStatus(userId: String, isLocked: Boolean): Result<Boolean> {
-        return try {
-            usersRef.document(userId).update("isLocked", isLocked).await()
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    /**
      * Xóa user (Xóa document trong Firestore)
      */
     suspend fun deleteUser(userId: String): Result<Boolean> {

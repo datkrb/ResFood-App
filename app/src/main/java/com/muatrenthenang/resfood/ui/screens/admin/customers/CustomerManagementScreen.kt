@@ -61,7 +61,6 @@ fun CustomerManagementScreen(
             "Tất cả" -> true
             "VIP Gold" -> user.rank == "VIP GOLD"
             "VIP Silver" -> user.rank == "SILVER"
-            "Bị khóa" -> user.isLocked
             else -> true
         }
         
@@ -160,7 +159,7 @@ fun CustomerManagementScreen(
 
             // Filter Chips
             Row(modifier = Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Tất cả", "VIP Gold", "VIP Silver", "Bị khóa").forEach { filter ->
+                listOf("Tất cả", "VIP Gold", "VIP Silver").forEach { filter ->
                     Chip(
                         text = filter, 
                         isSelected = selectedFilter == filter,
@@ -194,7 +193,6 @@ fun CustomerManagementScreen(
                             userToEdit = customer
                             showEditDialog = true
                         },
-                        onLock = { viewModel.lockUser(customer.id, !customer.isLocked) },
                         onDelete = { viewModel.deleteUser(customer.id) }
                     )
                 }
@@ -253,7 +251,6 @@ fun CustomerItem(
     customer: User,
     onChat: () -> Unit,
     onEdit: () -> Unit,
-    onLock: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -273,11 +270,7 @@ fun CustomerItem(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                     Text(
-                        text = if(customer.isLocked) "${customer.fullName} (Locked)" else customer.fullName, 
-                        color = if(customer.isLocked) Color.Red else Color.White, 
-                        fontWeight = FontWeight.Bold
-                     )
+                     Text(customer.fullName, color = Color.White, fontWeight = FontWeight.Bold)
                      Text("${customer.points} Điểm", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold) 
                 }
                 Text(customer.phone ?: "Chưa có SĐT", color = Color.Gray, fontSize = 12.sp)
@@ -308,11 +301,6 @@ fun CustomerItem(
                         text = { Text("Chỉnh sửa") },
                         onClick = { showMenu = false; onEdit() },
                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(if(customer.isLocked) "Mở khóa" else "Khóa") },
-                        onClick = { showMenu = false; onLock() },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) }
                     )
                     DropdownMenuItem(
                         text = { Text("Xóa", color = Color.Red) },
