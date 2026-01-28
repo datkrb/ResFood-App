@@ -2,7 +2,9 @@ package com.muatrenthenang.resfood.ui.screens.admin.marketing
 
 import android.app.DatePickerDialog
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,30 +38,37 @@ import java.util.*
 @Composable
 fun PromotionAddScreen(
     onNavigateBack: () -> Unit,
-    viewModel: AdminViewModel = viewModel()
+    viewModel: AdminViewModel = viewModel(),
+    promotionToEdit: Promotion? = null
 ) {
-    var promoName by remember { mutableStateOf("") }
-    var promoCode by remember { mutableStateOf("") }
-    var discountValue by remember { mutableStateOf("") } // Int
-    var discountType by remember { mutableStateOf(0) } // 0: %, 1: VND
-    var minOrderValue by remember { mutableStateOf("") } // Int
-    var maxDiscountValue by remember { mutableStateOf("") } // Int
-    var isActive by remember { mutableStateOf(true) }
+    // If editing, use existing values, otherwise defaults
+    var promoName by remember { mutableStateOf(promotionToEdit?.name ?: "") }
+    var promoCode by remember { mutableStateOf(promotionToEdit?.code ?: "") }
+    var discountValue by remember { mutableStateOf(promotionToEdit?.discountValue?.toString() ?: "") }
+    var discountType by remember { mutableStateOf(promotionToEdit?.discountType ?: 0) } // 0: %, 1: VND
+    var minOrderValue by remember { mutableStateOf(promotionToEdit?.minOrderValue?.toString() ?: "") }
+    var maxDiscountValue by remember { mutableStateOf(promotionToEdit?.maxDiscountValue?.toString() ?: "") }
+    var isActive by remember { mutableStateOf(promotionToEdit?.isActive ?: true) }
     
     // New Fields
-    var applyFor by remember { mutableStateOf("ALL") } // ALL, SHIP
-    var isPublic by remember { mutableStateOf(true) } // Public vs Private
-    var totalQuantity by remember { mutableStateOf("") } // For Public
-    var assignedUserIds by remember { mutableStateOf<List<String>>(emptyList()) } // For Private
-    var userQuantities by remember { mutableStateOf<Map<String, Int>>(emptyMap()) } // For Private (simplified to 1 per user or global input)
+    var applyFor by remember { mutableStateOf(promotionToEdit?.applyFor ?: "ALL") } // ALL, SHIP
+    var isPublic by remember { mutableStateOf(promotionToEdit?.isPublic() ?: true) } // Public vs Private
+    var totalQuantity by remember { mutableStateOf(if (promotionToEdit != null && (promotionToEdit.totalQuantity > 0 || promotionToEdit.userQuantities.isNotEmpty())) {
+        if(promotionToEdit.isPublic()) promotionToEdit.totalQuantity.toString()
+        else promotionToEdit.userQuantities.values.firstOrNull()?.toString() ?: ""
+    } else "") } 
     
-    var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
-    var endDate by remember { mutableStateOf(System.currentTimeMillis() + 86400000L * 7) } // +7 days
+    var assignedUserIds by remember { mutableStateOf(promotionToEdit?.assignedUserIds ?: emptyList()) } // For Private
+    var userQuantities by remember { mutableStateOf(promotionToEdit?.userQuantities ?: emptyMap()) } // For Private
+    
+    var startDate by remember { mutableStateOf(promotionToEdit?.startDate?.toDate()?.time ?: System.currentTimeMillis()) }
+    var endDate by remember { mutableStateOf(promotionToEdit?.endDate?.toDate()?.time ?: (System.currentTimeMillis() + 86400000L * 7)) }
 
     val context = LocalContext.current
     val customers by viewModel.customers.collectAsState()
     
     var showUserSelectionDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     fun generateCode() {
         val allowedChars = ('A'..'Z') + ('0'..'9')
@@ -101,16 +110,16 @@ fun PromotionAddScreen(
             return
         }
         
-        // Construct User Quantities map (default 1 per user for now, or use totalQuantity as quota)
-        // If Private, we can just say each user gets 'quantity' vouchers, or 1. Let's assume 1 for simplicity or use the input.
+        // User Quantities map logic
         val privateQuantity = if (quantity > 0) quantity else 1
         val userQtyMap = if (!isPublic) {
-            assignedUserIds.associateWith { privateQuantity }
+             assignedUserIds.associateWith { privateQuantity }
         } else {
             emptyMap()
         }
 
-        val promotion = Promotion(
+        val newPromotion = Promotion(
+            id = promotionToEdit?.id ?: "", // Preserve ID if editing
             name = promoName,
             code = promoCode,
             discountType = discountType,
@@ -123,45 +132,64 @@ fun PromotionAddScreen(
             applyFor = applyFor,
             assignedUserIds = if (isPublic) emptyList() else assignedUserIds,
             totalQuantity = if (isPublic) quantity else 0,
-            userQuantities = userQtyMap
+            userQuantities = userQtyMap,
+            usedByUserIds = promotionToEdit?.usedByUserIds ?: emptyList() // Preserve usage history
         )
 
-        viewModel.addPromotion(promotion)
-        Toast.makeText(context, "Đã lưu khuyến mãi", Toast.LENGTH_SHORT).show()
+        if (promotionToEdit != null && promotionToEdit.id.isNotEmpty()) {
+            viewModel.updatePromotion(newPromotion)
+            Toast.makeText(context, "Đã cập nhật khuyến mãi", Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.addPromotion(newPromotion)
+            Toast.makeText(context, "Đã tạo khuyến mãi mới", Toast.LENGTH_SHORT).show()
+        }
         onNavigateBack()
+    }
+    
+    fun deletePromotion() {
+        if (promotionToEdit != null) {
+             viewModel.deletePromotion(promotionToEdit.id)
+             Toast.makeText(context, "Đã xóa khuyến mãi", Toast.LENGTH_SHORT).show()
+             onNavigateBack()
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thêm khuyến mãi", fontWeight = FontWeight.Bold) },
+                title = { Text(if (promotionToEdit != null) "Chi tiết khuyến mãi" else "Thêm khuyến mãi", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
                     }
                 },
                 actions = {
+                    if (promotionToEdit != null) {
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
                     TextButton(onClick = { savePromotion() }) {
-                        Text("Lưu", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold)
+                        Text(if (promotionToEdit != null) "Cập nhật" else "Lưu", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E2126),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
-        containerColor = Color(0xFF1E2126),
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Box(modifier = Modifier.padding(16.dp)) {
                 Button(
                     onClick = { savePromotion() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(25.dp)
                 ) {
-                    Text("Lưu chương trình")
+                    Text(if (promotionToEdit != null) "Cập nhật chương trình" else "Lưu chương trình", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -180,7 +208,7 @@ fun PromotionAddScreen(
                 AdminTextField(
                     value = promoName,
                     onValueChange = { promoName = it },
-                    placeholder = "Nhập tên chương trình"
+                    placeholder = "Ví dụ: Chào hè sôi động"
                 )
             }
 
@@ -189,10 +217,10 @@ fun PromotionAddScreen(
                 AdminTextField(
                     value = promoCode,
                     onValueChange = { promoCode = it.uppercase() },
-                    placeholder = "Nhập mã giảm giá",
+                    placeholder = "Ví dụ: HE2024",
                     trailingIcon = { 
                         IconButton(onClick = { generateCode() }) {
-                           Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = Color(0xFF2196F3)) 
+                           Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = MaterialTheme.colorScheme.primary) 
                         }
                     }
                 )
@@ -204,7 +232,8 @@ fun PromotionAddScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f), RoundedCornerShape(24.dp))
                         .padding(4.dp)
                 ) {
                     TabButton(text = "Công khai (Public)", isSelected = isPublic, modifier = Modifier.weight(1f)) { isPublic = true }
@@ -214,20 +243,21 @@ fun PromotionAddScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 if (isPublic) {
-                    Text("Số lượng voucher (0 = không giới hạn)", color = Color.White, fontSize = 14.sp)
+                    Text("Số lượng voucher (0 = không giới hạn)", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Nhập số lượng tổng")
                 } else {
                     Button(
                         onClick = { showUserSelectionDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3038)),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f)),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Chọn khách hàng (${assignedUserIds.size})", color = Color.White)
+                        Text("Chọn khách hàng (${assignedUserIds.size})", color = MaterialTheme.colorScheme.primary)
                     }
                     if (assignedUserIds.isNotEmpty()) {
-                        Text("Số lượng mỗi khách hàng được dùng", color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top=12.dp))
+                        Text("Số lượng mỗi khách hàng được dùng", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, modifier = Modifier.padding(top=12.dp))
                         Spacer(modifier = Modifier.height(8.dp))
                         AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Ví dụ: 1")
                     }
@@ -240,7 +270,8 @@ fun PromotionAddScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f), RoundedCornerShape(24.dp))
                         .padding(4.dp)
                 ) {
                     TabButton(text = "Theo phần trăm (%)", isSelected = discountType == 0, modifier = Modifier.weight(1f)) { discountType = 0 }
@@ -249,13 +280,13 @@ fun PromotionAddScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                Text("Giá trị giảm", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text("Giá trị giảm", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(8.dp))
                 AdminTextField(
                     value = discountValue,
                     onValueChange = { discountValue = it },
                     placeholder = "Nhập giá trị",
-                    trailingIcon = { Text(if(discountType == 0) "%" else "đ", color = Color.Gray, modifier = Modifier.padding(end=16.dp)) }
+                    trailingIcon = { Text(if(discountType == 0) "%" else "đ", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end=16.dp)) }
                 )
             }
 
@@ -263,12 +294,12 @@ fun PromotionAddScreen(
             InputSection(title = "Điều kiện áp dụng") {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Đơn tối thiểu", color = Color.White, fontSize = 14.sp)
+                        Text("Đơn tối thiểu", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         AdminTextField(value = minOrderValue, onValueChange = { minOrderValue = it }, placeholder = "0đ")
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Giảm tối đa", color = Color.White, fontSize = 14.sp)
+                        Text("Giảm tối đa", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         AdminTextField(value = maxDiscountValue, onValueChange = { maxDiscountValue = it }, placeholder = "Không giới hạn")
                     }
@@ -281,7 +312,8 @@ fun PromotionAddScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .background(Color(0xFF2C3038), RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f), RoundedCornerShape(12.dp))
                         .padding(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -307,7 +339,8 @@ fun PromotionAddScreen(
             
             // Activate Toggle
             Card(
-                 colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f)),
                  shape = RoundedCornerShape(12.dp),
                  modifier = Modifier.fillMaxWidth()
             ) {
@@ -317,15 +350,52 @@ fun PromotionAddScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Column {
-                            Text("Kích hoạt ngay", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Hiển thị khuyến mãi", color = Color.Gray, fontSize = 12.sp)
+                            Text("Kích hoạt ngay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text("Hiển thị khuyến mãi", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
                      }
-                     Switch(checked = isActive, onCheckedChange = { isActive = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF2196F3)))
+                     Switch(
+                        checked = isActive, 
+                        onCheckedChange = { isActive = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha=0.2f)
+                        )
+                     )
                 }
             }
             
             Spacer(modifier = Modifier.height(40.dp))
         }
+    }
+    
+    // Delete Confirmation Dialog
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Xác nhận xóa") },
+            text = { Text("Bạn có chắc chắn muốn xóa mã khuyến mãi này không? Hành động này không thể hoàn tác.") },
+            confirmButton = {
+                Button(
+                     onClick = { 
+                         deletePromotion()
+                         showDeleteConfirm = false 
+                     },
+                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Xóa", color = MaterialTheme.colorScheme.onError)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Hủy")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
     
     // User Selection Dialog (Checklist)
@@ -367,14 +437,14 @@ fun UserSelectionDialog(
                 .fillMaxWidth()
                 .height(600.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2126))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(Modifier.padding(16.dp)) {
                 Text(
                     "Chọn khách hàng",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(16.dp))
                 
@@ -386,10 +456,10 @@ fun UserSelectionDialog(
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray)
+                                Icon(Icons.Default.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
-                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray)
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 )
@@ -413,11 +483,11 @@ fun UserSelectionDialog(
                              Checkbox(
                                 checked = allVisibleSelected,
                                 onCheckedChange = null,
-                                colors = CheckboxDefaults.colors(checkmarkColor = Color.White, checkedColor = Color(0xFF2196F3))
+                                colors = CheckboxDefaults.colors(checkmarkColor = MaterialTheme.colorScheme.onPrimary, checkedColor = MaterialTheme.colorScheme.primary)
                              )
-                             Text("Chọn tất cả (${filteredCustomers.size})", color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                             Text("Chọn tất cả (${filteredCustomers.size})", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = 8.dp))
                         }
-                        HorizontalDivider(color = Color.Gray.copy(alpha=0.3f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                     items(filteredCustomers) { user ->
                         val isSelected = tempSelected.contains(user.id)
@@ -430,22 +500,22 @@ fun UserSelectionDialog(
                             Checkbox(
                                 checked = isSelected,
                                 onCheckedChange = null,
-                                colors = CheckboxDefaults.colors(checkmarkColor = Color.White, checkedColor = Color(0xFF2196F3))
+                                colors = CheckboxDefaults.colors(checkmarkColor = MaterialTheme.colorScheme.onPrimary, checkedColor = MaterialTheme.colorScheme.primary)
                             )
                             Column(Modifier.padding(start = 8.dp)) {
-                                Text(user.fullName, color = Color.White, fontWeight = FontWeight.Bold)
-                                Text(if(!user.phone.isNullOrEmpty()) "${user.phone} - ${user.email}" else user.email, color = Color.Gray, fontSize = 12.sp)
+                                Text(user.fullName, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                                Text(if(!user.phone.isNullOrEmpty()) "${user.phone} - ${user.email}" else user.email, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                             }
                         }
                     }
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                    TextButton(onClick = onDismiss) { Text("Hủy") }
+                    TextButton(onClick = onDismiss) { Text("Hủy", color = MaterialTheme.colorScheme.primary) }
                     Button(
                         onClick = { onConfirm(tempSelected.toList()) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
-                    ) { Text("Xác nhận") }
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) { Text("Xác nhận", color = MaterialTheme.colorScheme.onPrimary) }
                 }
             }
         }
@@ -465,16 +535,7 @@ fun AdminTextField(
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFF2C3038),
-            unfocusedContainerColor = Color(0xFF2C3038),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color(0xFF2196F3),
-            unfocusedBorderColor = Color.Transparent,
-            cursorColor = Color(0xFF2196F3)
-        ),
-        placeholder = { Text(placeholder, color = Color.Gray) },
+        placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.6f)) },
         trailingIcon = trailingIcon,
         singleLine = true
     )
@@ -483,7 +544,7 @@ fun AdminTextField(
 @Composable
 fun InputSection(title: String, content: @Composable () -> Unit) {
     Column {
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(title, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(modifier = Modifier.height(12.dp))
         content()
     }
@@ -495,18 +556,24 @@ fun TabButton(text: String, isSelected: Boolean, modifier: Modifier = Modifier, 
         modifier = modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isSelected) Color(0xFF1E2126) else Color.Transparent) // Darker for selected
+            .background(if (isSelected) MaterialTheme.colorScheme.background else Color.Transparent) // Highlight
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = if(isSelected) Color.White else Color.Gray, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text, 
+            color = if(isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant, 
+            fontSize = 13.sp, 
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
 @Composable
 fun TimeRow(label: String, value: String, isRed: Boolean = false, onClick: () -> Unit) {
     Card(
-         colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
+         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f)),
          shape = RoundedCornerShape(12.dp),
          modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
@@ -514,13 +581,24 @@ fun TimeRow(label: String, value: String, isRed: Boolean = false, onClick: () ->
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-             Box(modifier = Modifier.size(40.dp).background(if(isRed) Color(0xFFFF5252).copy(alpha=0.1f) else Color(0xFF2196F3).copy(alpha=0.1f), CircleShape), contentAlignment = Alignment.Center) {
-                 Icon(Icons.Default.CalendarToday, contentDescription = null, tint = if(isRed) Color(0xFFFF5252) else Color(0xFF2196F3), modifier = Modifier.size(20.dp))
+             Box(
+                 modifier = Modifier.size(40.dp).background(
+                    if(isRed) MaterialTheme.colorScheme.error.copy(alpha=0.1f) else MaterialTheme.colorScheme.primary.copy(alpha=0.1f), 
+                    CircleShape
+                 ), 
+                 contentAlignment = Alignment.Center
+             ) {
+                 Icon(
+                    Icons.Default.CalendarToday, 
+                    contentDescription = null, 
+                    tint = if(isRed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary, 
+                    modifier = Modifier.size(20.dp)
+                 )
              }
              Spacer(modifier = Modifier.width(16.dp))
              Column {
-                 Text(label, color = Color.Gray, fontSize = 10.sp)
-                 Text(value, color = Color.White, fontWeight = FontWeight.Bold)
+                 Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                 Text(value, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
              }
         }
     }

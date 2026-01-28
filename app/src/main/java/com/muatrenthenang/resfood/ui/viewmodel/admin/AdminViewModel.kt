@@ -483,6 +483,20 @@ class AdminViewModel(
             loadPromotions()
         }
     }
+
+    fun updatePromotion(promotion: Promotion) {
+        viewModelScope.launch {
+            promotionRepository.updatePromotion(promotion)
+            loadPromotions()
+        }
+    }
+
+    fun deletePromotion(promotionId: String) {
+        viewModelScope.launch {
+            promotionRepository.deletePromotion(promotionId)
+            loadPromotions()
+        }
+    }
     
     fun addTable(name: String, seats: Int) {
         viewModelScope.launch {
