@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +55,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
 fun FoodDetailScreen(
     foodId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToReview: (String) -> Unit,
     viewModel: FoodDetailViewModel = viewModel()
 ) {
     val quantity by viewModel.quantity.collectAsState()
@@ -122,6 +125,9 @@ fun FoodDetailScreen(
                                 val imageUrl = food?.imageUrl ?: "https://via.placeholder.com/600x400.png?text=ResFood"
                                 val foodId = food?.id ?: ""
                                 shareFood(context, foodName, imageUrl, foodId)
+                            },
+                            onReviewClick = {
+                                food?.id?.let { onNavigateToReview(it) }
                             }
                         )        // btn chia se + danh gia
                         FoodDescription(food)   // mo ta mon an
@@ -251,10 +257,4 @@ fun shareFood(context: Context, foodName: String, imageUrl: String, foodId: Stri
             startActivity(context, shareIntent, null)
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun Test(){
-    FoodDetailScreen("2", {})
 }

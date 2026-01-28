@@ -14,11 +14,13 @@ import kotlin.collections.toMutableSet
 import com.muatrenthenang.resfood.data.repository.FoodRepository
 import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.data.repository.FavoritesRepository
+import com.muatrenthenang.resfood.data.repository.OrderRepository
 
 class FoodDetailViewModel(
     private val _foodRepository: FoodRepository = FoodRepository(),
     private val _cartRepository: CartRepository = CartRepository(),
-    private val _favoritesRepository: FavoritesRepository = FavoritesRepository()
+    private val _favoritesRepository: FavoritesRepository = FavoritesRepository(),
+    private val _orderRepository: OrderRepository = OrderRepository()
 
 ) : ViewModel() {
     
@@ -39,6 +41,13 @@ class FoodDetailViewModel(
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    // Review Logic
+    private val _canReview = MutableStateFlow(false)
+    val canReview: StateFlow<Boolean> = _canReview.asStateFlow()
+
+    private val _ratingHistogram = MutableStateFlow<Map<Int, Int>>(emptyMap())
+    val ratingHistogram: StateFlow<Map<Int, Int>> = _ratingHistogram.asStateFlow()
 
     val listTopping = listOf(
         Topping(
@@ -79,6 +88,12 @@ class FoodDetailViewModel(
                 _food.value = null
                 _isFavorite.value = false
             }
+             // Calculate histogram whenever food updates
+            _food.value?.let { food ->
+                calculateRatingHistogram(food.reviews)
+            }
+            // Check if user can review
+             checkIfUserCanReview(foodId)
         }
         //_food.value = sampleFoods.find { it.id == foodId }
         _allToppings.value = listTopping
@@ -162,5 +177,56 @@ class FoodDetailViewModel(
             }
         }
     }
+
+    private fun calculateRatingHistogram(reviews: List<com.muatrenthenang.resfood.data.model.Review>) {
+        val histogram = mutableMapOf(5 to 0, 4 to 0, 3 to 0, 2 to 0, 1 to 0)
+        reviews.forEach { review ->
+            val star = review.star.coerceIn(1, 5)
+            histogram[star] = (histogram[star] ?: 0) + 1
+        }
+        _ratingHistogram.value = histogram
+    }
+
+    private fun checkIfUserCanReview(foodId: String) {
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            _canReview.value = false
+            return
+        }
+        
+        viewModelScope.launch {
+            _orderRepository.getOrdersByUserId(currentUser.uid).collect { orders ->
+                 // Check if any COMPLETED order contains this food
+                 val hasOrdered = orders.any { order ->
+                     order.status == "COMPLETED" && order.items.any { it.foodId == foodId }
+                 }
+                 _canReview.value = hasOrdered
+            }
+        }
+    }
+
+    fun submitReview(comment: String, star: Int) {
+         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser ?: return
+         val foodId = _food.value?.id ?: return
+         
+         val review = com.muatrenthenang.resfood.data.model.Review(
+             star = star,
+             comment = comment,
+             userId = currentUser.uid,
+             userName = currentUser.displayName ?: "User",
+             createdAt = System.currentTimeMillis()
+         )
+         
+         viewModelScope.launch {
+             val result = _foodRepository.addReview(foodId, review)
+             if (result.isSuccess) {
+                 // Refresh food data to show new review
+                  loadFoodDetail(foodId)
+             } else {
+                 Log.e("FoodDetailViewModel", "Failed to submit review: ${result.exceptionOrNull()}")
+             }
+         }
+    }
+
 
 }

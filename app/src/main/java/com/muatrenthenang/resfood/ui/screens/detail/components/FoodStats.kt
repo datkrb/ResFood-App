@@ -35,7 +35,7 @@ fun FoodStats(food: Food?){
         InfoChip(
             Icons.Default.Star,
             Color(0xffe9b40a),
-            "${food?.rating ?: 0f} ★",
+            String.format("%.1f ★", food?.rating ?: 0f),
             modifier = Modifier
         )
     }
