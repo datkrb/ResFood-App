@@ -2,7 +2,6 @@ package com.muatrenthenang.resfood.ui.screens.booking
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,17 +15,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -48,8 +43,9 @@ fun BookingTableScreen(
     viewModel: BookingTableViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val branches by viewModel.branches.collectAsState()
-    val selectedBranch by viewModel.selectedBranch.collectAsState()
+    
+    // Branch from Firestore
+    val branch by viewModel.branch.collectAsState()
     
     val dates by viewModel.dates.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
@@ -110,7 +106,7 @@ fun BookingTableScreen(
                     )
                 }
                 Text(
-                    "Booking Table",
+                    "Đặt bàn",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
@@ -126,96 +122,85 @@ fun BookingTableScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 100.dp) // Space for sticky bottom bar
             ) {
-                // 2. Branch Selection
+                // 2. Restaurant Info (from Firestore)
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    "Chi nhánh",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Mock Dropdown UI
-                    var expanded by remember { mutableStateOf(false) }
+                    Text(
+                        "Nhà hàng",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
                     
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                            .clickable { expanded = true }
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    selectedBranch?.name ?: "Chọn chi nhánh",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (selectedBranch != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                                if (selectedBranch != null) {
+                    if (branch == null) {
+                        // Loading state
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surface),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Restaurant Info Display
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(PrimaryColor.copy(alpha = 0.1f))
+                                    .border(1.dp, PrimaryColor, RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            ) {
+                                Column {
                                     Text(
-                                        selectedBranch!!.address.getFullAddress(),
+                                        branch!!.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        branch!!.address.getFullAddress(),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        maxLines = 1
+                                        maxLines = 2
                                     )
                                 }
                             }
-                            Icon(Icons.Default.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
-                        }
-                        
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            branches.forEach { branch ->
-                                DropdownMenuItem(
-                                    text = { Text(branch.name, color = MaterialTheme.colorScheme.onSurface) },
-                                    onClick = { 
-                                        viewModel.selectBranch(branch)
-                                        expanded = false
+                            
+                            // Map Button
+                            IconButton(
+                                onClick = {
+                                    val lat = branch?.address?.latitude
+                                    val lng = branch?.address?.longitude
+                                    if (lat != null && lng != null) {
+                                        val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng(${branch?.name})")
+                                        val mapIntent = Intent(Intent.ACTION_VIEW, uri)
+                                        mapIntent.setPackage("com.google.android.apps.maps")
+                                        context.startActivity(mapIntent)
                                     }
+                                },
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(PrimaryColor.copy(alpha = 0.1f))
+                                    .border(1.dp, PrimaryColor, RoundedCornerShape(12.dp))
+                            ) {
+                                Icon(
+                                    Icons.Default.Place, 
+                                    contentDescription = "Map",
+                                    tint = PrimaryColor
                                 )
                             }
                         }
                     }
-                    
-                    // Map Button (Updated intent usage with let just to be safe, logic remains same)
-                    IconButton(
-                        onClick = {
-                            selectedBranch?.let { branch ->
-                                val uri = Uri.parse("geo:${branch.address.latitude},${branch.address.longitude}?q=${branch.address.latitude},${branch.address.longitude}(${branch.name})")
-                                val mapIntent = Intent(Intent.ACTION_VIEW, uri)
-                                mapIntent.setPackage("com.google.android.apps.maps")
-                                context.startActivity(mapIntent)
-                            }
-                        },
-                        enabled = selectedBranch != null,
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (selectedBranch != null) PrimaryColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface)
-                            .border(1.dp, if (selectedBranch != null) PrimaryColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                    ) {
-                        Icon(
-                            Icons.Default.Place, 
-                            contentDescription = "Map",
-                            tint = if (selectedBranch != null) PrimaryColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        )
-                    }
                 }
-            }
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
             
@@ -456,7 +441,7 @@ fun BookingTableScreen(
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = selectedBranch != null && bookingState !is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Loading
+                    enabled = branch != null && bookingState !is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Loading
                 ) {
                     if (bookingState is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Loading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))

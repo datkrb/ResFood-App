@@ -1,12 +1,11 @@
 package com.muatrenthenang.resfood.ui.screens.admin
 
-        import android.content.Context
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,7 +14,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Tapas
@@ -25,8 +23,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -34,10 +30,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.api.ImgBBUploader
-import com.muatrenthenang.resfood.data.model.Branch
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Review
-import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.repository.FoodRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,7 +49,6 @@ fun FoodEditScreen(
     onNavigateBack: () -> Unit,
     foodRepository: FoodRepository = FoodRepository()
 ) {
-    val branchRepository = remember { BranchRepository() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
@@ -71,11 +64,6 @@ fun FoodEditScreen(
     var rating by remember { mutableStateOf(0f) }
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     
-    // Branch State
-    var branches by remember { mutableStateOf<List<Branch>>(emptyList()) }
-    var selectedBranch by remember { mutableStateOf<Branch?>(null) }
-    var currentBranch by remember { mutableStateOf<Branch?>(null) } // Current branch of the food (for editing)
-    
     // Image Upload State
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     
@@ -86,7 +74,6 @@ fun FoodEditScreen(
     
     // Dropdown State
     var categoriesExpanded by remember { mutableStateOf(false) }
-    var branchesExpanded by remember { mutableStateOf(false) }
     
     // Fixed Categories
     val knownCategories = listOf(
@@ -105,10 +92,6 @@ fun FoodEditScreen(
 
     LaunchedEffect(Unit) {
         isLoading = true
-        // Load Branches
-        branchRepository.getBranches().onSuccess { loadedBranches ->
-            branches = loadedBranches
-        }
         
         // Load Food Data if Editing
         if (foodId != null) {
@@ -123,11 +106,6 @@ fun FoodEditScreen(
                 isAvailable = food.isAvailable
                 rating = food.rating
                 reviews = food.reviews
-                
-                // Find current branch
-                val foundBranch = branches.find { it.foodIds.contains(foodId) }
-                currentBranch = foundBranch
-                selectedBranch = foundBranch
             }
         }
         isLoading = false
@@ -249,37 +227,6 @@ fun FoodEditScreen(
                     }
                 }
 
-                // Branch Dropdown
-                ExposedDropdownMenuBox(
-                    expanded = branchesExpanded,
-                    onExpandedChange = { branchesExpanded = !branchesExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = selectedBranch?.name ?: "",
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text("Chi nhánh (Brand)") },
-                        placeholder = { Text("Chọn chi nhánh") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = branchesExpanded) },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = branchesExpanded,
-                        onDismissRequest = { branchesExpanded = false }
-                    ) {
-                        branches.forEach { branch ->
-                            DropdownMenuItem(
-                                text = { Text(branch.name) },
-                                onClick = {
-                                    selectedBranch = branch
-                                    branchesExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -359,41 +306,7 @@ fun FoodEditScreen(
                                 foodRepository.addFood(food)
                             }
                             
-                            saveResult.onSuccess { savedOrUpdatedFood ->
-                                // If addFood, it returns the food with new ID
-                                var finalFoodId = foodId ?: ""
-                                
-                                if (foodId == null) {
-                                     // Cast checking is tricky with generic Result if not typed strictly at call site sometimes
-                                     // But addFood returns Result<Food> so savedOrUpdatedFood IS Food
-                                     val newFood = savedOrUpdatedFood as? Food
-                                     finalFoodId = newFood?.id ?: ""
-                                }
-                                
-                                if (finalFoodId.isNotEmpty()) { 
-                                    // 4. Update Branch Logic
-                                    // If branch selection changed
-                                    if (selectedBranch?.id != currentBranch?.id) {
-                                        // Update old branch: remove foodId
-                                        if (currentBranch != null) {
-                                            val updatedOldBranch = currentBranch!!.copy(
-                                                foodIds = currentBranch!!.foodIds - finalFoodId
-                                            )
-                                            branchRepository.updateBranch(updatedOldBranch)
-                                        }
-                                        
-                                        // Update new branch: add foodId
-                                        if (selectedBranch != null) {
-                                            if (!selectedBranch!!.foodIds.contains(finalFoodId)) {
-                                                val updatedNewBranch = selectedBranch!!.copy(
-                                                    foodIds = selectedBranch!!.foodIds + finalFoodId
-                                                )
-                                                branchRepository.updateBranch(updatedNewBranch)
-                                            }
-                                        }
-                                    }
-                                }
-
+                            saveResult.onSuccess {
                                 Toast.makeText(context, "Lưu thành công", Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }.onFailure {
