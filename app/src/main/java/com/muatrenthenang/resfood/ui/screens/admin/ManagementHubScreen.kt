@@ -121,7 +121,7 @@ fun ManagementHubScreen(
                 }
                 item {
                      ManagementHubItem(
-                        title = "Chi nhánh",
+                        title = "Nhà hàng",
                         icon = Icons.Default.Store,
                         color = Color(0xFF795548), // Brown
                         onClick = onNavigateToBranch
