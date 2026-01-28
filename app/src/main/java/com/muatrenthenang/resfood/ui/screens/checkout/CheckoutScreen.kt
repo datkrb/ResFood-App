@@ -109,7 +109,8 @@ fun CheckoutScreen(
                 IconButton(
                     onClick = onNavigateBack,
                     modifier = Modifier
-                        .align(Alignment.CenterStart)                        .size(40.dp)
+                        .align(Alignment.CenterStart)
+                        .size(40.dp)
                         .background(Color.Transparent, CircleShape)
                 ) {
 
@@ -141,7 +142,29 @@ fun CheckoutScreen(
                             Text(text = vm.formatCurrency(total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Button(
-                            onClick = { vm.confirmPayment() },
+                            onClick = { 
+                                if (paymentMethod == PaymentMethod.ZALOPAY) {
+                                    vm.createZaloPayOrder { token ->
+                                        if (token != null) {
+                                            vn.zalopay.sdk.ZaloPaySDK.getInstance().payOrder(context as android.app.Activity, token, "demozpdk://app", object : vn.zalopay.sdk.listeners.PayOrderListener {
+                                                override fun onPaymentSucceeded(transactionId: String, transToken: String, appTransID: String) {
+                                                     vm.checkZaloPayStatus(appTransID)
+                                                }
+                                                override fun onPaymentCanceled(zpTransToken: String, appTransID: String) {
+                                                     vm.checkZaloPayStatus(appTransID)
+                                                }
+                                                override fun onPaymentError(zaloPayError: vn.zalopay.sdk.ZaloPayError, zpTransToken: String, appTransID: String) {
+                                                     vm.checkZaloPayStatus(appTransID)
+                                                }
+                                            })
+                                        } else {
+                                            Toast.makeText(context, "Lỗi tạo đơn ZaloPay", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                } else {
+                                    vm.confirmPayment() 
+                                }
+                            },
                             modifier = Modifier.height(48.dp),
                             shape = RoundedCornerShape(28.dp),
                             enabled = !isLoading,

@@ -319,6 +319,131 @@ class CheckoutViewModel(
         }
     }
 
+    /**
+     * Create Order for ZaloPay and get Token
+     */
+    fun createZaloPayOrder(onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            // Validate items
+            val selectedItems = _items.value.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
+                _actionResult.value = "Không có món nào được chọn"
+                onResult(null)
+                return@launch
+            }
+            
+            val currentAddress = _address.value
+            if (currentAddress.id.isBlank()) {
+                _actionResult.value = "Vui lòng chọn địa chỉ"
+                onResult(null)
+                return@launch
+            }
+
+            _isLoading.value = true
+            try {
+                val userId = _authRepository.getCurrentUserId() ?: ""
+                 // Convert items
+                val orderItems = selectedItems.map { cartItem ->
+                    OrderItem(
+                        foodId = cartItem.food.id,
+                        foodName = cartItem.food.name,
+                        foodImage = cartItem.food.imageUrl,
+                        quantity = cartItem.quantity,
+                        price = cartItem.food.price,
+                        note = null
+                    )
+                }
+
+                val order = Order(
+                    id = "",
+                    userId = userId,
+                    userName = currentAddress.contactName,
+                    userPhone = currentAddress.phone,
+                    address = currentAddress,
+                    items = orderItems,
+                    subtotal = subTotal().toInt(),
+                    discount = totalDiscount().toInt(),
+                    deliveryFee = _shippingFee.toInt(),
+                    total = total().toInt(),
+                    status = "PENDING", // Initial status
+                    paymentMethod = "ZALOPAY",
+                    createdAt = Timestamp.now(),
+                    productVoucherCode = _selectedProductVoucher.value?.code,
+                    productVoucherId = _selectedProductVoucher.value?.id,
+                    shippingVoucherCode = _selectedShippingVoucher.value?.code,
+                    shippingVoucherId = _selectedShippingVoucher.value?.id,
+                    productDiscount = productDiscount().toInt(),
+                    shippingDiscount = shippingDiscount().toInt()
+                )
+
+                val createResult = _orderRepository.createOrder(order)
+                if (createResult.isSuccess) {
+                    val orderId = createResult.getOrNull()
+                    if (orderId != null) {
+                         // Call ZaloPay API
+                         try {
+                              val request = com.muatrenthenang.resfood.data.api.CreatePaymentRequest(orderId)
+                              val response = com.muatrenthenang.resfood.data.api.ZaloPayClient.api.createPayment(request)
+                              if (response.return_code == 1 && response.zp_trans_token != null) {
+                                  _currentOrderId.value = orderId
+                                  onResult(response.zp_trans_token)
+                              } else {
+                                  _actionResult.value = "Lỗi ZaloPay: ${response.return_message}"
+                                  onResult(null)
+                              }
+                         } catch (e: Exception) {
+                              _actionResult.value = "Lỗi kết nối ZaloPay: ${e.message}"
+                              onResult(null)
+                         }
+                    }
+                } else {
+                    _actionResult.value = "Lỗi tạo đơn hàng: ${createResult.exceptionOrNull()?.message}"
+                    onResult(null)
+                }
+            } catch (e: Exception) {
+                _actionResult.value = "Lỗi: ${e.message}"
+                onResult(null)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    // Store current processing order ID
+    private val _currentOrderId = MutableStateFlow<String?>(null)
+
+    fun checkZaloPayStatus(appTransID: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val request = com.muatrenthenang.resfood.data.api.CheckStatusRequest(appTransID)
+                val response = com.muatrenthenang.resfood.data.api.ZaloPayClient.api.checkStatus(request)
+                
+                if (response.return_code == 1) {
+                     val userId = _authRepository.getCurrentUserId()
+                     if (userId != null) {
+                        _selectedProductVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                        _selectedShippingVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                     }
+
+                     _repository.removeSelectedItems()
+                     _actionResult.value = "Thanh toán thành công!"
+                     // Order status in local repository might need update if we are observing it?
+                     // But here we just navigate away or show success.
+                } else if (response.return_code == 3) {
+                     _actionResult.value = "Đang xử lý thanh toán..."
+                } else {
+                     _actionResult.value = "Thanh toán thất bại: ${response.return_message}"
+                     _orderRepository.updateOrderStatus(_currentOrderId.value ?: "", "CANCELLED")
+                }
+            } catch (e: Exception) {
+                _actionResult.value = "Lỗi kiểm tra trạng thái: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun clearResult(){ _actionResult.value = null }
 
     // Helper

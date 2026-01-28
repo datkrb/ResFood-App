@@ -112,4 +112,7 @@ dependencies {
     
     // OpenStreetMap
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    
+    // ZaloPay SDK (Local AAR)
+    implementation(files("libs/zpdk-release-v3.1.aar"))
 }
