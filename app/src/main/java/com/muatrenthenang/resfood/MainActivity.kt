@@ -423,7 +423,8 @@ class MainActivity : ComponentActivity() {
                             OrderListScreen(
                                 status = status,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") }
+                                onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") },
+                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
                             )
                         }
 
@@ -434,7 +435,8 @@ class MainActivity : ComponentActivity() {
                             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
                             UserOrderDetailScreen(
                                 orderId = orderId,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
                             )
                         }
 
@@ -478,18 +480,23 @@ class MainActivity : ComponentActivity() {
                             FoodDetailScreen(
                                 foodId = foodId,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToReview = { id -> navController.navigate("review/$id") }
+                                onNavigateToReview = { id -> navController.navigate("review/$id/true") }
                             )
                         }
 
                         composable(
-                            route = "review/{foodId}",
-                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                            route = "review/{foodId}/{isReadOnly}",
+                            arguments = listOf(
+                                navArgument("foodId") { type = NavType.StringType },
+                                navArgument("isReadOnly") { type = NavType.BoolType }
+                            )
                         ) { backStackEntry ->
                             val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                            val isReadOnly = backStackEntry.arguments?.getBoolean("isReadOnly") ?: false
                             ReviewScreen(
                                 foodId = foodId,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                isReadOnly = isReadOnly
                             )
                         }
 

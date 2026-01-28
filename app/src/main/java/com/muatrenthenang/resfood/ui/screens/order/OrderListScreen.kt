@@ -42,6 +42,7 @@ fun OrderListScreen(
     status: String,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
+    onNavigateToReview: (String) -> Unit = {},
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Tabs matching ReservationListScreen style
@@ -69,6 +70,7 @@ fun OrderListScreen(
     }
 
     val orders by viewModel.orders.collectAsState()
+    var showReviewDialogForOrder by remember { mutableStateOf<Order?>(null) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -144,10 +146,26 @@ fun OrderListScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(orders) { order ->
-                    OrderCard(order = order, viewModel = viewModel, onClick = { onNavigateToDetail(order.id) })
+                    OrderCard(
+                        order = order, 
+                        viewModel = viewModel, 
+                        onClick = { onNavigateToDetail(order.id) },
+                        onReviewClick = { showReviewDialogForOrder = order }
+                    )
                 }
             }
         }
+    }
+    
+    if (showReviewDialogForOrder != null) {
+        com.muatrenthenang.resfood.ui.screens.order.ReviewSelectionDialog(
+            order = showReviewDialogForOrder!!,
+            onDismiss = { showReviewDialogForOrder = null },
+            onItemSelect = { foodId ->
+                showReviewDialogForOrder = null
+                onNavigateToReview(foodId)
+            }
+        )
     }
 }
 
@@ -183,7 +201,7 @@ fun OrderListTopBar(title: String, onBack: () -> Unit) {
 }
 
 @Composable
-fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) {
+fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, onReviewClick: () -> Unit) {
     var isExpanded by remember { mutableStateOf(false) }
     
     Surface(
@@ -195,14 +213,14 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
     ) {
         Column {
             // Status Header
-             Row(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                 // Status Text
+                // Status Text
                 val (statusText, statusColor) = getStatusDisplay(order.status)
                 Surface(
                     color = statusColor.copy(alpha = 0.1f),
@@ -234,7 +252,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
             Column(modifier = Modifier.padding(16.dp)) {
                 
                 displayItems.forEach { item ->
-                     Row(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
@@ -286,16 +304,16 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                     }
                 }
                 
-                 val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
-                 
-                 Row(
-                     modifier = Modifier
-                         .fillMaxWidth()
-                         .padding(top = 8.dp),
-                     horizontalArrangement = Arrangement.SpaceBetween,
-                     verticalAlignment = Alignment.CenterVertically
-                 ) {
-                     Text(
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
+                
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
                         text = "Ngày đặt: " + dateFormat.format(order.createdAt.toDate()),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
@@ -303,7 +321,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                     
                     if (order.status == "COMPLETED") {
                         Button(
-                            onClick = { viewModel.reviewOrder(order.id) },
+                            onClick = onReviewClick,
                             modifier = Modifier.height(32.dp),
                             contentPadding = PaddingValues(horizontal = 16.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -314,7 +332,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit) 
                             Text("Đánh giá", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
-                 }
+                }
             }
         }
     }
