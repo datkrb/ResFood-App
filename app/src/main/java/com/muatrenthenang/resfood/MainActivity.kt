@@ -693,6 +693,7 @@ class MainActivity : ComponentActivity() {
                             val adminViewModel: AdminViewModel = viewModel()
                             AdminSettingsScreen(
                                 viewModel = adminViewModel,
+                                userViewModel = userViewModel,
                                 onNavigateBack = { navController.popBackStack() },
                                 onLogout = {
                                     // Clear backstack and go to login
