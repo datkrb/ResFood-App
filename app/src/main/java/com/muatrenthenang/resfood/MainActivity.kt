@@ -784,6 +784,29 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // Chat Routes
+                        composable("chat_list") {
+                            com.muatrenthenang.resfood.ui.screens.chat.ChatListScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { chatId -> navController.navigate("chat_detail/$chatId") }
+                            )
+                        }
+
+                        composable(
+                            route = "chat_detail/{chatId}",
+                            arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+                            val userState by userViewModel.userState.collectAsState()
+                            val isAdmin = userState?.role == "admin"
+                            
+                            com.muatrenthenang.resfood.ui.screens.chat.ChatDetailScreen(
+                                chatId = chatId,
+                                onNavigateBack = { navController.popBackStack() },
+                                isAdmin = isAdmin
+                            )
+                        }
+
                     }
                 }
             }
