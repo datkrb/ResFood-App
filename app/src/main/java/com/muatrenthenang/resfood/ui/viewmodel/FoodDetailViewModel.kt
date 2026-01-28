@@ -207,6 +207,14 @@ class FoodDetailViewModel(
         }
     }
 
+    // State for review submission
+    private val _reviewSubmissionState = MutableStateFlow<Result<Boolean>?>(null)
+    val reviewSubmissionState: StateFlow<Result<Boolean>?> = _reviewSubmissionState.asStateFlow()
+
+    fun resetReviewSubmissionState() {
+        _reviewSubmissionState.value = null
+    }
+
     fun submitReview(comment: String, star: Int) {
          val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser ?: return
          val foodId = _food.value?.id ?: return
@@ -225,6 +233,8 @@ class FoodDetailViewModel(
              )
 
              val result = _foodRepository.addReview(foodId, review)
+             _reviewSubmissionState.value = result // Update state with result
+             
              if (result.isSuccess) {
                  // Refresh food data to show new review
                   loadFoodDetail(foodId)

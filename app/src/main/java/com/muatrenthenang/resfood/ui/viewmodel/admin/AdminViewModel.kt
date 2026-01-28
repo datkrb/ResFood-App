@@ -630,4 +630,11 @@ class AdminViewModel(
             }
         }
     }
+    fun deleteReview(foodId: String, review: com.muatrenthenang.resfood.data.model.Review) {
+        viewModelScope.launch {
+            foodRepository.deleteReview(foodId, review).onSuccess {
+                loadFoods() // Reload to update UI
+            }
+        }
+    }
 }

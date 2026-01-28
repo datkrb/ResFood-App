@@ -92,12 +92,26 @@ fun ReviewScreen(
         }
     }
 
+    val reviewSubmissionState by viewModel.reviewSubmissionState.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(reviewSubmissionState) {
+        reviewSubmissionState?.let { result ->
+            if (result.isSuccess) {
+                android.widget.Toast.makeText(context, "Thêm đánh giá thành công", android.widget.Toast.LENGTH_SHORT).show()
+                showReviewDialog = false
+            } else {
+                android.widget.Toast.makeText(context, result.exceptionOrNull()?.message ?: "Lỗi khi gửi đánh giá", android.widget.Toast.LENGTH_LONG).show()
+            }
+            viewModel.resetReviewSubmissionState()
+        }
+    }
+
     if (showReviewDialog) {
         WriteReviewDialog(
             onDismiss = { showReviewDialog = false },
             onSubmit = { star, comment ->
                 viewModel.submitReview(comment, star)
-                showReviewDialog = false
             }
         )
     }

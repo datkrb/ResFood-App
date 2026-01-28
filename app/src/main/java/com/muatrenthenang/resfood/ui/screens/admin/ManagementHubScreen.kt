@@ -31,7 +31,8 @@ fun ManagementHubScreen(
     onNavigateToTables: () -> Unit,
     onNavigateToHome: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToReviews: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -108,10 +109,12 @@ fun ManagementHubScreen(
                     )
                 }
                 item {
-                    Spacer(modifier = Modifier.height(6.dp))
-                }
-                item {
-                    Spacer(modifier = Modifier.height(6.dp))
+                    ManagementHubItem(
+                        title = "Đánh giá",
+                        icon = Icons.Default.Star,
+                        color = Color(0xFFFFC107), // Amber
+                        onClick = onNavigateToReviews
+                    )
                 }
             }
 
