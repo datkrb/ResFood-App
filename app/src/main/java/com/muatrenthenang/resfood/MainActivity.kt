@@ -522,6 +522,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToTables = {
                                     navController.navigate("admin_tables")
+                                },
+                                onNavigateToNotifications = {
+                                    navController.navigate("notification_list")
                                 }
                             )
                         }
@@ -724,11 +727,16 @@ class MainActivity : ComponentActivity() {
 
 
                         composable("notification_list") {
+                            val userState by userViewModel.userState.collectAsState()
+                            
                             com.muatrenthenang.resfood.ui.screens.notification.NotificationListScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToDetail = { orderId -> 
-                                    // Assuming orders for now. Future: check type
-                                    navController.navigate("order_detail/$orderId") 
+                                    if (userState?.role == "admin") {
+                                        navController.navigate("admin_order_detail/$orderId")
+                                    } else {
+                                        navController.navigate("order_detail/$orderId")
+                                    }
                                 }
                             )
                         }

@@ -81,6 +81,7 @@ import androidx.compose.material3.IconButton
 @Composable
 fun AdminDashboardScreen(
     viewModel: AdminViewModel,
+    notificationViewModel: com.muatrenthenang.resfood.ui.viewmodel.NotificationViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onNavigateToFoodManagement: () -> Unit,
     onNavigateToMenu: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
@@ -88,10 +89,12 @@ fun AdminDashboardScreen(
     onNavigateToOrders: () -> Unit,
     onNavigateToCustomers: () -> Unit,
     onNavigateToPromo: () -> Unit,
-    onNavigateToTables: () -> Unit
+    onNavigateToTables: () -> Unit,
+    onNavigateToNotifications: () -> Unit
 ) {
     val state by viewModel.dashboardUiState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
@@ -120,7 +123,12 @@ fun AdminDashboardScreen(
                     .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(bottom = 20.dp)
             ) {
-                item { TopAppBarSection() }
+                item { 
+                    TopAppBarSection(
+                        unreadCount = unreadCount,
+                        onNotificationClick = onNavigateToNotifications
+                    ) 
+                }
                 item { TimeFilterSection(state.timeRange, viewModel::setTimeRange) }
                 item { StatsHeroSection(state, onNavigateToAnalytics, onNavigateToOrders) }
                 item { QuickActionsSection(onNavigateToFoodManagement, onNavigateToPromo, onNavigateToCustomers, onNavigateToTables) }
@@ -132,7 +140,10 @@ fun AdminDashboardScreen(
 }
 
 @Composable
-fun TopAppBarSection() {
+fun TopAppBarSection(
+    unreadCount: Int,
+    onNotificationClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,22 +181,25 @@ fun TopAppBarSection() {
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box {
+                Box(
+                    modifier = Modifier.clickable(onClick = onNotificationClick)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = "Notifications",
                         modifier = Modifier
                             .size(40.dp)
-                            .size(40.dp)
                             .padding(8.dp),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(Color.Red, CircleShape)
-                            .align(Alignment.TopEnd)
-                    )
+                    if (unreadCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(Color.Red, CircleShape)
+                                .align(Alignment.TopEnd)
+                        )
+                    }
                 }
             }
         }
@@ -628,6 +642,7 @@ fun AdminDashboardPreview() {
         onNavigateToCustomers = {},
         onNavigateToPromo = {},
         onNavigateToTables = {},
+        onNavigateToNotifications = {},
         viewModel = AdminViewModel()
     )
 }
