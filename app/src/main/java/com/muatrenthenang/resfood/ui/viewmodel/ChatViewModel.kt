@@ -57,6 +57,21 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
              repository.getChatById(chatId).onSuccess { chat ->
                  _currentChat.value = chat
+                 
+                 // Auto-fix: If name is "Admin", it's likely wrong (overwritten). Fetch real name.
+                 if (chat != null && (chat.customerName == "Admin" || chat.customerName == "Khách hàng")) {
+                     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                     db.collection("users").document(chat.customerId).get()
+                        .addOnSuccessListener { doc ->
+                            val realName = doc.getString("fullName")
+                            if (!realName.isNullOrEmpty() && realName != chat.customerName) {
+                                // Update DB
+                                db.collection("chats").document(chatId).update("customerName", realName)
+                                // Update UI
+                                _currentChat.value = chat.copy(customerName = realName)
+                            }
+                        }
+                 }
              }
         }
     }
