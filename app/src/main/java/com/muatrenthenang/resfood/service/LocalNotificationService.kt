@@ -61,6 +61,7 @@ class LocalNotificationService(private val context: Context) {
     }
 
     private val notificationRepository = com.muatrenthenang.resfood.data.repository.NotificationRepository()
+    private val settingsRepository = com.muatrenthenang.resfood.data.repository.SettingsRepository(context)
 
     // ... (rest of simple properties)
 
@@ -77,7 +78,10 @@ class LocalNotificationService(private val context: Context) {
                     if (dc.type == DocumentChange.Type.ADDED) {
                         try {
                             val order = dc.document.toObject(Order::class.java)
-                            NotificationHelper.showNewOrderNotification(context, order.id, order.total)
+                            
+                            if (settingsRepository.isNotificationsEnabled()) {
+                                NotificationHelper.showNewOrderNotification(context, order.id, order.total)
+                            }
                             
                             val notif = com.muatrenthenang.resfood.data.model.Notification(
                                 userId = auth.currentUser?.uid ?: "",
@@ -104,7 +108,7 @@ class LocalNotificationService(private val context: Context) {
                 for (dc in snapshots!!.documentChanges) {
                     if (dc.type == DocumentChange.Type.ADDED) {
                         try {
-                            // Use TableReservation to match Firestore data
+                            // Valid reservation found
                             val reservation = dc.document.toObject(com.muatrenthenang.resfood.data.model.TableReservation::class.java)
                             reservation.id = dc.document.id
                             
@@ -115,9 +119,12 @@ class LocalNotificationService(private val context: Context) {
                                 .addOnSuccessListener { userDoc ->
                                     val customerName = userDoc.getString("fullName") ?: "Khách hàng"
                                     
-                                    NotificationHelper.showNewReservationNotification(
-                                        context, reservation.id, customerName, timeStr
-                                    )
+                                    // Check settings before showing push notification
+                                    if (settingsRepository.isNotificationsEnabled()) {
+                                        NotificationHelper.showNewReservationNotification(
+                                            context, reservation.id, customerName, timeStr
+                                        )
+                                    }
                                     
                                     val notif = com.muatrenthenang.resfood.data.model.Notification(
                                         userId = auth.currentUser?.uid ?: "",
@@ -132,9 +139,11 @@ class LocalNotificationService(private val context: Context) {
                                 }
                                 .addOnFailureListener {
                                     // Fallback if user fetch fails
-                                    NotificationHelper.showNewReservationNotification(
-                                        context, reservation.id, "Khách hàng", timeStr
-                                    )
+                                    if (settingsRepository.isNotificationsEnabled()) {
+                                        NotificationHelper.showNewReservationNotification(
+                                            context, reservation.id, "Khách hàng", timeStr
+                                        )
+                                    }
                                 }
 
                         } catch (e: Exception) {
@@ -155,7 +164,10 @@ class LocalNotificationService(private val context: Context) {
                 for (dc in snapshots!!.documentChanges) {
                     if (dc.type == DocumentChange.Type.MODIFIED) {
                         val order = dc.document.toObject(Order::class.java)
-                        NotificationHelper.showOrderStatusNotification(context, order.id, order.status)
+                        
+                        if (settingsRepository.isNotificationsEnabled()) {
+                            NotificationHelper.showOrderStatusNotification(context, order.id, order.status)
+                        }
                         
                         val statusText = when(order.status) {
                             "PENDING" -> "Đang chờ duyệt"
@@ -192,7 +204,9 @@ class LocalNotificationService(private val context: Context) {
                         val reservation = dc.document.toObject(com.muatrenthenang.resfood.data.model.TableReservation::class.java)
                         reservation.id = dc.document.id
                         
-                        NotificationHelper.showReservationStatusNotification(context, reservation.id, reservation.status)
+                        if (settingsRepository.isNotificationsEnabled()) {
+                            NotificationHelper.showReservationStatusNotification(context, reservation.id, reservation.status)
+                        }
                         
                         val statusText = when(reservation.status) {
                             "CONFIRMED" -> "được xác nhận"

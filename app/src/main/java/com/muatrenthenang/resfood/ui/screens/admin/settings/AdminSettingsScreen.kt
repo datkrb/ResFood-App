@@ -44,11 +44,14 @@ fun AdminSettingsScreen(
     onNavigateToOrders: () -> Unit
 ) {
     // State
+    // State
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val settingsRepository = remember { com.muatrenthenang.resfood.data.repository.SettingsRepository(context) }
     var showProfileDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
+    var notificationsEnabled by remember { mutableStateOf(settingsRepository.isNotificationsEnabled()) }
     var darkModeEnabled by remember { mutableStateOf(true) } // Default for Admin
-    val context = androidx.compose.ui.platform.LocalContext.current
+    
 
     Scaffold(
         topBar = {
@@ -99,11 +102,17 @@ fun AdminSettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Notifications, 
                 title = "Thông báo", 
-                onClick = { notificationsEnabled = !notificationsEnabled },
+                onClick = { 
+                    notificationsEnabled = !notificationsEnabled 
+                    settingsRepository.setNotificationsEnabled(notificationsEnabled)
+                },
                 trailing = {
                     Switch(
                         checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it },
+                        onCheckedChange = { 
+                             notificationsEnabled = it
+                             settingsRepository.setNotificationsEnabled(it)
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor

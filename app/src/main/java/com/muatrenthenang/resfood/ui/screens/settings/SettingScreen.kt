@@ -40,6 +40,10 @@ fun SettingScreen(
     val user = userState ?: User(fullName = "Đang tải...", rank = "...") // Placeholder khi loading
     val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val settingsRepository = remember { com.muatrenthenang.resfood.data.repository.SettingsRepository(context) }
+    var notificationsEnabled by remember { mutableStateOf(settingsRepository.isNotificationsEnabled()) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -66,9 +70,16 @@ fun SettingScreen(
                 }
             )
 
-            // 3. Thông báo - Visual only
+            // 3. Thông báo
             SectionHeader(title = "THÔNG BÁO")
-            SettingToggleRow(title = "Thông báo đẩy", checked = false)
+            SettingToggleRow(
+                title = "Thông báo đẩy", 
+                checked = notificationsEnabled,
+                onCheckedChange = {
+                    notificationsEnabled = it
+                    settingsRepository.setNotificationsEnabled(it)
+                }
+            )
             SettingToggleRow(title = "Cập nhật đơn hàng", checked = true)
             SettingToggleRow(title = "Khuyến mãi & Ưu đãi", checked = false)
 
