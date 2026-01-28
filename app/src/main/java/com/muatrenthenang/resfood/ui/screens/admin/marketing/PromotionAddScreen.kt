@@ -67,6 +67,10 @@ fun PromotionAddScreen(
     var startDate by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.startDate?.toDate()?.time ?: System.currentTimeMillis()) }
     var endDate by remember(promotionToEdit) { mutableStateOf(promotionToEdit?.endDate?.toDate()?.time ?: (System.currentTimeMillis() + 86400000L * 7)) }
 
+    // Notification State
+    var sendNotification by remember { mutableStateOf(false) }
+    var notificationMessage by remember { mutableStateOf("") }
+
     val context = LocalContext.current
     val customers by viewModel.customers.collectAsState()
     
@@ -146,6 +150,25 @@ fun PromotionAddScreen(
             viewModel.addPromotion(newPromotion)
             Toast.makeText(context, "Đã tạo khuyến mãi mới", Toast.LENGTH_SHORT).show()
         }
+        
+        // Send Notification if requested
+        if (sendNotification && notificationMessage.isNotBlank()) {
+             if (isPublic) {
+                 viewModel.sendBroadcastNotification(
+                     title = "🎁 Khuyến mãi mới: $promoName",
+                     message = notificationMessage
+                 )
+             } else {
+                 if (assignedUserIds.isNotEmpty()) {
+                     viewModel.sendPromotionNotification(
+                         userIds = assignedUserIds,
+                         title = "🎁 Mã giảm giá riêng cho bạn: $promoName",
+                         message = notificationMessage
+                     )
+                 }
+             }
+        }
+
         onNavigateBack()
     }
     
@@ -337,6 +360,55 @@ fun PromotionAddScreen(
                 
                 TimeRow("KẾT THÚC", dateFormat.format(Date(endDate)), isRed = false) {
                     showDatePicker(endDate) { endDate = it }
+                }
+            }
+
+            // Notification Option
+            Card(
+                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f)),
+                 shape = RoundedCornerShape(12.dp),
+                 modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                         Column(modifier = Modifier.weight(1f)) {
+                                Text("Gửi thông báo", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                                Text("Gửi thông báo cho khách hàng", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
+                         }
+                         Switch(
+                            checked = sendNotification, 
+                            onCheckedChange = { sendNotification = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha=0.2f)
+                            )
+                         )
+                    }
+                    
+                    if (sendNotification) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        AdminTextField(
+                            value = notificationMessage,
+                            onValueChange = { notificationMessage = it },
+                            placeholder = "Nhập nội dung thông báo...",
+                            modifier = Modifier.height(120.dp),
+                            singleLine = false,
+                            minLines = 3
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if(isPublic) "Thông báo sẽ được gửi cho tất cả người dùng." else "Thông báo sẽ được gửi cho ${assignedUserIds.size} người được chọn.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
             
@@ -531,7 +603,9 @@ fun AdminTextField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    singleLine: Boolean = true,
+    minLines: Int = 1
 ) {
     OutlinedTextField(
         value = value,
@@ -540,7 +614,8 @@ fun AdminTextField(
         shape = RoundedCornerShape(12.dp),
         placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.6f)) },
         trailingIcon = trailingIcon,
-        singleLine = true
+        singleLine = singleLine,
+        minLines = minLines
     )
 }
 
