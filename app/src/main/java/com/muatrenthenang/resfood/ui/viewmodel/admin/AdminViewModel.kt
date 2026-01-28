@@ -13,6 +13,8 @@ import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.data.repository.TableRepository
+import com.muatrenthenang.resfood.data.model.Branch
+import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.repository.ReservationRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,7 +53,9 @@ data class FoodManagementUiState(
     val error: String? = null,
     val selectedCategory: String = "All",
     val selectedStatus: FoodStatus = FoodStatus.ALL,
-    val categories: List<String> = listOf("All")
+    val categories: List<String> = listOf("All"),
+    val branches: List<Branch> = emptyList(),
+    val selectedBranch: Branch? = null
 )
 
 enum class FoodStatus(val displayName: String) {
@@ -86,7 +90,8 @@ class AdminViewModel(
     private val orderRepository: OrderRepository = OrderRepository(),
     private val userRepository: UserRepository = UserRepository(),
     private val promotionRepository: PromotionRepository = PromotionRepository(),
-    private val tableRepository: TableRepository = TableRepository()
+    private val tableRepository: TableRepository = TableRepository(),
+    private val branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
 
     private val _dashboardUiState = MutableStateFlow(DashboardUiState())
@@ -143,12 +148,14 @@ class AdminViewModel(
         val jobCustomers = viewModelScope.async { loadCustomers() }
         val jobPromotions = viewModelScope.async { loadPromotions() }
         val jobTables = viewModelScope.async { loadTables() }
+        val jobBranches = viewModelScope.async { loadBranches() }
         
         // Wait for all to complete
         jobFoods.await()
         jobCustomers.await()
         jobPromotions.await()
         jobTables.await()
+        jobBranches.await()
         
         _isLoading.value = false
     }
@@ -212,6 +219,12 @@ class AdminViewModel(
             }
         }.onFailure {
             _tables.value = emptyList()
+        }
+    }
+
+    private suspend fun loadBranches() {
+        branchRepository.getBranches().onSuccess { loadedBranches ->
+            _foodManagementUiState.value = _foodManagementUiState.value.copy(branches = loadedBranches)
         }
     }
 
@@ -385,6 +398,11 @@ class AdminViewModel(
         updateFilteredFoods()
     }
 
+    fun setBranchFilter(branch: Branch?) {
+        _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedBranch = branch)
+        updateFilteredFoods()
+    }
+
     fun setStatusFilter(status: FoodStatus) {
         _foodManagementUiState.value = _foodManagementUiState.value.copy(selectedStatus = status)
         updateFilteredFoods()
@@ -399,7 +417,12 @@ class AdminViewModel(
                 FoodStatus.AVAILABLE -> food.isAvailable
                 FoodStatus.OUT_OF_STOCK -> !food.isAvailable
             }
-            matchesCategory && matchesStatus
+            // Branch filtering: if a branch is selected, food must be in branch.foodIds
+            val matchesBranch = state.selectedBranch?.let { branch ->
+                branch.foodIds.contains(food.id)
+            } ?: true
+            
+            matchesCategory && matchesStatus && matchesBranch
         }
         _foodManagementUiState.value = _foodManagementUiState.value.copy(filteredFoods = filtered)
     }
@@ -407,7 +430,18 @@ class AdminViewModel(
     fun deleteFood(foodId: String) {
          viewModelScope.launch {
             foodRepository.deleteFood(foodId).onSuccess {
+                // Remove foodId from any branch that contains it
+                branchRepository.getBranches().onSuccess { branches ->
+                    branches.forEach { branch ->
+                        if (branch.foodIds.contains(foodId)) {
+                             val updatedBranch = branch.copy(foodIds = branch.foodIds - foodId)
+                             branchRepository.updateBranch(updatedBranch)
+                        }
+                    }
+                }
+                
                 loadFoods()
+                loadBranches()
             }
         }
     }

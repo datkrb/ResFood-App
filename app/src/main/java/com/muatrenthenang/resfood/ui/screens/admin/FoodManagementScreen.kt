@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -67,6 +68,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodManagementScreen(
@@ -82,6 +87,14 @@ fun FoodManagementScreen(
     val state by viewModel.foodManagementUiState.collectAsState()
     val filteredFoods = state.filteredFoods
     val pullRefreshState = rememberPullToRefreshState()
+    
+    // Delete Confirmation State
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var foodToDelete by remember { mutableStateOf<Food?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
 
     // Theme colors
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -179,8 +192,59 @@ fun FoodManagementScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                 // Branch Filter
+                 Box(modifier = Modifier.weight(1f)) {
+                     var expanded by remember { mutableStateOf(false) }
+                     ExposedDropdownMenuBox(
+                         expanded = expanded,
+                         onExpandedChange = { expanded = !expanded }
+                     ) {
+                         OutlinedTextField(
+                             value = state.selectedBranch?.name ?: "Tất cả",
+                             onValueChange = {},
+                             readOnly = true,
+                             label = { Text("Chi nhánh", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                             modifier = Modifier.menuAnchor().fillMaxWidth(),
+                             colors = OutlinedTextFieldDefaults.colors(
+                                 focusedContainerColor = cardColor,
+                                 unfocusedContainerColor = cardColor,
+                                 focusedBorderColor = Color.Transparent,
+                                 unfocusedBorderColor = Color.Transparent,
+                                 focusedLabelColor = primaryColor,
+                                 unfocusedLabelColor = Color.Gray
+                             ),
+                             singleLine = true
+                         )
+                         ExposedDropdownMenu(
+                             expanded = expanded,
+                             onDismissRequest = { expanded = false },
+                             modifier = Modifier.background(cardColor)
+                         ) {
+                             DropdownMenuItem(
+                                 text = { Text("Tất cả", color = MaterialTheme.colorScheme.onSurface) },
+                                 onClick = {
+                                     viewModel.setBranchFilter(null)
+                                     expanded = false
+                                 },
+                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                             )
+                             state.branches.forEach { branch ->
+                                 DropdownMenuItem(
+                                     text = { Text(branch.name, color = MaterialTheme.colorScheme.onSurface) },
+                                     onClick = {
+                                         viewModel.setBranchFilter(branch)
+                                         expanded = false
+                                     },
+                                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                 )
+                             }
+                         }
+                     }
+                 }
+
                  // Category Filter
                  Box(modifier = Modifier.weight(1f)) {
                      var expanded by remember { mutableStateOf(false) }
@@ -192,7 +256,7 @@ fun FoodManagementScreen(
                              value = if(state.selectedCategory == "All") "Tất cả" else state.selectedCategory,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Danh mục") },
+                             label = { Text("Danh mục", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -202,7 +266,8 @@ fun FoodManagementScreen(
                                  unfocusedBorderColor = Color.Transparent,
                                  focusedLabelColor = primaryColor,
                                  unfocusedLabelColor = Color.Gray
-                             )
+                             ),
+                             singleLine = true
                          )
                          ExposedDropdownMenu(
                              expanded = expanded,
@@ -234,7 +299,7 @@ fun FoodManagementScreen(
                              value = state.selectedStatus.displayName,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Trạng thái") },
+                             label = { Text("Trạng thái", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -244,7 +309,8 @@ fun FoodManagementScreen(
                                  unfocusedBorderColor = Color.Transparent,
                                  focusedLabelColor = primaryColor,
                                  unfocusedLabelColor = Color.Gray
-                             )
+                             ),
+                             singleLine = true
                          )
                          ExposedDropdownMenu(
                              expanded = expanded,
@@ -285,7 +351,11 @@ fun FoodManagementScreen(
                         food = food,
                         cardColor = cardColor,
                         primaryColor = primaryColor,
-                        onEditClick = { onNavigateToEdit(food.id) }
+                        onEditClick = { onNavigateToEdit(food.id) },
+                        onDeleteClick = {
+                            foodToDelete = food
+                            showDeleteDialog = true
+                        }
                     )
                 }
             }
@@ -304,6 +374,41 @@ fun FoodManagementScreen(
             }
         }
     } // End PullToRefreshBox
+    
+    // Delete Confirmation Dialog
+    if (showDeleteDialog && foodToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteDialog = false
+                foodToDelete = null
+            },
+            title = { Text(text = "Xác nhận xóa") },
+            text = { Text(text = "Bạn có chắc chắn muốn xóa món '${foodToDelete?.name}' không?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        foodToDelete?.let { food ->
+                            viewModel.deleteFood(food.id)
+                        }
+                        showDeleteDialog = false
+                        foodToDelete = null
+                    }
+                ) {
+                    Text("Xóa", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        foodToDelete = null
+                    }
+                ) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
     } // End Scaffold
 } // End Screen
 
@@ -331,7 +436,8 @@ fun FoodItemCard(
     food: Food,
     cardColor: Color,
     primaryColor: Color,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -396,9 +502,16 @@ fun FoodItemCard(
             )
         }
         
-        // Edit Button
-        IconButton(onClick = onEditClick) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column {
+            // Edit Button
+            IconButton(onClick = onEditClick) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            
+            // Delete Button
+            IconButton(onClick = onDeleteClick) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+            }
         }
     }
 }
