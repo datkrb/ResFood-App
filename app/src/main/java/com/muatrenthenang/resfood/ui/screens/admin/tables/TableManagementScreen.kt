@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import com.muatrenthenang.resfood.data.model.Reservation
+import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import androidx.compose.runtime.getValue
@@ -63,9 +63,9 @@ fun TableManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
@@ -80,14 +80,14 @@ fun TableManagementScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
         },
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             // Tabs
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.   tabIndicatorOffset(tabPositions[selectedTab]),
@@ -138,7 +138,7 @@ fun TableManagementScreen(
                 // Reservation View
                 if (reservations.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Chưa có đặt bàn nào", color = Color.Gray)
+                        Text("Chưa có đặt bàn nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -198,7 +198,8 @@ fun StatusLegend(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(4.dp)))
         Spacer(modifier = Modifier.width(8.dp))
-        Text(label, color = Color.Gray, fontSize = 12.sp)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
     }
 }
 
@@ -229,8 +230,8 @@ fun TableItem(table: Table, onClick: () -> Unit) {
         ) {
             Icon(Icons.Default.TableRestaurant, contentDescription = null, tint = contentColor, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(table.name, color = Color.White, fontWeight = FontWeight.Bold)
-            Text("${table.seats} ghế", color = Color.Gray, fontSize = 12.sp)
+            Text(table.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+            Text("${table.seats} ghế", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Box(
                 modifier = Modifier.background(bgColor, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)
@@ -321,7 +322,7 @@ fun TableEditDialog(
 }
 
 @Composable
-fun ReservationItem(reservation: Reservation) {
+fun ReservationItem(reservation: TableReservation) {
     Card(
         colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
         shape = RoundedCornerShape(12.dp),
@@ -333,19 +334,19 @@ fun ReservationItem(reservation: Reservation) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(reservation.customerName, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
-                Text(reservation.phoneNumber, color = Color.Gray, fontSize = 14.sp)
+                Text("User: ${reservation.userId.take(8)}...", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                // Phone number not directly in TableReservation, maybe show guest count or branch?
                 if (reservation.note.isNotEmpty()) {
-                    Text("Note: ${reservation.note}", color = Color.Gray, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                    Text("Note: ${reservation.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("Bàn: ${if(reservation.tableName.isNotEmpty()) reservation.tableName else "Chưa gán"}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                Text("${reservation.guestCount} khách", color = Color.Gray, fontSize = 12.sp)
-                val date = reservation.time?.toDate()
+                Text("Bàn: ${if(reservation.branchName.isNotEmpty()) reservation.branchName else "Chưa gán"}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text("${reservation.getTotalGuests()} khách", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                val date = reservation.timeSlot.toDate()
                 if (date != null) {
                     val format = SimpleDateFormat("HH:mm dd/MM", Locale.getDefault())
-                    Text(format.format(date), color = Color.White, fontSize = 12.sp)
+                    Text(format.format(date), color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
                 }
             }
         }
@@ -357,7 +358,7 @@ fun ReservationItem(reservation: Reservation) {
 fun ReservationDialog(
     tables: List<Table>,
     onDismiss: () -> Unit,
-    onSave: (Reservation) -> Unit
+    onSave: (TableReservation) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -420,14 +421,17 @@ fun ReservationDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val res = Reservation(
-                        customerName = name,
-                        phoneNumber = phone,
-                        guestCount = guests.toIntOrNull() ?: 1,
-                        note = note,
-                        tableId = selectedTable?.id ?: "",
-                        tableName = selectedTable?.name ?: "",
-                        time = com.google.firebase.Timestamp.now()
+                    val res = TableReservation(
+                        // TableReservation doesn't have customerName/phone, likely handled via User ID or external logic.
+                        // For Admin creating, we might need a workaround or just set basic info.
+                        // Since this is Admin side, maybe we just use note for name/phone for now?
+                        userId = "ADMIN_CREATED", // Placeholder
+                        branchId = "DEFAULT_BRANCH",
+                        branchName = selectedTable?.name ?: "",
+                        guestCountAdult = guests.toIntOrNull() ?: 1,
+                        guestCountChild = 0,
+                        note = "Admin: $name - $phone. $note",
+                        timeSlot = com.google.firebase.Timestamp.now()
                     )
                     onSave(res)
                 },

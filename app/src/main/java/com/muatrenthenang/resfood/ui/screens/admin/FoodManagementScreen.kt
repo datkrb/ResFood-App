@@ -83,10 +83,10 @@ fun FoodManagementScreen(
     val filteredFoods = state.filteredFoods
     val pullRefreshState = rememberPullToRefreshState()
 
-    // Dark theme colors from Theme
-    val backgroundColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
-    val cardColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard
-    val primaryColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+    // Theme colors
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val cardColor = MaterialTheme.colorScheme.surface
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     // Group foods logic can be added here if needed
 
@@ -97,12 +97,12 @@ fun FoodManagementScreen(
                     Text(
                         "Quản lý món ăn",
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
@@ -159,8 +159,8 @@ fun FoodManagementScreen(
             OutlinedTextField(
                 value = "",
                 onValueChange = {},
-                placeholder = { Text("Tìm kiếm món ăn...", color = Color.Gray) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+                placeholder = { Text("Tìm kiếm món ăn...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
@@ -211,7 +211,7 @@ fun FoodManagementScreen(
                          ) {
                              state.categories.forEach { category ->
                                  DropdownMenuItem(
-                                     text = { Text(if(category == "All") "Tất cả" else category, color = Color.White) },
+                                     text = { Text(if(category == "All") "Tất cả" else category, color = MaterialTheme.colorScheme.onSurface) },
                                      onClick = {
                                          viewModel.setCategoryFilter(category)
                                          expanded = false
@@ -253,7 +253,7 @@ fun FoodManagementScreen(
                          ) {
                              FoodStatus.values().forEach { status ->
                                  DropdownMenuItem(
-                                     text = { Text(status.displayName, color = Color.White) },
+                                     text = { Text(status.displayName, color = MaterialTheme.colorScheme.onSurface) },
                                      onClick = {
                                          viewModel.setStatusFilter(status)
                                          expanded = false
@@ -273,7 +273,7 @@ fun FoodManagementScreen(
                 item {
                     Text(
                         "DANH SÁCH MÓN ĂN",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -320,7 +320,7 @@ fun FilterChip(text: String, isSelected: Boolean, primaryColor: Color, onClick: 
     ) {
         Text(
             text = text,
-            color = if (isSelected) Color.White else Color.LightGray,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
     }
@@ -376,13 +376,13 @@ fun FoodItemCard(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = food.name,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
             Text(
                 text = food.description.ifEmpty { "Không có mô tả" },
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -398,7 +398,7 @@ fun FoodItemCard(
         
         // Edit Button
         IconButton(onClick = onEditClick) {
-            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.Gray)
+            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

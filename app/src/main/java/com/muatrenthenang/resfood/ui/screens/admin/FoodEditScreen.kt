@@ -84,18 +84,18 @@ fun FoodEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditMode) "Cập nhật món ăn" else "Thêm món ăn mới", color = Color.White) },
+                title = { Text(if (isEditMode) "Cập nhật món ăn" else "Thêm món ăn mới", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -110,13 +110,13 @@ fun FoodEditScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 val textFieldColors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                    focusedLabelColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                    unfocusedLabelColor = Color.Gray,
-                    focusedBorderColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor,
-                    unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = com.muatrenthenang.resfood.ui.theme.PrimaryColor
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
 
                 OutlinedTextField(
@@ -159,7 +159,7 @@ fun FoodEditScreen(
                 // Image Preview
                 if (imageUrl.isNotBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Xem trước ảnh:", style = MaterialTheme.typography.labelMedium, color = Color.White)
+                    Text("Xem trước ảnh:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground)
                     Spacer(modifier = Modifier.height(8.dp))
                     coil.compose.AsyncImage(
                         model = imageUrl,
@@ -175,7 +175,7 @@ fun FoodEditScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Đang bán", modifier = Modifier.weight(1f), color = Color.White)
+                    Text("Đang bán", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onBackground)
                     Switch(checked = isAvailable, onCheckedChange = { isAvailable = it })
                 }
                 Spacer(modifier = Modifier.height(24.dp))

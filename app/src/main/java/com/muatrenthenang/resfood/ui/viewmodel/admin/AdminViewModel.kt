@@ -10,7 +10,7 @@ import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
 import com.muatrenthenang.resfood.data.model.Promotion
-import com.muatrenthenang.resfood.data.model.Reservation
+import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.data.model.Table
 import com.muatrenthenang.resfood.data.repository.TableRepository
 import com.muatrenthenang.resfood.data.repository.ReservationRepository
@@ -468,8 +468,8 @@ class AdminViewModel(
     }
     
     // Reservations
-    private val _reservations = MutableStateFlow<List<Reservation>>(emptyList())
-    val reservations: StateFlow<List<Reservation>> = _reservations.asStateFlow()
+    private val _reservations = MutableStateFlow<List<TableReservation>>(emptyList())
+    val reservations: StateFlow<List<TableReservation>> = _reservations.asStateFlow()
     private val reservationRepository = ReservationRepository()
     
     fun loadReservations() {
@@ -481,7 +481,7 @@ class AdminViewModel(
         }
     }
     
-    fun addReservation(reservation: Reservation) {
+    fun addReservation(reservation: TableReservation) {
         viewModelScope.launch {
             reservationRepository.createReservation(reservation)
             loadReservations()

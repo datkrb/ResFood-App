@@ -36,9 +36,9 @@ fun ManagementHubScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Trung tâm quản lý", fontWeight = FontWeight.Bold, color = Color.White) },
+                title = { Text("Trung tâm quản lý", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
         },
@@ -52,7 +52,7 @@ fun ManagementHubScreen(
                 onFabClick = onNavigateToOrders
             )
         },
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -65,7 +65,7 @@ fun ManagementHubScreen(
             Text(
                 text = "Quản lý dữ liệu",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
             )
             
@@ -115,7 +115,7 @@ fun ManagementHubScreen(
             Text(
                 text = "Vận hành",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
             )
 
@@ -152,7 +152,7 @@ fun ManagementHubItem(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth().height(100.dp)
@@ -180,7 +180,7 @@ fun ManagementHubItem(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -197,7 +197,7 @@ fun ManagementHubLargeItem(
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = modifier.height(140.dp)
@@ -225,7 +225,7 @@ fun ManagementHubLargeItem(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

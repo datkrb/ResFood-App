@@ -117,7 +117,7 @@ fun AdminDashboardScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker),
+                    .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(bottom = 20.dp)
             ) {
                 item { TopAppBarSection() }
@@ -137,7 +137,7 @@ fun TopAppBarSection() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(com.muatrenthenang.resfood.ui.theme.SurfaceDarker)
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = 8.dp)
     ) {
         Row(
@@ -160,7 +160,7 @@ fun TopAppBarSection() {
                     Text(
                         text = "WELCOME BACK",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "Admin User",
@@ -176,7 +176,9 @@ fun TopAppBarSection() {
                         contentDescription = "Notifications",
                         modifier = Modifier
                             .size(40.dp)
-                            .padding(8.dp)
+                            .size(40.dp)
+                            .padding(8.dp),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                     Box(
                         modifier = Modifier
@@ -203,7 +205,7 @@ fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) 
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .height(48.dp)
-            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -225,7 +227,7 @@ fun TimeFilterButton(text: String, isSelected: Boolean, modifier: Modifier = Mod
     ) {
         Text(
             text = text,
-            color = if (isSelected) Color.White else Color.Gray,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
             fontSize = 12.sp,
             maxLines = 1,
@@ -252,7 +254,7 @@ fun StatsHeroSection(
                 .weight(1f)
                 .height(140.dp)
                 .clickable { onNavigateToAnalytics() },
-            colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
@@ -303,7 +305,7 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "Total Revenue", color = Color.Gray, fontSize = 12.sp)
+                    Text(text = "Total Revenue", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     Text(
                         text = "$${state.totalRevenue}",
                         fontWeight = FontWeight.Bold,
@@ -335,13 +337,13 @@ fun StatsHeroSection(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.ShoppingBag,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                     Box(
@@ -354,12 +356,12 @@ fun StatsHeroSection(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
                                 text = "${state.newOrdersCount} New",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -367,12 +369,12 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "New Orders", color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                    Text(text = "New Orders", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
                     Text(
                         text = "${state.newOrders}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -455,7 +457,7 @@ fun QuickActionButton(icon: ImageVector, label: String, color: Color, onClick: (
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -517,7 +519,7 @@ fun OperationsStatusSection(
 fun OperationCard(modifier: Modifier = Modifier, icon: ImageVector, color: Color, title: String, subtitle: String) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -539,8 +541,8 @@ fun OperationCard(modifier: Modifier = Modifier, icon: ImageVector, color: Color
                 )
             }
             Column {
-                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -575,7 +577,7 @@ fun RecentActivitySection(activities: List<ActivityItem>) {
 @Composable
 fun ActivityItemRow(item: ActivityItem) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -604,10 +606,10 @@ fun ActivityItemRow(item: ActivityItem) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text(text = item.subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(text = item.title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(text = item.value, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(text = item.value, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

@@ -77,6 +77,25 @@ class ReservationRepository {
         }
     }
 
+    suspend fun getReservationsByDate(startTime: Long, endTime: Long): Result<List<TableReservation>> {
+        return try {
+            var query = reservationsRef.orderBy("time_slot")
+            
+            if (startTime > 0 && endTime > 0) {
+                 val start = Timestamp(startTime / 1000, 0)
+                 val end = Timestamp(endTime / 1000, 0)
+                 query = query.whereGreaterThanOrEqualTo("time_slot", start)
+                              .whereLessThanOrEqualTo("time_slot", end)
+            }
+            
+            val snapshot = query.get().await()
+            val list = snapshot.documents.mapNotNull { it.toObject(TableReservation::class.java) }
+            Result.success(list)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun cancelReservation(reservationId: String): Result<Boolean> {
         return try {
             reservationsRef.document(reservationId)

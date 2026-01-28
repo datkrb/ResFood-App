@@ -95,14 +95,14 @@ fun OrderManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker, // Dark bg match dashboard
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
         },
-        containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceDarker
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         PullToRefreshBox(
             isRefreshing = isLoading,
@@ -140,15 +140,15 @@ fun OrderManagementScreen(
                        horizontalArrangement = Arrangement.SpaceBetween,
                        verticalAlignment = Alignment.CenterVertically
                    ) {
-                       Text("Đơn mới cần xử lý", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                       Text("${filteredOrders.size} Đơn", color = Color(0xFFFF5252), fontWeight = FontWeight.Bold)
+                       Text("Đơn mới cần xử lý", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                       Text("${filteredOrders.size} Đơn", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                    }
                 }
 
                 if (filteredOrders.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("Không có đơn hàng nào", color = Color.Gray)
+                            Text("Không có đơn hàng nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -174,11 +174,11 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
             .fillMaxWidth()
             .padding(16.dp)
             .height(50.dp)
-            .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+        Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(8.dp))
         // Replaced custom text with standard BasicTextField or TextField for input
         // Since original was custom, let's use transparent TextField
@@ -186,11 +186,11 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
             value = query,
             onValueChange = onQueryChange,
             singleLine = true,
-            textStyle = LocalTextStyle.current.copy(color = Color.White),
+            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
             modifier = Modifier.weight(1f),
             decorationBox = { innerTextField ->
                 if (query.isEmpty()) {
-                    Text("Tìm mã đơn, tên khách, SĐT...", color = Color.Gray)
+                    Text("Tìm mã đơn, tên khách, SĐT...", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 innerTextField()
             }
@@ -209,8 +209,8 @@ fun FilterTabs(selected: String, onSelect: (String) -> Unit) {
     ) {
         filters.forEach { filter ->
             val isSelected = filter == selected
-            val bgColor = if (isSelected) PrimaryColor else SurfaceCard
-            val textColor = if (isSelected) Color.White else Color.Gray // TextDark/Light logic could be applied but white/gray is safe on dark
+            val bgColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+            val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -235,9 +235,9 @@ fun DateFilterTabs(selected: String, onSelect: (String) -> Unit) {
     ) {
         filters.forEach { filter ->
             val isSelected = filter == selected
-            val bgColor = if (isSelected) SurfaceCard.copy(alpha=0.5f) else Color.Transparent
-            val borderColor = if (isSelected) PrimaryColor else Color.Gray
-            val textColor = if (isSelected) PrimaryColor else Color.Gray
+            val bgColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha=0.5f) else Color.Transparent
+            val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            val textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             
             Box(
                 modifier = Modifier
@@ -256,7 +256,7 @@ fun DateFilterTabs(selected: String, onSelect: (String) -> Unit) {
 @Composable
 fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.clickable { onClick() }
     ) {
@@ -273,17 +273,17 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(order.userName.ifEmpty { "Khách lẻ" }, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(order.userName.ifEmpty { "Khách lẻ" }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         val date = if(order.createdAt != null) {
                              java.text.SimpleDateFormat("HH:mm").format(order.createdAt.toDate())
                         } else "Vừa xong"
-                        Text(date + " • #" + order.id.takeLast(6).uppercase(), color = Color.Gray, fontSize = 12.sp)
+                        Text(date + " • #" + order.id.takeLast(6).uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
                 
                 // Status Badge
                 val (badgeBg, badgeText) = when(order.status) {
-                    "PENDING" -> PrimaryColor.copy(alpha = 0.2f) to PrimaryColor
+                    "PENDING" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) to MaterialTheme.colorScheme.primary
                     "PROCESSING" -> AccentOrange.copy(alpha = 0.2f) to AccentOrange
                     "COMPLETED" -> SuccessGreen.copy(alpha = 0.2f) to SuccessGreen
                     "REJECTED", "CANCELLED" -> LightRed.copy(alpha = 0.2f) to LightRed
@@ -314,10 +314,10 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
 
             // Items - Assuming all are food items for now
             order.items.take(2).forEach { item ->
-                Text("${item.quantity}x ${item.foodName}", color = Color.LightGray, fontSize = 14.sp)
+                Text("${item.quantity}x ${item.foodName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
             }
             if(order.items.size > 2) {
-                Text("+ ${order.items.size - 2} món khác", color = Color.Gray, fontSize = 12.sp)
+                Text("+ ${order.items.size - 2} món khác", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -329,8 +329,8 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Tổng tiền", color = Color.Gray, fontSize = 12.sp)
-                    Text("${order.total}đ", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Tổng tiền", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text("${order.total}đ", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 if (order.status == "PENDING") {
@@ -340,17 +340,17 @@ fun OrderItem(order: Order, onClick: () -> Unit, onAccept: () -> Unit, onReject:
                            modifier = Modifier
                                .size(40.dp)
                                .clip(CircleShape)
-                               .background(Color.White.copy(alpha = 0.1f))
+                               .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                .clickable { onReject() },
                            contentAlignment = Alignment.Center
                        ) {
-                           Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.LightGray)
+                           Icon(Icons.Default.Close, contentDescription = "Reject", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                        }
                        
                        // Approve Button
                        Button(
                            onClick = onAccept,
-                           colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)),
+                           colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                            shape = RoundedCornerShape(20.dp)
                        ) {
                            Text("Duyệt")
