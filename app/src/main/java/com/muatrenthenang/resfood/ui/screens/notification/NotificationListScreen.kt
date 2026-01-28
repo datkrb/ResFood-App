@@ -31,7 +31,7 @@ import java.text.SimpleDateFormat // Consider using a better date formatter if a
 @Composable
 fun NotificationListScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToDetail: (String) -> Unit
+    onNavigateToDetail: (Notification) -> Unit
 ) {
     val viewModel: NotificationViewModel = viewModel()
     val notifications by viewModel.notifications.collectAsState()
@@ -85,7 +85,7 @@ fun NotificationListScreen(
                         onClick = {
                             viewModel.markAsRead(notification.id)
                             if (notification.referenceId.isNotEmpty()) {
-                                onNavigateToDetail(notification.referenceId)
+                                onNavigateToDetail(notification)
                             }
                         }
                     )

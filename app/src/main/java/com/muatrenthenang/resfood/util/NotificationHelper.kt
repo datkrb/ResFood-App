@@ -110,6 +110,74 @@ object NotificationHelper {
         }
     }
     
+    fun showNewReservationNotification(context: Context, reservationId: String, customerName: String, time: String) {
+        if (!hasPermission(context)) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("navigate_to", "reservation_detail")
+            putExtra("reservation_id", reservationId)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(context, ADMIN_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Đặt bàn mới!")
+            .setContentText("$customerName đặt bàn lúc $time")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 500))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        try {
+            NotificationManagerCompat.from(context).notify(RESERVATION_NOTIFICATION_ID + reservationId.hashCode(), builder.build())
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun showReservationStatusNotification(context: Context, reservationId: String, status: String) {
+        if (!hasPermission(context)) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("navigate_to", "reservation_detail")
+            putExtra("reservation_id", reservationId)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val statusText = when(status) {
+            "CONFIRMED" -> "được xác nhận"
+            "CANCELLED" -> "đã hủy"
+            "COMPLETED" -> "hoàn thành"
+            "REJECTED" -> "bị từ chối"
+            else -> status
+        }
+
+        val builder = NotificationCompat.Builder(context, CUSTOMER_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Cập nhật đặt bàn")
+            .setContentText("Lịch đặt bàn của bạn đã $statusText")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 500))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        try {
+            NotificationManagerCompat.from(context).notify(RESERVATION_NOTIFICATION_ID + reservationId.hashCode(), builder.build())
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
+    
     private fun hasPermission(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
              if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
