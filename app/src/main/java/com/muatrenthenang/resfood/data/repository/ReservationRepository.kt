@@ -76,4 +76,15 @@ class ReservationRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun cancelReservation(reservationId: String): Result<Boolean> {
+        return try {
+            reservationsRef.document(reservationId)
+                .update("status", "CANCELLED")
+                .await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
