@@ -620,7 +620,7 @@ class MainActivity : ComponentActivity() {
                                         popUpTo("admin_dashboard") { inclusive = true }
                                     }
                                 },
-                                onNavigateToMenu = { navController.navigate("admin_food_management") },
+                                onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToSettings = { navController.navigate("admin_settings") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") }
                             )

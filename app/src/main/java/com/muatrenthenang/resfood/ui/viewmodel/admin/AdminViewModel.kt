@@ -114,10 +114,13 @@ class AdminViewModel(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
+        // Run seeding in background - don't block UI data loading
+        // viewModelScope.launch {
+        //     com.muatrenthenang.resfood.data.DataSeeder().seedAll()
+        // }
+        
+        // Load UI data immediately without waiting for seeding
         viewModelScope.launch {
-            // Auto-seed data if collections are empty (User requested)
-            com.muatrenthenang.resfood.data.DataSeeder().seedAll()
-            
             loadOrders()
             // Initialize analytics with TODAY filter
             setAnalyticsFilter(AnalyticsFilterType.TODAY)
@@ -409,15 +412,24 @@ class AdminViewModel(
         }
     }
     
-    fun approveOrder(orderId: String) {
+    fun approveOrder(orderId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             orderRepository.updateOrderStatus(orderId, "PROCESSING")
+            onSuccess()
         }
     }
 
-    fun rejectOrder(orderId: String) {
+    fun rejectOrder(orderId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             orderRepository.updateOrderStatus(orderId, "REJECTED")
+            onSuccess()
+        }
+    }
+
+    fun startDelivery(orderId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            orderRepository.updateOrderStatus(orderId, "DELIVERING")
+            onSuccess()
         }
     }
 
