@@ -222,8 +222,8 @@ private fun ProfileHeaderCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 16.dp),
-
+            modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 16.dp)
+            .clickable { onEditProfileClick() }
         ) {
             // Avatar with border - clickable to edit profile
             Box(
@@ -233,14 +233,31 @@ private fun ProfileHeaderCard(
                     .padding(4.dp)
                     .clickable { onEditProfileClick() }
             ) {
-                AsyncImage(
-                    model = user?.avatarUrl ?: "https://i.pravatar.cc/150?img=3", // Default avatar if null
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                if (user?.avatarUrl.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Avatar",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                } else {
+                    AsyncImage(
+                        model = user.avatarUrl,
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -253,7 +270,6 @@ private fun ProfileHeaderCard(
                     text = user?.fullName ?: "Đang tải...",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onEditProfileClick() }
                 )
 
                 Row(

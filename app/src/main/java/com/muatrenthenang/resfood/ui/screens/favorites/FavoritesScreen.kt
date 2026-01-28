@@ -129,29 +129,7 @@ fun FavoritesScreen(
                 .padding(paddingValues)
                 .padding(bottom = paddingValuesFromParent.calculateBottomPadding())) {
 
-                // Search bar (sticky mimic: placed at top of scroll content)
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    OutlinedTextField(
-                        value = state.searchQuery,
-                        onValueChange = {newText ->
-                            vm.onSearchTextChanged(newText)
-                        },
-                        placeholder = { Text("Tìm kiếm món ăn...", color = Color.Gray) },
-                        leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.outline,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                        )
-                    )
-                }
+
 
                 // Content list
                 if (items.isEmpty()) {
@@ -199,7 +177,7 @@ fun FavoritesScreen(
                                                 Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
                                                     Spacer(modifier = Modifier.width(6.dp))
-                                                    Text(text = "${food.rating}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                                    Text(text = String.format("%.1f", food.rating), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                                                 }
                                             }
                                             Spacer(modifier = Modifier.width(8.dp))

@@ -29,8 +29,27 @@ class CheckoutRepository {
                 val note = doc.getString("note")
                 val foodDoc = db.collection("foods").document(foodId).get().await()
                 val food = foodDoc.toObject(Food::class.java)?.copy(id = foodId)
+                val toppingsList = doc.get("toppings") as? List<HashMap<String, Any>> ?: emptyList()
+                val toppings = toppingsList.mapNotNull {
+                    try {
+                        com.muatrenthenang.resfood.data.model.Topping(
+                            id = it["id"] as? String ?: "",
+                            name = it["name"] as? String ?: "",
+                            price = (it["price"] as? Long)?.toInt() ?: 0,
+                            imageUrl = it["imageUrl"] as? String ?: ""
+                        )
+                    } catch (e: Exception) { null }
+                }
+
                 if (food != null) {
-                    items.add(CartItem(food, quantity, isSelected, note))
+                    items.add(CartItem(
+                        id = doc.id,
+                        food = food,
+                        quantity = quantity,
+                        isSelected = isSelected,
+                        note = note,
+                        toppings = toppings
+                    ))
                 }
             }
             Result.success(items)

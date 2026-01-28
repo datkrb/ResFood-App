@@ -1,6 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.home.header
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,7 +23,8 @@ import com.muatrenthenang.resfood.ui.screens.home.header.components.TagRanking
 fun HeaderSection(
     user: User?,
     unreadCount: Int = 0,
-    onNotificationClick: () -> Unit = {}
+    onNotificationClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -32,7 +34,8 @@ fun HeaderSection(
     ) {
         // avatar cua user
         Avatar(
-            imageUrl = user?.avatarUrl
+            imageUrl = user?.avatarUrl,
+            modifier = Modifier.clickable { onProfileClick() }
         )
 
         // cum thong tin user
@@ -40,6 +43,7 @@ fun HeaderSection(
             modifier = Modifier
                 .padding(start = 12.dp)
                 .weight(1f)
+                .clickable { onProfileClick() }
         ) {
             TagRanking(rank = user?.rank, point = user?.points) // ranking
 
