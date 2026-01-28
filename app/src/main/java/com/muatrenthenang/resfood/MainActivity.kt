@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import com.muatrenthenang.resfood.ui.layout.AppLayout
+import androidx.navigation.navDeepLink
 import com.muatrenthenang.resfood.ui.screens.admin.AdminDashboardScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodEditScreen
 import com.muatrenthenang.resfood.ui.screens.admin.FoodManagementScreen
@@ -61,6 +62,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.CheckoutViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
+import com.muatrenthenang.resfood.ui.screens.review.ReviewScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -440,10 +442,23 @@ class MainActivity : ComponentActivity() {
 
                         composable(
                             route = "detail/{foodId}",
-                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType }),
+                            deepLinks = listOf(navDeepLink { uriPattern = "resfood://food/{foodId}" })
                         ) { backStackEntry ->
                             val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
                             FoodDetailScreen(
+                                foodId = foodId,
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToReview = { id -> navController.navigate("review/$id") }
+                            )
+                        }
+
+                        composable(
+                            route = "review/{foodId}",
+                            arguments = listOf(navArgument("foodId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val foodId = backStackEntry.arguments?.getString("foodId").orEmpty()
+                            ReviewScreen(
                                 foodId = foodId,
                                 onNavigateBack = { navController.popBackStack() }
                             )
