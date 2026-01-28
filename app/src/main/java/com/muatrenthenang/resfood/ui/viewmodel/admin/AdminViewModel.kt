@@ -179,7 +179,7 @@ class AdminViewModel(
         }
     }
     
-    private suspend fun loadCustomers() {
+    suspend fun loadCustomers() {
          userRepository.getAllCustomers().onSuccess { userList ->
             _customers.value = userList
         }.onFailure {
@@ -486,8 +486,8 @@ class AdminViewModel(
     
     fun loadReservations() {
         viewModelScope.launch {
-            // Load all for demo purposes
-            reservationRepository.getReservationsByDate(0, 0).onSuccess { list ->
+            // Load all reservations for admin
+            reservationRepository.getAllReservations().onSuccess { list ->
                 _reservations.value = list
             }
         }
@@ -498,5 +498,34 @@ class AdminViewModel(
             reservationRepository.createReservation(reservation)
             loadReservations()
         }
+    }
+
+    // Admin reservation management functions
+    fun approveReservation(reservationId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            reservationRepository.updateReservationStatus(reservationId, "CONFIRMED")
+            loadReservations()
+            onSuccess()
+        }
+    }
+
+    fun rejectReservation(reservationId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            reservationRepository.updateReservationStatus(reservationId, "REJECTED")
+            loadReservations()
+            onSuccess()
+        }
+    }
+
+    fun completeReservation(reservationId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            reservationRepository.updateReservationStatus(reservationId, "COMPLETED")
+            loadReservations()
+            onSuccess()
+        }
+    }
+
+    fun getReservationById(reservationId: String): TableReservation? {
+        return _reservations.value.find { it.id == reservationId }
     }
 }
