@@ -20,7 +20,8 @@ class OrderListViewModel(
     private val _orders = MutableStateFlow<List<Order>>(emptyList())
     val orders: StateFlow<List<Order>> = _orders.asStateFlow()
 
-    private var allOrders: List<Order> = emptyList()
+    private val _allOrders = MutableStateFlow<List<Order>>(emptyList())
+    val allOrders: StateFlow<List<Order>> = _allOrders.asStateFlow()
 
     fun loadOrders(status: String) {
 
@@ -29,7 +30,7 @@ class OrderListViewModel(
             if (userId != null) {
                 try {
                     orderRepository.getOrdersByUserId(userId).collect { fetchedOrders ->
-                        allOrders = fetchedOrders
+                        _allOrders.value = fetchedOrders
                         filterOrders(status)
                     }
                 } catch (e: Exception) {
@@ -42,21 +43,22 @@ class OrderListViewModel(
     }
 
     private fun filterOrders(status: String) {
+        val all = _allOrders.value
         _orders.value = when (status.lowercase()) {
-            "all" -> allOrders
-            "pending" -> allOrders.filter { it.status == "PENDING" }
-            "processing" -> allOrders.filter { it.status == "PROCESSING" }
-            "delivering" -> allOrders.filter { it.status == "DELIVERING" }
-            "completed" -> allOrders.filter { it.status == "COMPLETED" }
-            "cancelled" -> allOrders.filter { it.status == "CANCELLED" || it.status == "REJECTED" }
-            "review" -> allOrders.filter { it.status == "COMPLETED" && !it.isReviewed } 
-            "history" -> allOrders.filter { it.status == "COMPLETED" || it.status == "CANCELLED" || it.status == "REJECTED" }
-            else -> allOrders
+            "all" -> all
+            "pending" -> all.filter { it.status == "PENDING" }
+            "processing" -> all.filter { it.status == "PROCESSING" }
+            "delivering" -> all.filter { it.status == "DELIVERING" }
+            "completed" -> all.filter { it.status == "COMPLETED" }
+            "cancelled" -> all.filter { it.status == "CANCELLED" || it.status == "REJECTED" }
+            "review" -> all.filter { it.status == "COMPLETED" && !it.isReviewed } 
+            "history" -> all.filter { it.status == "COMPLETED" || it.status == "CANCELLED" || it.status == "REJECTED" }
+            else -> all
         }
     }
 
     fun getOrder(orderId: String): Order? {
-        return allOrders.find { it.id == orderId }
+        return _allOrders.value.find { it.id == orderId }
     }
 
     fun callRestaurant(orderId: String) {
@@ -67,7 +69,7 @@ class OrderListViewModel(
         viewModelScope.launch {
             try {
                 // Get order details first to know about vouchers
-                val order = allOrders.find { it.id == orderId }
+                val order = _allOrders.value.find { it.id == orderId }
                 
                 // Update status to CANCELLED in Firestore
                 val result = orderRepository.updateOrderStatus(orderId, "CANCELLED")

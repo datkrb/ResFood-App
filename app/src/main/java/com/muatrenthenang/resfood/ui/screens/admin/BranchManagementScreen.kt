@@ -208,6 +208,18 @@ fun BranchManagementScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
                 }
+                
+                // Shipping Fee
+                OutlinedTextField(
+                    value = formState.shippingFee,
+                    onValueChange = { viewModel.updateFormField(shippingFee = it) },
+                    label = { Text("Phí vận chuyển (VNĐ)") },
+                    leadingIcon = { Icon(Icons.Default.LocalShipping, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    suffix = { Text("đ") }
+                )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 

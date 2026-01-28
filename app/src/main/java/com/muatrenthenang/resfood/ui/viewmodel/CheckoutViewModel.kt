@@ -15,8 +15,9 @@ import com.muatrenthenang.resfood.data.repository.AuthRepository
 import com.muatrenthenang.resfood.data.repository.CheckoutRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
-import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import com.muatrenthenang.resfood.data.repository.BranchRepository
+import com.muatrenthenang.resfood.data.model.Promotion
 
 enum class PaymentMethod { ZALOPAY, MOMO, COD }
 
@@ -24,7 +25,8 @@ class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository(),
     private val _userRepository: UserRepository = UserRepository(),
     private val _orderRepository: OrderRepository = OrderRepository(),
-    private val _authRepository: AuthRepository = AuthRepository()
+    private val _authRepository: AuthRepository = AuthRepository(),
+    private val _branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
     private val _promotionRepository: PromotionRepository = PromotionRepository()
 
@@ -64,12 +66,26 @@ class CheckoutViewModel(
     private val _actionResult = MutableStateFlow<String?>(null)
     val actionResult = _actionResult.asStateFlow()
 
-    private val _shippingFee = 15000L
+    // Dynamic shipping fee loaded from Branch
+    private val _shippingFee = MutableStateFlow(15000L)
+    val shippingFee = _shippingFee.asStateFlow()
 
     init {
         loadSelectedCartItems()
         loadDefaultAddress()
         loadPromotions()
+        loadShippingFee()
+    }
+
+    /**
+     * Load shipping fee from primary branch
+     */
+    private fun loadShippingFee() {
+        viewModelScope.launch {
+            _branchRepository.getPrimaryBranch().onSuccess { branch ->
+                _shippingFee.value = branch.shippingFee
+            }
+        }
     }
 
     /**
@@ -209,7 +225,7 @@ class CheckoutViewModel(
         } else {
             // Percent of shipping fee
              if (voucher.discountType == 0) {
-                (_shippingFee * voucher.discountValue) / 100
+                (_shippingFee.value * voucher.discountValue) / 100
             } else {
                 voucher.discountValue.toLong()
             }
@@ -220,12 +236,12 @@ class CheckoutViewModel(
         }
         
         // Cannot exceed shipping fee
-        return minOf(discount, _shippingFee)
+        return minOf(discount, _shippingFee.value)
     }
 
     fun totalDiscount(): Long = productDiscount() + shippingDiscount()
 
-    fun total(): Long = maxOf(0L, subTotal() + _shippingFee - totalDiscount())
+    fun total(): Long = maxOf(0L, subTotal() + _shippingFee.value - totalDiscount())
 
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
@@ -274,7 +290,7 @@ class CheckoutViewModel(
                     items = orderItems,
                     subtotal = subTotal().toInt(),
                     discount = totalDiscount().toInt(),
-                    deliveryFee = _shippingFee.toInt(),
+                    deliveryFee = _shippingFee.value.toInt(),
                     total = total().toInt(),
                     status = "PENDING",
                     paymentMethod = when (_paymentMethod.value) {
