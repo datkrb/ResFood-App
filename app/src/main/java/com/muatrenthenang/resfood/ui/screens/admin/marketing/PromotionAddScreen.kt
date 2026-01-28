@@ -1,32 +1,36 @@
 package com.muatrenthenang.resfood.ui.screens.admin.marketing
 
+import android.app.DatePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Store
-import androidx.compose.material.icons.outlined.ConfirmationNumber
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.Money
-import androidx.compose.material.icons.filled.Percent
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.Timestamp
+import com.muatrenthenang.resfood.data.model.Promotion
+import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,13 +40,26 @@ fun PromotionAddScreen(
 ) {
     var promoName by remember { mutableStateOf("") }
     var promoCode by remember { mutableStateOf("") }
-    var discountValue by remember { mutableStateOf("") }
+    var discountValue by remember { mutableStateOf("") } // Int
     var discountType by remember { mutableStateOf(0) } // 0: %, 1: VND
-    var minOrderValue by remember { mutableStateOf("") }
-    var maxDiscountValue by remember { mutableStateOf("") }
+    var minOrderValue by remember { mutableStateOf("") } // Int
+    var maxDiscountValue by remember { mutableStateOf("") } // Int
     var isActive by remember { mutableStateOf(true) }
     
-    val context = androidx.compose.ui.platform.LocalContext.current
+    // New Fields
+    var applyFor by remember { mutableStateOf("ALL") } // ALL, SHIP
+    var isPublic by remember { mutableStateOf(true) } // Public vs Private
+    var totalQuantity by remember { mutableStateOf("") } // For Public
+    var assignedUserIds by remember { mutableStateOf<List<String>>(emptyList()) } // For Private
+    var userQuantities by remember { mutableStateOf<Map<String, Int>>(emptyMap()) } // For Private (simplified to 1 per user or global input)
+    
+    var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    var endDate by remember { mutableStateOf(System.currentTimeMillis() + 86400000L * 7) } // +7 days
+
+    val context = LocalContext.current
+    val customers by viewModel.customers.collectAsState()
+    
+    var showUserSelectionDialog by remember { mutableStateOf(false) }
 
     fun generateCode() {
         val allowedChars = ('A'..'Z') + ('0'..'9')
@@ -51,14 +68,66 @@ fun PromotionAddScreen(
             .joinToString("")
     }
     
+    fun showDatePicker(initialDate: Long, onDateSelected: (Long) -> Unit) {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = initialDate
+        DatePickerDialog(
+            context,
+            { _, year, month, day ->
+                val cal = Calendar.getInstance()
+                cal.set(year, month, day)
+                onDateSelected(cal.timeInMillis)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
     fun savePromotion() {
         if(promoName.isBlank() || promoCode.isBlank() || discountValue.isBlank()) {
-            android.widget.Toast.makeText(context, "Vui lòng nhập đủ thông tin", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Vui lòng nhập tên, mã và giá trị giảm", Toast.LENGTH_SHORT).show()
             return
         }
-        val value = discountValue.toIntOrNull() ?: 0
-        viewModel.addPromotion(promoName, promoCode, value, discountType)
-        android.widget.Toast.makeText(context, "Đã lưu khuyến mãi", android.widget.Toast.LENGTH_SHORT).show()
+        
+        val dValue = discountValue.toIntOrNull() ?: 0
+        val minOrder = minOrderValue.toIntOrNull() ?: 0
+        val maxDiscount = maxDiscountValue.toIntOrNull() ?: 0
+        val quantity = totalQuantity.toIntOrNull() ?: 0
+        
+        // Private check
+        if (!isPublic && assignedUserIds.isEmpty()) {
+            Toast.makeText(context, "Vui lòng chọn khách hàng áp dụng (Private)", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Construct User Quantities map (default 1 per user for now, or use totalQuantity as quota)
+        // If Private, we can just say each user gets 'quantity' vouchers, or 1. Let's assume 1 for simplicity or use the input.
+        val privateQuantity = if (quantity > 0) quantity else 1
+        val userQtyMap = if (!isPublic) {
+            assignedUserIds.associateWith { privateQuantity }
+        } else {
+            emptyMap()
+        }
+
+        val promotion = Promotion(
+            name = promoName,
+            code = promoCode,
+            discountType = discountType,
+            discountValue = dValue,
+            minOrderValue = minOrder,
+            maxDiscountValue = maxDiscount,
+            startDate = Timestamp(Date(startDate)),
+            endDate = Timestamp(Date(endDate)),
+            isActive = isActive,
+            applyFor = applyFor,
+            assignedUserIds = if (isPublic) emptyList() else assignedUserIds,
+            totalQuantity = if (isPublic) quantity else 0,
+            userQuantities = userQtyMap
+        )
+
+        viewModel.addPromotion(promotion)
+        Toast.makeText(context, "Đã lưu khuyến mãi", Toast.LENGTH_SHORT).show()
         onNavigateBack()
     }
 
@@ -111,7 +180,7 @@ fun PromotionAddScreen(
                 AdminTextField(
                     value = promoName,
                     onValueChange = { promoName = it },
-                    placeholder = "Nhập tên chương trình"
+                    placeholder = "Ví dụ: Chào hè sôi động"
                 )
             }
 
@@ -119,14 +188,50 @@ fun PromotionAddScreen(
             InputSection(title = "Mã giảm giá") {
                 AdminTextField(
                     value = promoCode,
-                    onValueChange = { promoCode = it },
-                    placeholder = "Nhập mã...",
+                    onValueChange = { promoCode = it.uppercase() },
+                    placeholder = "Ví dụ: HE2024",
                     trailingIcon = { 
                         IconButton(onClick = { generateCode() }) {
                            Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = Color(0xFF2196F3)) 
                         }
                     }
                 )
+            }
+            
+            // Public / Private Toggle
+            InputSection(title = "Đối tượng áp dụng") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .background(Color(0xFF2C3038), RoundedCornerShape(24.dp))
+                        .padding(4.dp)
+                ) {
+                    TabButton(text = "Công khai (Public)", isSelected = isPublic, modifier = Modifier.weight(1f)) { isPublic = true }
+                    TabButton(text = "Riêng tư (Private)", isSelected = !isPublic, modifier = Modifier.weight(1f)) { isPublic = false }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                if (isPublic) {
+                    Text("Số lượng voucher (0 = không giới hạn)", color = Color.White, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Nhập số lượng tổng")
+                } else {
+                    Button(
+                        onClick = { showUserSelectionDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3038)),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Chọn khách hàng (${assignedUserIds.size})", color = Color.White)
+                    }
+                    if (assignedUserIds.isNotEmpty()) {
+                        Text("Số lượng mỗi khách hàng được dùng", color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top=12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Ví dụ: 1")
+                    }
+                }
             }
 
             // Discount Value & Type
@@ -152,7 +257,6 @@ fun PromotionAddScreen(
                     placeholder = "Nhập giá trị",
                     trailingIcon = { Text(if(discountType == 0) "%" else "đ", color = Color.Gray, modifier = Modifier.padding(end=16.dp)) }
                 )
-                Text("Nhập số phần trăm muốn giảm cho đơn hàng.", color = Color.Gray, fontSize = 12.sp)
             }
 
             // Conditions
@@ -172,34 +276,33 @@ fun PromotionAddScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Apply For Scope
-                Card(
-                     colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
-                     shape = RoundedCornerShape(12.dp),
-                     modifier = Modifier.fillMaxWidth()
+                // Apply For Scope (Toggle)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .background(Color(0xFF2C3038), RoundedCornerShape(12.dp))
+                        .padding(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(40.dp).background(Color(0xFF2196F3).copy(alpha=0.2f), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Store, contentDescription = null, tint = Color(0xFF2196F3))
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Áp dụng cho", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Tất cả món ăn", color = Color.Gray, fontSize = 12.sp)
-                        }
-                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-                    }
+                    TabButton(text = "Đơn hàng", isSelected = applyFor == "ALL", modifier = Modifier.weight(1f)) { applyFor = "ALL" }
+                    TabButton(text = "Phí vận chuyển", isSelected = applyFor == "SHIP", modifier = Modifier.weight(1f)) { applyFor = "SHIP" }
                 }
             }
 
             // Time
             InputSection(title = "Thời gian áp dụng") {
-                TimeRow("BẮT ĐẦU", "10/06/2024 - 08:00")
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                
+                TimeRow("BẮT ĐẦU", dateFormat.format(Date(startDate))) {
+                    showDatePicker(startDate) { startDate = it }
+                }
+                
                 Spacer(modifier = Modifier.height(12.dp))
-                TimeRow("KẾT THÚC", "15/06/2024 - 23:59", isRed = false) // Changed logic if needed
+                
+                TimeRow("KẾT THÚC", dateFormat.format(Date(endDate)), isRed = false) {
+                    showDatePicker(endDate) { endDate = it }
+                }
             }
             
             // Activate Toggle
@@ -215,13 +318,136 @@ fun PromotionAddScreen(
                 ) {
                      Column {
                             Text("Kích hoạt ngay", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Hiển thị khuyến mãi trên ứng dụng", color = Color.Gray, fontSize = 12.sp)
+                            Text("Hiển thị khuyến mãi", color = Color.Gray, fontSize = 12.sp)
                      }
                      Switch(checked = isActive, onCheckedChange = { isActive = it }, colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF2196F3)))
                 }
             }
             
             Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+    
+    // User Selection Dialog (Checklist)
+    if (showUserSelectionDialog) {
+        UserSelectionDialog(
+            customers = customers,
+            selectedIds = assignedUserIds,
+            onDismiss = { showUserSelectionDialog = false },
+            onConfirm = { ids ->
+                assignedUserIds = ids
+                showUserSelectionDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun UserSelectionDialog(
+    customers: List<User>,
+    selectedIds: List<String>,
+    onDismiss: () -> Unit,
+    onConfirm: (List<String>) -> Unit
+) {
+    var tempSelected by remember { mutableStateOf(selectedIds.toSet()) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredCustomers = remember(customers, searchQuery) {
+        if (searchQuery.isBlank()) customers
+        else customers.filter {
+            it.fullName.contains(searchQuery, ignoreCase = true) ||
+            (it.phone?.contains(searchQuery) == true) ||
+            it.email.contains(searchQuery, ignoreCase = true)
+        }
+    }
+    
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            Modifier
+                .fillMaxWidth()
+                .height(600.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2126))
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    "Chọn khách hàng",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+                Spacer(Modifier.height(16.dp))
+                
+                // Search Bar
+                AdminTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = "Tìm tên, SĐT, email...",
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray)
+                            }
+                        } else {
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray)
+                        }
+                    }
+                )
+                
+                Spacer(Modifier.height(16.dp))
+
+                LazyColumn(Modifier.weight(1f)) {
+                    item {
+                        val allVisibleSelected = filteredCustomers.isNotEmpty() && filteredCustomers.all { tempSelected.contains(it.id) }
+                        
+                        Row(
+                            Modifier.fillMaxWidth().clickable { 
+                                if (allVisibleSelected) {
+                                    tempSelected = tempSelected - filteredCustomers.map { it.id }.toSet()
+                                } else {
+                                    tempSelected = tempSelected + filteredCustomers.map { it.id }
+                                }
+                            }.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                             Checkbox(
+                                checked = allVisibleSelected,
+                                onCheckedChange = null,
+                                colors = CheckboxDefaults.colors(checkmarkColor = Color.White, checkedColor = Color(0xFF2196F3))
+                             )
+                             Text("Chọn tất cả (${filteredCustomers.size})", color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                        }
+                        HorizontalDivider(color = Color.Gray.copy(alpha=0.3f))
+                    }
+                    items(filteredCustomers) { user ->
+                        val isSelected = tempSelected.contains(user.id)
+                        Row(
+                            Modifier.fillMaxWidth().clickable {
+                                tempSelected = if (isSelected) tempSelected - user.id else tempSelected + user.id
+                            }.padding(8.dp),
+                             verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = null,
+                                colors = CheckboxDefaults.colors(checkmarkColor = Color.White, checkedColor = Color(0xFF2196F3))
+                            )
+                            Column(Modifier.padding(start = 8.dp)) {
+                                Text(user.fullName, color = Color.White, fontWeight = FontWeight.Bold)
+                                Text(if(!user.phone.isNullOrEmpty()) "${user.phone} - ${user.email}" else user.email, color = Color.Gray, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = onDismiss) { Text("Hủy") }
+                    Button(
+                        onClick = { onConfirm(tempSelected.toList()) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                    ) { Text("Xác nhận") }
+                }
+            }
         }
     }
 }
@@ -278,11 +504,11 @@ fun TabButton(text: String, isSelected: Boolean, modifier: Modifier = Modifier, 
 }
 
 @Composable
-fun TimeRow(label: String, value: String, isRed: Boolean = false) {
+fun TimeRow(label: String, value: String, isRed: Boolean = false, onClick: () -> Unit) {
     Card(
          colors = CardDefaults.cardColors(containerColor = Color(0xFF2C3038)),
          shape = RoundedCornerShape(12.dp),
-         modifier = Modifier.fillMaxWidth()
+         modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

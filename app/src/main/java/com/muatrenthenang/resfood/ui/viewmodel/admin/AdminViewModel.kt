@@ -477,10 +477,9 @@ class AdminViewModel(
         return _orders.value.find { it.id == orderId }
     }
     
-    fun addPromotion(name: String, code: String, value: Int, type: Int) {
+    fun addPromotion(promotion: Promotion) {
         viewModelScope.launch {
-            val promo = Promotion(name = name, code = code, discountValue = value, discountType = type)
-            promotionRepository.createPromotion(promo)
+            promotionRepository.createPromotion(promotion)
             loadPromotions()
         }
     }
