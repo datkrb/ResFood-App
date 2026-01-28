@@ -766,11 +766,19 @@ class MainActivity : ComponentActivity() {
                             
                             com.muatrenthenang.resfood.ui.screens.notification.NotificationListScreen(
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToDetail = { orderId -> 
-                                    if (userState?.role == "admin") {
-                                        navController.navigate("admin_order_detail/$orderId")
-                                    } else {
-                                        navController.navigate("order_detail/$orderId")
+                                onNavigateToDetail = { notification -> 
+                                    if (notification.type == "new_order" || notification.type == "order_update") {
+                                        if (userState?.role == "admin") {
+                                            navController.navigate("admin_order_detail/${notification.referenceId}")
+                                        } else {
+                                            navController.navigate("order_detail/${notification.referenceId}")
+                                        }
+                                    } else if (notification.type == "new_reservation" || notification.type == "reservation_update") {
+                                        if (userState?.role == "admin") {
+                                            navController.navigate("admin_table_detail/${notification.referenceId}")
+                                        } else {
+                                            navController.navigate("reservation_detail/${notification.referenceId}")
+                                        }
                                     }
                                 }
                             )

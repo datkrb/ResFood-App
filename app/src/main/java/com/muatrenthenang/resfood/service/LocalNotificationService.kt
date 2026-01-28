@@ -25,6 +25,8 @@ class LocalNotificationService(private val context: Context) {
     
     private var adminOrderListener: ListenerRegistration? = null
     private var customerOrderListener: ListenerRegistration? = null
+    private var adminReservationListener: ListenerRegistration? = null
+    private var customerReservationListener: ListenerRegistration? = null
     
     init {
         // Observe auth state changes to switch listeners
@@ -65,9 +67,9 @@ class LocalNotificationService(private val context: Context) {
     // ... (init block)
 
     private fun startAdminListeners() {
-        // Listen for NEW orders (added)
+        // 1. Listen for NEW orders
         adminOrderListener = db.collection("orders")
-            .whereEqualTo("status", "PENDING") // Or listen to all, but focus on PENDING for new alerts
+            .whereEqualTo("status", "PENDING")
             .addSnapshotListener { snapshots, e ->
                 if (e != null) return@addSnapshotListener
 
@@ -75,15 +77,8 @@ class LocalNotificationService(private val context: Context) {
                     if (dc.type == DocumentChange.Type.ADDED) {
                         try {
                             val order = dc.document.toObject(Order::class.java)
-                            // Only notify if created reasonably recently (e.g. last 5 mins)
-                            // For simplicity, we trigger
-                            
-                            // 1. Show System Notification
                             NotificationHelper.showNewOrderNotification(context, order.id, order.total)
                             
-                            // 2. Persist to Firestore implementation
-                            // Note: In a real app, backend cloud functions should create this doc.
-                            // But for this client-side demo, we create it here.
                             val notif = com.muatrenthenang.resfood.data.model.Notification(
                                 userId = auth.currentUser?.uid ?: "",
                                 title = "Đơn hàng mới!",
@@ -93,7 +88,55 @@ class LocalNotificationService(private val context: Context) {
                                 isRead = false
                             )
                             notificationRepository.createNotification(notif)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            }
+            
+        // 2. Listen for NEW Reservations
+        adminReservationListener = db.collection("reservations")
+            .whereEqualTo("status", "PENDING")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) return@addSnapshotListener
+                
+                for (dc in snapshots!!.documentChanges) {
+                    if (dc.type == DocumentChange.Type.ADDED) {
+                        try {
+                            // Use TableReservation to match Firestore data
+                            val reservation = dc.document.toObject(com.muatrenthenang.resfood.data.model.TableReservation::class.java)
+                            reservation.id = dc.document.id
                             
+                            val timeStr = java.text.SimpleDateFormat("HH:mm dd/MM").format(reservation.timeSlot.toDate())
+                            
+                            // Fetch customer name
+                            db.collection("users").document(reservation.userId).get()
+                                .addOnSuccessListener { userDoc ->
+                                    val customerName = userDoc.getString("fullName") ?: "Khách hàng"
+                                    
+                                    NotificationHelper.showNewReservationNotification(
+                                        context, reservation.id, customerName, timeStr
+                                    )
+                                    
+                                    val notif = com.muatrenthenang.resfood.data.model.Notification(
+                                        userId = auth.currentUser?.uid ?: "",
+                                        title = "Đặt bàn mới!",
+                                        body = "$customerName đặt bàn lúc $timeStr",
+                                        type = "new_reservation",
+                                        referenceId = reservation.id,
+                                        isRead = false,
+                                        createdAt = com.google.firebase.Timestamp.now()
+                                    )
+                                    notificationRepository.createNotification(notif)
+                                }
+                                .addOnFailureListener {
+                                    // Fallback if user fetch fails
+                                    NotificationHelper.showNewReservationNotification(
+                                        context, reservation.id, "Khách hàng", timeStr
+                                    )
+                                }
+
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
@@ -103,7 +146,7 @@ class LocalNotificationService(private val context: Context) {
     }
 
     private fun startCustomerListeners(userId: String) {
-        // Listen for updates to MY orders
+        // 1. Listen for Order Updates
         customerOrderListener = db.collection("orders")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshots, e ->
@@ -112,11 +155,8 @@ class LocalNotificationService(private val context: Context) {
                 for (dc in snapshots!!.documentChanges) {
                     if (dc.type == DocumentChange.Type.MODIFIED) {
                         val order = dc.document.toObject(Order::class.java)
-                        
-                        // 1. Show System Notification
                         NotificationHelper.showOrderStatusNotification(context, order.id, order.status)
                         
-                        // 2. Persist to Firestore
                         val statusText = when(order.status) {
                             "PENDING" -> "Đang chờ duyệt"
                             "PROCESSING" -> "Đang chuẩn bị"
@@ -133,7 +173,43 @@ class LocalNotificationService(private val context: Context) {
                             body = "Đơn hàng #${order.id.takeLast(6).uppercase()} của bạn hiện $statusText",
                             type = "order_update",
                             referenceId = order.id,
-                            isRead = false
+                            isRead = false,
+                            createdAt = com.google.firebase.Timestamp.now()
+                        )
+                        notificationRepository.createNotification(notif)
+                    }
+                }
+            }
+            
+        // 2. Listen for Reservation Updates
+        customerReservationListener = db.collection("reservations")
+            .whereEqualTo("user_id", userId) // Use correct field name "user_id" from TableReservation
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) return@addSnapshotListener
+                
+                for (dc in snapshots!!.documentChanges) {
+                    if (dc.type == DocumentChange.Type.MODIFIED) {
+                        val reservation = dc.document.toObject(com.muatrenthenang.resfood.data.model.TableReservation::class.java)
+                        reservation.id = dc.document.id
+                        
+                        NotificationHelper.showReservationStatusNotification(context, reservation.id, reservation.status)
+                        
+                        val statusText = when(reservation.status) {
+                            "CONFIRMED" -> "được xác nhận"
+                            "CANCELLED" -> "đã hủy"
+                            "COMPLETED" -> "hoàn thành"
+                            "REJECTED" -> "bị từ chối"
+                            else -> reservation.status
+                        }
+                        
+                        val notif = com.muatrenthenang.resfood.data.model.Notification(
+                            userId = userId,
+                            title = "Cập nhật đặt bàn",
+                            body = "Lịch đặt bàn của bạn đã $statusText",
+                            type = "reservation_update",
+                            referenceId = reservation.id,
+                            isRead = false,
+                            createdAt = com.google.firebase.Timestamp.now()
                         )
                         notificationRepository.createNotification(notif)
                     }
@@ -144,7 +220,12 @@ class LocalNotificationService(private val context: Context) {
     fun stopListening() {
         adminOrderListener?.remove()
         customerOrderListener?.remove()
+        adminReservationListener?.remove()
+        customerReservationListener?.remove()
+        
         adminOrderListener = null
         customerOrderListener = null
+        adminReservationListener = null
+        customerReservationListener = null
     }
 }
