@@ -2,6 +2,7 @@ package com.muatrenthenang.resfood.ui.screens.detail
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -63,9 +64,13 @@ fun FoodDetailScreen(
     val food by viewModel.food.collectAsState()
     val allToppings by viewModel.allToppings.collectAsState()
     val selectedToppings by viewModel.selectedToppings.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadFoodDetail(foodId)
+        viewModel.toastMessage.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     val imageFoodHeight = 400.dp
@@ -118,7 +123,6 @@ fun FoodDetailScreen(
 
                         NameAndPriceFood(food)  // ten mon an + gia tien
                         FoodStats(food)         // thong so mon an
-                        val context = LocalContext.current
                         ShareAndReview(
                             onShareClick = {
                                 val foodName = food?.name ?: "Món ngon"

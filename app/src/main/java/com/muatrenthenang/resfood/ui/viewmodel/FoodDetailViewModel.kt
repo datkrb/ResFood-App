@@ -7,6 +7,7 @@ import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Topping
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -127,6 +128,17 @@ class FoodDetailViewModel(
         _totalPrice.value = (foodPrice * currentQuantity) + toppingsPrice
     }
 
+    // One-time events (Toast messages)
+    private val _toastMessage = kotlinx.coroutines.flow.MutableSharedFlow<String>(replay = 0)
+    val toastMessage = _toastMessage.asSharedFlow()
+
+    // Helper to emit toast
+    private fun showToast(message: String) {
+        viewModelScope.launch {
+            _toastMessage.emit(message)
+        }
+    }
+
     fun addToCart(){
         viewModelScope.launch {
             val foodItem = _food.value ?: return@launch
@@ -138,8 +150,10 @@ class FoodDetailViewModel(
                 isAccumulate = true
             )
             if (result.isSuccess) {
+                showToast("Đã thêm vào giỏ hàng")
                 Log.d("FoodDetailViewModel", "Added to cart successfully")
             } else {
+                showToast("Thêm vào giỏ hàng thất bại: ${result.exceptionOrNull()?.message}")
                 Log.d("FoodDetailViewModel", "Failed to add to cart: ${result.exceptionOrNull()?.localizedMessage}")
             }
         }
@@ -154,8 +168,10 @@ class FoodDetailViewModel(
                 val result = _favoritesRepository.removeFavorite(foodId)
                 if (result.isSuccess) {
                     _isFavorite.value = false
+                    showToast("Đã xóa khỏi danh sách yêu thích")
                     Log.d("FoodDetailViewModel", "Removed from favorites")
                 } else {
+                    showToast("Lỗi khi xóa khỏi yêu thích")
                     Log.d("FoodDetailViewModel", "Failed to remove favorite: ${result.exceptionOrNull()?.localizedMessage}")
                 }
             } else {
@@ -163,8 +179,10 @@ class FoodDetailViewModel(
                 val result = _favoritesRepository.addFavorite(foodId)
                 if (result.isSuccess) {
                     _isFavorite.value = true
+                    showToast("Đã thêm vào danh sách yêu thích")
                     Log.d("FoodDetailViewModel", "Added to favorites")
                 } else {
+                    showToast("Lỗi khi thêm vào yêu thích")
                     Log.d("FoodDetailViewModel", "Failed to add favorite: ${result.exceptionOrNull()?.localizedMessage}")
                 }
             }
