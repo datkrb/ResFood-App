@@ -10,7 +10,7 @@ const createSepayPayment = async (orderId) => {
         }
         const orderData = orderDoc.data();
         const total = orderData.total;
-        const description = `Thanh toán đơn hàng #${orderId}`;
+        const description = `SEVQR Thanh toán đơn hàng #${orderId}`;
         const desEncoded = encodeURIComponent(description);
 
         const qrUrl = `https://qr.sepay.vn/img?bank=${BANK_CONFIG.BANK_ID}&acc=${BANK_CONFIG.ACCOUNT_NO}&template=${BANK_CONFIG.TEMPLATE}&amount=${total}&des=${desEncoded}`;
@@ -37,15 +37,25 @@ const handleSepayWebhook = async (webhookData) => {
         const { content, transferAmount, id } = webhookData;
         console.log(">> Webhook Data:", content, transferAmount);
 
+        let extractedOrderId = null;
         const match = content.match(/#([a-zA-Z0-9-_]+)/);
 
-        if (!match) {
-            // Trường hợp khách tự nhập nội dung mà quên dấu # hoặc nhập sai
-            console.log("Không tìm thấy Order ID sau dấu # trong nội dung:", content);
-            return { success: false, message: "Invalid content format" };
+        if (match) {
+            extractedOrderId = match[1];
+        } else {
+            // Fallback: Thử lấy chuỗi cuối cùng trong nội dung (vì ngân hàng có thể bỏ qua ký tự đặc biệt #)
+            // Ví dụ: "SEVQR Thanh toan don hang xW53JgFMNB5fRlkE1vEu" -> "xW53JgFMNB5fRlkE1vEu"
+            const parts = content.trim().split(/\s+/);
+            if (parts.length > 0) {
+                extractedOrderId = parts[parts.length - 1];
+            }
         }
 
-        const extractedOrderId = match[1];
+        if (!extractedOrderId) {
+            // Trường hợp không lấy được ID
+            console.log("Không tìm thấy Order ID trong nội dung:", content);
+            return { success: false, message: "Invalid content format" };
+        }
 
         const order = await db.collection('orders').doc(extractedOrderId).get();
         if (!order.exists) {
