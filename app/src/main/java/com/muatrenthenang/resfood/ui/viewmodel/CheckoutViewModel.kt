@@ -16,10 +16,13 @@ import com.muatrenthenang.resfood.data.repository.CheckoutRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.model.Promotion
+import kotlinx.coroutines.flow.StateFlow
 
-enum class PaymentMethod { ZALOPAY, MOMO, COD }
+enum class PaymentMethod { SEPAY, COD }
 
 class CheckoutViewModel(
     private val _repository: CheckoutRepository = CheckoutRepository(),
@@ -66,7 +69,16 @@ class CheckoutViewModel(
     private val _actionResult = MutableStateFlow<String?>(null)
     val actionResult = _actionResult.asStateFlow()
 
-    // Dynamic shipping fee loaded from Branch
+    // SEPay QR Code URL
+    private val _paymentQrUrl = MutableStateFlow<String?>(null)
+    val paymentQrUrl = _paymentQrUrl.asStateFlow()
+
+    private val _currentOrderId = MutableStateFlow<String?>(null)
+    
+    // Payment Success Trigger
+    private val _paymentSuccess = MutableStateFlow(false)
+    val paymentSuccess = _paymentSuccess.asStateFlow()
+
     private val _shippingFee = MutableStateFlow(15000L)
     val shippingFee = _shippingFee.asStateFlow()
 
@@ -183,35 +195,33 @@ class CheckoutViewModel(
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setAddress(a: Address) { _address.value = a }
 
-    fun subTotal(): Long = _items.value.sumOf { (it.food.price.toLong() + it.toppings.sumOf { t -> t.price }) * it.quantity }
+    val subTotal: StateFlow<Long> = _items.map { items ->
+        items.sumOf { (it.food.price.toLong() + it.toppings.sumOf { t -> t.price }) * it.quantity }
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun productDiscount(): Long {
-        val voucher = _selectedProductVoucher.value ?: return 0L
-        val subTotal = subTotal()
-        
-        // Check minimum order value
-        if (subTotal < voucher.minOrderValue) return 0L
+    val productDiscount: StateFlow<Long> = kotlinx.coroutines.flow.combine(subTotal, _selectedProductVoucher) { sub, voucher ->
+        if (voucher == null) return@combine 0L
+        if (sub < voucher.minOrderValue) return@combine 0L
 
         var discount = 0L
-        // 0: PERCENT, 1: AMOUNT (from Promotion.kt comments)
+        // 0: PERCENT, 1: AMOUNT
         if (voucher.discountType == 0) {
-            discount = (subTotal * voucher.discountValue / 100).toLong()
+            discount = (sub * voucher.discountValue / 100).toLong()
             if (voucher.maxDiscountValue > 0) {
                 discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
             }
         } else {
             discount = voucher.discountValue.toLong()
         }
-        return discount
-    }
+        discount
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun shippingDiscount(): Long {
-        val voucher = _selectedShippingVoucher.value ?: return 0L
-        val shippingFee = _shippingFee.value
+    val shippingDiscount: StateFlow<Long> = kotlinx.coroutines.flow.combine(_shippingFee, _selectedShippingVoucher) { fee, voucher ->
+        if (voucher == null) return@combine 0L
 
         var discount = 0L
         if (voucher.discountType == 0) {
-            discount = (shippingFee * voucher.discountValue / 100).toLong()
+            discount = (fee * voucher.discountValue / 100).toLong()
             if (voucher.maxDiscountValue > 0) {
                 discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
             }
@@ -219,14 +229,15 @@ class CheckoutViewModel(
             discount = voucher.discountValue.toLong()
         }
         // Cannot discount more than the shipping fee itself
-        return discount.coerceAtMost(shippingFee)
-    }
+        discount.coerceAtMost(fee)
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun totalDiscount(): Long = productDiscount() + shippingDiscount()
+    val totalDiscount = kotlinx.coroutines.flow.combine(productDiscount, shippingDiscount) { p, s -> p + s }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    fun total(): Long {
-        return (subTotal() + _shippingFee.value - totalDiscount()).coerceAtLeast(0L)
-    }
+    val total: StateFlow<Long> = kotlinx.coroutines.flow.combine(subTotal, _shippingFee, totalDiscount) { sub, ship, disc ->
+        (sub + ship - disc).coerceAtLeast(0L)
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     // ... (rest of functions) ...
 
@@ -276,15 +287,14 @@ class CheckoutViewModel(
                     userPhone = currentAddress.phone,
                     address = currentAddress,
                     items = orderItems,
-                    subtotal = subTotal().toInt(),
-                    discount = totalDiscount().toInt(),
+                    subtotal = subTotal.value.toInt(),
+                    discount = totalDiscount.value.toInt(),
                     deliveryFee = _shippingFee.value.toInt(),
-                    total = total().toInt(),
+                    total = total.value.toInt(),
                     status = "PENDING",
                     paymentMethod = when (_paymentMethod.value) {
                         PaymentMethod.COD -> "COD"
-                        PaymentMethod.MOMO -> "MOMO"
-                        PaymentMethod.ZALOPAY -> "ZALOPAY"
+                        PaymentMethod.SEPAY -> "SEPAY"
                     },
                     createdAt = Timestamp.now(),
                     
@@ -293,8 +303,8 @@ class CheckoutViewModel(
                     productVoucherId = _selectedProductVoucher.value?.id,
                     shippingVoucherCode = _selectedShippingVoucher.value?.code,
                     shippingVoucherId = _selectedShippingVoucher.value?.id,
-                    productDiscount = productDiscount().toInt(),
-                    shippingDiscount = shippingDiscount().toInt()
+                    productDiscount = productDiscount.value.toInt(),
+                    shippingDiscount = shippingDiscount.value.toInt()
                 )
 
                 // Save order to Firebase
@@ -321,6 +331,130 @@ class CheckoutViewModel(
                 _isLoading.value = false
             }
         }
+    }
+
+    /**
+     * Create Order for SEPay
+     */
+    fun createSepayOrder() {
+        viewModelScope.launch {
+            // Validate items
+            val selectedItems = _items.value.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
+                _actionResult.value = "Không có món nào được chọn"
+                return@launch
+            }
+            
+            val currentAddress = _address.value
+            if (currentAddress.id.isBlank()) {
+                _actionResult.value = "Vui lòng chọn địa chỉ"
+                return@launch
+            }
+
+            _isLoading.value = true
+            try {
+                val userId = _authRepository.getCurrentUserId() ?: ""
+                 // Convert items
+                val orderItems = selectedItems.map { cartItem ->
+                    OrderItem(
+                        foodId = cartItem.food.id,
+                        foodName = cartItem.food.name,
+                        foodImage = cartItem.food.imageUrl,
+                        quantity = cartItem.quantity,
+                        price = cartItem.food.price,
+                        note = null
+                    )
+                }
+
+                val order = Order(
+                    id = "",
+                    userId = userId,
+                    userName = currentAddress.contactName,
+                    userPhone = currentAddress.phone,
+                    address = currentAddress,
+                    items = orderItems,
+                    subtotal = subTotal.value.toInt(),
+                    discount = totalDiscount.value.toInt(),
+                    deliveryFee = _shippingFee.value.toInt(),
+                    total = total.value.toInt(),
+                    status = "WAITING_PAYMENT",
+                    paymentMethod = "SEPAY",
+                    createdAt = Timestamp.now(),
+                    productVoucherCode = _selectedProductVoucher.value?.code,
+                    productVoucherId = _selectedProductVoucher.value?.id,
+                    shippingVoucherCode = _selectedShippingVoucher.value?.code,
+                    shippingVoucherId = _selectedShippingVoucher.value?.id,
+                    productDiscount = productDiscount.value.toInt(),
+                    shippingDiscount = shippingDiscount.value.toInt()
+                )
+
+                val createResult = _orderRepository.createOrder(order)
+                
+                if (createResult.isSuccess) {
+                    val orderId = createResult.getOrNull()
+                    _currentOrderId.value = orderId
+                    if (orderId != null) {
+                         // Call SEPay API
+                         try {
+                              val request = com.muatrenthenang.resfood.data.api.CreateSepayPaymentRequest(orderId)
+                              val response = com.muatrenthenang.resfood.data.api.ResFoodPaymentClient.api.createSepayPayment(request)
+                              
+                              // Success, show QR
+                              _paymentQrUrl.value = response.qrUrl
+                              
+                              // Use vouchers
+                                _selectedProductVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                                _selectedShippingVoucher.value?.let { _promotionRepository.useVoucher(it.id, userId) }
+                                
+                                // Reset payment success state
+                                _paymentSuccess.value = false
+                                
+                                // Start listening for status change
+                                launch {
+                                    _orderRepository.getOrderByIdFlow(orderId).collect { ord ->
+                                        if (ord != null && ord.status == "PENDING") {
+                                            // Payment confirmed!
+                                            _paymentSuccess.value = true
+                                            _repository.removeSelectedItems() // Clear cart only now or when confirmed
+                                            _currentOrderId.value = null 
+                                        }
+                                    }
+                                }
+
+                                // _repository.removeSelectedItems()
+
+                         } catch (e: Exception) {
+                              _actionResult.value = "Lỗi kết nối SEPay: ${e.message}"
+                         }
+                    }
+                } else {
+                    _actionResult.value = "Lỗi tạo đơn hàng: ${createResult.exceptionOrNull()?.message}"
+                }
+            } catch (e: Exception) {
+                _actionResult.value = "Lỗi: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearPaymentQr() {
+        val orderId = _currentOrderId.value
+        if (orderId != null) {
+            viewModelScope.launch {
+                val orderResult = _orderRepository.getOrderById(orderId)
+                if (orderResult.isSuccess) {
+                    val order = orderResult.getOrNull()
+                    // Allow deleting WAITING_PAYMENT if user cancels
+                    if (order != null && order.status == "WAITING_PAYMENT") {
+                         _orderRepository.deleteOrder(orderId)
+                    }
+                }
+                _currentOrderId.value = null
+            }
+        }
+        _paymentQrUrl.value = null
+        _paymentSuccess.value = false
     }
 
     fun clearResult(){ _actionResult.value = null }

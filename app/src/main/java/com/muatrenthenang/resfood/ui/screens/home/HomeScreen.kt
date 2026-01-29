@@ -31,6 +31,7 @@ import com.muatrenthenang.resfood.ui.screens.home.search.SearchBar
 import com.muatrenthenang.resfood.ui.viewmodel.HomeViewModel
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.components.FoodItemSkeleton
 
@@ -102,7 +103,7 @@ fun HomeScreen(
                         uiState.categories.forEach { category ->
                             CategoryFood(
                                 imgVector = category.icon,
-                                categoryFood = category.name,
+                                categoryFood = stringResource(category.nameRes),
                                 isSelected = uiState.selectedCategory == category.name,
                                 onClick = { homeViewModel.selectCategory(category.name) }
                             )

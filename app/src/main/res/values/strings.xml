@@ -657,7 +657,7 @@
     <string name="me_util_help">Trung tâm trợ giúp</string>
     <string name="me_util_help_sub">Giải đáp thắc mắc 24/7</string>
     <string name="me_util_payment">Phương thức thanh toán</string>
-    <string name="me_util_payment_sub">Visa, MoMo, ZaloPay</string>
+    <string name="me_util_payment_sub">COD, Sepay</string>
 
     <!-- Me Referral Promo -->
     <string name="me_referral_title">Mời bạn bè, nhận quà!</string>
@@ -770,4 +770,13 @@
     <string name="common_unknown">Chưa cập nhật</string>
     <string name="username_hint">Tên đăng nhập</string>
     <string name="address_empty">Chưa có địa chỉ</string>
+    <string name="checkout_method_sepay">Thanh toán với QR Sepay</string>
+    <string name="waiting_payment">Chờ thanh toán</string>
+    <string name="prepare_payment">Tiến hành thanh toán</string>
+    <string name="scan_qr">Quét mã QR để thanh toán</string>
+    <string name="pls_scan_qr">Vui lòng quét mã trên ứng dụng ngân hàng của bạn</string>
+    <string name="main_dish">Món chính</string>
+    <string name="side_dish">Món phụ</string>
+    <string name="beverage">Nước uống</string>
+    <string name="dessert">Tráng miệng</string>
 </resources>

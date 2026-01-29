@@ -210,7 +210,7 @@ fun OrderStatusCard(order: Order) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    val (statusText, statusColor) = getStatusDisplay(order.status)
+                    val (statusText, statusColor) = getStatusDisplay(order)
                     Text(
                         text = statusText.uppercase(),
                         color = statusColor,
@@ -616,6 +616,19 @@ fun PaymentMethodCard(order: Order) {
                             }
                         }
                     }
+                    "SEPAY" -> {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.White,
+                            modifier = Modifier.size(40.dp),
+                            shadowElevation = 1.dp
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                // Using helper text until R.drawable is confirmed available and compiled
+                                Text("SE\nPay", fontSize = 10.sp, color = Color(0xFF0068FF), fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+                    }
                     else -> { // COD or Default
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -634,8 +647,7 @@ fun PaymentMethodCard(order: Order) {
                 Column {
                     Text(stringResource(R.string.checkout_payment_method), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     val methodName = when(order.paymentMethod) {
-                        "ZALOPAY" -> stringResource(R.string.checkout_method_zalopay)
-                        "MOMO" -> stringResource(R.string.checkout_method_momo)
+                        "SEPAY" -> stringResource(R.string.checkout_method_sepay)
                         else -> stringResource(R.string.checkout_method_cod)
                     }
                     Text(methodName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
