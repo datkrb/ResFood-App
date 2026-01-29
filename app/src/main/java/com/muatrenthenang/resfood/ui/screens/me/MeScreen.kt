@@ -38,6 +38,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.MeOrderCounts
 // Removed MeUserProfile import
 import com.muatrenthenang.resfood.data.model.User
+import com.muatrenthenang.resfood.data.model.Rank
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeCount
 import com.muatrenthenang.resfood.ui.screens.me.components.BadgeDot
 import com.muatrenthenang.resfood.ui.screens.me.components.IconCircleButton
@@ -290,7 +291,7 @@ private fun ProfileHeaderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(R.string.profile_member_rank, user?.rank ?: ""),
+                        text = stringResource(R.string.profile_member_rank, stringResource(Rank.fromName(user?.rank).nameResId)),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -743,6 +743,8 @@
     <string name="reward_status_locked">Chưa đạt</string>
     <string name="reward_status_available">Có thể nhận</string>
     <string name="reward_status_claimed">Đã nhận</string>
+    <string name="home_points">%1$d điểm</string>
 </resources>
+
 
 

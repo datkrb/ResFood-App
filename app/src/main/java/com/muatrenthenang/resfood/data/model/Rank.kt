@@ -26,6 +26,10 @@ enum class Rank(val displayName: String, val threshold: Double, val colorHex: Lo
                 DIAMOND -> null
             }
         }
+
+        fun fromName(name: String?): Rank {
+            return entries.find { it.displayName == name } ?: MEMBER
+        }
     }
 }
 

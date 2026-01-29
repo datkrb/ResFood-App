@@ -742,6 +742,8 @@
     <string name="reward_status_locked">Locked</string>
     <string name="reward_status_available">Available</string>
     <string name="reward_status_claimed">Claimed</string>
+    <string name="home_points">%1$d points</string>
 </resources>
+
 
 
