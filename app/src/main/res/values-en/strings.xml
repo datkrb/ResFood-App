@@ -567,7 +567,7 @@
     <string name="me_util_help">Help Center</string>
     <string name="me_util_help_sub">24/7 Support</string>
     <string name="me_util_payment">Payment Methods</string>
-    <string name="me_util_payment_sub">Visa, MoMo, ZaloPay</string>
+    <string name="me_util_payment_sub">COD, Sepay</string>
 
     <!-- Me Referral Promo -->
     <string name="me_referral_title">Invite friends, get gifts!</string>
@@ -750,6 +750,15 @@
     <string name="reward_status_available">Available</string>
     <string name="reward_status_claimed">Claimed</string>
     <string name="home_points">%1$d points</string>
+    <string name="checkout_method_sepay">QR Sepay</string>
+    <string name="waiting_payment">Waiting payment</string>
+    <string name="prepare_payment">Prepare payment</string>
+    <string name="scan_qr">Scan the QR code to pay.</string>
+    <string name="pls_scan_qr">Please scan the code on your bank\'s app.</string>
+    <string name="main_dish">Main dish</string>
+    <string name="side_dish">Side dish</string>
+    <string name="beverage">Beverage</string>
+    <string name="dessert">Dessert</string>
 </resources>
 
 

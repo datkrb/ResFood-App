@@ -68,7 +68,7 @@ fun OrderListScreen(
         "COMPLETED" -> 4
         "CANCELLED" -> 5
         "ALL" -> 6
-        else -> 0 // Default to first if unknown or "all" passed generically
+        else -> 0 // Default to first (PENDING) if unknown
     }
     
     var selectedTabIndex by remember { mutableStateOf(initialIndex) }
@@ -262,8 +262,8 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Status Text
-                val (statusText, statusColor) = getStatusDisplay(order.status)
+                 // Status Text
+                val (statusText, statusColor) = getStatusDisplay(order)
                 Surface(
                     color = statusColor.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(6.dp)
@@ -390,14 +390,15 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
 }
 
 @Composable
-fun getStatusDisplay(status: String): Pair<String, Color> {
-    return when(status) {
+fun getStatusDisplay(order: Order): Pair<String, Color> {
+    return when(order.status) {
+        "WAITING_PAYMENT" -> stringResource(R.string.waiting_payment) to Color(0xFFEAB308) // Yellow/Orange
         "PENDING" -> stringResource(R.string.status_display_pending) to PrimaryColor
         "PROCESSING" -> stringResource(R.string.status_display_processing) to Color(0xFFF97316) // Orange
         "DELIVERING" -> stringResource(R.string.status_display_delivering) to Color(0xFF3B82F6) // Blue
         "COMPLETED" -> stringResource(R.string.status_display_completed) to SuccessGreen
         "CANCELLED" -> stringResource(R.string.status_display_cancelled) to Color.Red
         "REJECTED" -> stringResource(R.string.admin_order_status_rejected) to Color(0xFFDC2626) // Red
-        else -> status to Color.Gray
+        else -> order.status to Color.Gray
     }
 }

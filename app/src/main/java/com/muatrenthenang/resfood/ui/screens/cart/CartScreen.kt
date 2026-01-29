@@ -170,7 +170,7 @@ fun CartScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
                                 ) {
                                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(text = "Tiến hành thanh toán", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text(text = stringResource(R.string.prepare_payment), color = Color.White, fontWeight = FontWeight.Bold)
                                         Surface(
                                             shape = CircleShape,
                                             color = Color.White.copy(alpha = 0.15f)

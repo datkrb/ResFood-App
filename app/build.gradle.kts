@@ -32,6 +32,7 @@ android {
         
         // Expose ImgBB API key via BuildConfig
         buildConfigField("String", "IMGBB_API_KEY", "\"${localProperties.getProperty("imgbb.api.key", "YOUR_IMGBB_API_KEY_HERE")}\"")
+        buildConfigField("String", "NGROK_URL", "\"${localProperties.getProperty("NGROK_URL", "NGROK_URL")}\"")
     }
 
     buildTypes {

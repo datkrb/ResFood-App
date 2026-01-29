@@ -139,6 +139,37 @@ class OrderRepository {
             Result.failure(e)
         }
     }
+    suspend fun deleteOrder(orderId: String): Result<Boolean> {
+        return try {
+            ordersRef.document(orderId).delete().await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Listen to a specific order updates in real-time
+     */
+    fun getOrderByIdFlow(orderId: String): Flow<Order?> = callbackFlow {
+        val listener = ordersRef.document(orderId).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                try {
+                    val order = snapshot.toObject(Order::class.java)
+                    trySend(order)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                trySend(null)
+            }
+        }
+        awaitClose { listener.remove() }
+    }
 
     /**
      * Mark order as reviewed

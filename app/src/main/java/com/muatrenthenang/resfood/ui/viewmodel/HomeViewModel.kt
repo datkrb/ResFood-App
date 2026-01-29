@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.muatrenthenang.resfood.ui.screens.home.HomeUiState
 import com.muatrenthenang.resfood.data.repository.FoodRepository
+import com.muatrenthenang.resfood.R
 
 class HomeViewModel (
     private val _foodRepository: FoodRepository = FoodRepository()
@@ -35,10 +36,10 @@ class HomeViewModel (
 
             // danh mục món ăn
             val categoryData = listOf(
-                CategoryItem(icon = Icons.Default.Restaurant, name = "Món chính"),
-                CategoryItem(icon = Icons.Default.Tapas, name = "Món phụ"),
-                CategoryItem(icon = Icons.Default.EmojiFoodBeverage, name = "Nước uống"),
-                CategoryItem(icon = Icons.Default.Fastfood, name = "Tráng miệng")
+                CategoryItem(icon = Icons.Default.Restaurant, name = "Món chính", nameRes = R.string.main_dish),
+                CategoryItem(icon = Icons.Default.Tapas, name = "Món phụ", nameRes = R.string.side_dish),
+                CategoryItem(icon = Icons.Default.EmojiFoodBeverage, name = "Nước uống", nameRes = R.string.beverage),
+                CategoryItem(icon = Icons.Default.Fastfood, name = "Tráng miệng", nameRes = R.string.dessert)
             )
 
             // keep UI categories; foods will be loaded from repository

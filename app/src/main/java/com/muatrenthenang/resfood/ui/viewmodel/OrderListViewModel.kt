@@ -63,6 +63,7 @@ class OrderListViewModel(
         val all = _allOrders.value
         _orders.value = when (status.lowercase()) {
             "all" -> all
+            "waiting_payment" -> all.filter { it.status == "WAITING_PAYMENT" }
             "pending" -> all.filter { it.status == "PENDING" }
             "processing" -> all.filter { it.status == "PROCESSING" }
             "delivering" -> all.filter { it.status == "DELIVERING" }
