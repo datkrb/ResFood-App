@@ -74,7 +74,7 @@ fun OrderReviewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Đánh giá đơn hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.order_review_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -121,7 +121,8 @@ fun OrderReviewScreen(
                                 orderViewModel.markOrderAsReviewed(orderId)
                                 
                                 isSubmitting = false
-                                Toast.makeText(context, "Đã gửi đánh giá thành công!", Toast.LENGTH_SHORT).show()
+                                val successMsg = context.getString(R.string.order_review_success)
+                                Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -136,7 +137,7 @@ fun OrderReviewScreen(
                     if (isSubmitting) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Gửi đánh giá", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.order_review_submit_btn), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -157,7 +158,7 @@ fun OrderReviewScreen(
             ) {
                 item {
                     Text(
-                        "Hãy đánh giá chất lượng sản phẩm để chúng tôi phục vụ tốt hơn nhé!",
+                        stringResource(R.string.order_review_subtitle),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
@@ -232,7 +233,7 @@ fun OrderItemReviewCard(
             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             
             // Rating
-            Text("Chất lượng món ăn", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(stringResource(R.string.order_review_quality_label), fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(), 
@@ -259,8 +260,8 @@ fun OrderItemReviewCard(
             OutlinedTextField(
                 value = comment,
                 onValueChange = onCommentChange,
-                label = { Text("Đánh giá (Tùy chọn)") },
-                placeholder = { Text("Món ăn thế nào? Hãy chia sẻ cảm nhận...") },
+                label = { Text(stringResource(R.string.order_review_comment_label)) },
+                placeholder = { Text(stringResource(R.string.order_review_comment_hint)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
                 maxLines = 4,

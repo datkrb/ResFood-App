@@ -303,6 +303,13 @@
     <string name="review_anonymous">Anonymous User</string>
     <string name="review_out_of_5">out of 5</string>
     <string name="common_send">Send</string>
+    <string name="order_review_title">Order Review</string>
+    <string name="order_review_subtitle">Please rate the product quality to help us serve you better!</string>
+    <string name="order_review_submit_btn">Submit Review</string>
+    <string name="order_review_success">Review submitted successfully!</string>
+    <string name="order_review_quality_label">Food Quality</string>
+    <string name="order_review_comment_label">Review (Optional)</string>
+    <string name="order_review_comment_hint">How was the food? Share your thoughts...</string>
     <string name="table_status_rejected">Rejected</string>
     <string name="admin_branch_unknown">Unknown</string>
 
