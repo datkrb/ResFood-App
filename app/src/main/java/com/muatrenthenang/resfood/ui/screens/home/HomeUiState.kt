@@ -8,5 +8,8 @@ data class HomeUiState(
     val foods: List<Food> = emptyList(),
     val isLoading: Boolean = true,
     val searchQuery: String = "",
-    val selectedCategory: String? = null
+    val selectedCategory: String? = null,
+    val minPrice: Int? = null,
+    val maxPrice: Int? = null,
+    val minRating: Float? = null
 )

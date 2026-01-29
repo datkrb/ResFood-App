@@ -53,7 +53,8 @@ class HomeViewModel (
                 val result = _foodRepository.getFoods()
                 result.fold(onSuccess = { foods ->
                     _allFoods.value = foods
-                    _uiState.value = _uiState.value.copy(foods = foods, isLoading = false)
+                    applyFilters() // Apply existing filters to new data
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }, onFailure = {
                     _allFoods.value = emptyList()
                     _uiState.value = _uiState.value.copy(foods = emptyList(), isLoading = false)
@@ -66,8 +67,12 @@ class HomeViewModel (
     }
 
     private fun applyFilters() {
-        val query = _uiState.value.searchQuery
-        val category = _uiState.value.selectedCategory
+        val currentState = _uiState.value
+        val query = currentState.searchQuery
+        val category = currentState.selectedCategory
+        val minPrice = currentState.minPrice
+        val maxPrice = currentState.maxPrice
+        val minRating = currentState.minRating
         
         var filtered = _allFoods.value
         
@@ -82,12 +87,35 @@ class HomeViewModel (
                 food.name.contains(query, ignoreCase = true)
             }
         }
+
+        // Filter by price
+        if (minPrice != null) {
+            filtered = filtered.filter { it.price >= minPrice }
+        }
+        if (maxPrice != null) {
+            filtered = filtered.filter { it.price <= maxPrice }
+        }
+
+        // Filter by rating
+        if (minRating != null) {
+             filtered = filtered.filter { it.rating >= minRating }
+        }
         
         _uiState.value = _uiState.value.copy(foods = filtered)
     }
 
     fun setSearchQuery(query: String) {
         _uiState.value = _uiState.value.copy(searchQuery = query)
+        applyFilters()
+    }
+
+    fun setFilters(minPrice: Int?, maxPrice: Int?, minRating: Float?, category: String?) {
+        _uiState.value = _uiState.value.copy(
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            minRating = minRating,
+            selectedCategory = category
+        )
         applyFilters()
     }
 
