@@ -39,6 +39,7 @@ import java.util.Locale
 fun TableReservationDetailScreen(
     reservationId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToChat: (String) -> Unit,
     viewModel: AdminViewModel = viewModel()
 ) {
     val reservations by viewModel.reservations.collectAsState()
@@ -193,7 +194,7 @@ fun TableReservationDetailScreen(
 
                 // Customer Information Card
                 item {
-                    CustomerInfoCard(customer = customer, reservation = reservation)
+                    CustomerInfoCard(customer = customer, reservation = reservation, onNavigateToChat = onNavigateToChat)
                 }
                 
                 // Reservation Details Card
@@ -210,7 +211,11 @@ fun TableReservationDetailScreen(
 }
 
 @Composable
-fun CustomerInfoCard(customer: com.muatrenthenang.resfood.data.model.User?, reservation: com.muatrenthenang.resfood.data.model.TableReservation) {
+fun CustomerInfoCard(
+    customer: com.muatrenthenang.resfood.data.model.User?, 
+    reservation: com.muatrenthenang.resfood.data.model.TableReservation,
+    onNavigateToChat: (String) -> Unit
+) {
     val context = LocalContext.current
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -279,6 +284,17 @@ fun CustomerInfoCard(customer: com.muatrenthenang.resfood.data.model.User?, rese
                             Icon(Icons.Default.Call, contentDescription = "Call", tint = SuccessGreen)
                         }
                    }
+                }
+                
+                // Chat Button
+                if (customer != null) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    IconButton(
+                        onClick = { onNavigateToChat(customer.id) },
+                        modifier = Modifier.background(PrimaryColor.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Chat, contentDescription = "Chat", tint = PrimaryColor)
+                    }
                 }
             }
 

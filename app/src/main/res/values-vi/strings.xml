@@ -333,7 +333,7 @@
     <string name="table_guests_format">%1$d Người lớn, %2$d Trẻ em</string>
     
     <!-- Booking -->
-    <string name="booking_success_msg">Đặt bàn thành công! Mã: %1$s</string>
+    <string name="booking_success_msg">Đặt bàn thành công!</string>
     <string name="booking_title">Đặt bàn</string>
     <string name="booking_restaurant_title">Nhà hàng</string>
     <string name="booking_date_time">Ngày &amp; Giờ</string>
@@ -640,6 +640,8 @@
     <string name="branch_label_shipping">Phí vận chuyển (VNĐ)</string>
     <string name="branch_label_address_line">Địa chỉ (số nhà, đường)</string>
     <string name="branch_label_ward">Phường/Xã</string>
+    <string name="branch_label_shipping_per_km">Phí mỗi KM</string>
+    <string name="branch_label_min_shipping">Phí tối thiểu</string>
     <string name="branch_label_district">Quận/Huyện</string>
     <string name="branch_label_city">Thành phố</string>
     <string name="branch_info_location">VỊ TRÍ TRÊN BẢN ĐỒ</string>

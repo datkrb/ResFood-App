@@ -68,7 +68,7 @@ fun BookingTableScreen(
     LaunchedEffect(bookingState) {
         when (val state = bookingState) {
             is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Success -> {
-                android.widget.Toast.makeText(context, context.getString(R.string.booking_success_msg, state.reservationId), android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.booking_success_msg), android.widget.Toast.LENGTH_LONG).show()
                 viewModel.resetBookingState()
                 onNavigateBack()
             }

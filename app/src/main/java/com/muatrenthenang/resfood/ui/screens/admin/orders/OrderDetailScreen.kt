@@ -40,6 +40,7 @@ import com.muatrenthenang.resfood.R
 fun OrderDetailScreen(
     orderId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToChat: (String) -> Unit,
     viewModel: AdminViewModel = viewModel()
 ) {
     val orders by viewModel.orders.collectAsState()
@@ -270,6 +271,17 @@ fun OrderDetailScreen(
                                         modifier = Modifier.background(SuccessGreen.copy(alpha = 0.1f), CircleShape)
                                     ) {
                                         Icon(Icons.Default.Call, contentDescription = "Call", tint = SuccessGreen)
+                                    }
+                                }
+
+                                // Chat Button
+                                if (customer != null) {
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    IconButton(
+                                        onClick = { onNavigateToChat(customer.id) },
+                                        modifier = Modifier.background(PrimaryColor.copy(alpha = 0.1f), CircleShape)
+                                    ) {
+                                        Icon(Icons.Default.Chat, contentDescription = "Chat", tint = PrimaryColor)
                                     }
                                 }
                             }

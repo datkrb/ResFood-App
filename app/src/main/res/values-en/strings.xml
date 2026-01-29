@@ -345,7 +345,7 @@
     <string name="table_guests_format">%1$d Adults, %2$d Children</string>
 
     <!-- Booking -->
-    <string name="booking_success_msg">Booking successful! Code: %1$s</string>
+    <string name="booking_success_msg">Booking successful!</string>
     <string name="booking_title">Booking</string>
     <string name="booking_restaurant_title">Restaurant</string>
     <string name="booking_date_time">Date &amp; Time</string>
@@ -655,6 +655,8 @@
     <string name="branch_label_shipping">Shipping Fee (VND)</string>
     <string name="branch_label_address_line">Address (Number, Street)</string>
     <string name="branch_label_ward">Ward/Commune</string>
+    <string name="branch_label_shipping_per_km">Fee per KM</string>
+    <string name="branch_label_min_shipping">Minimum Fee</string>
     <string name="branch_label_district">District</string>
     <string name="branch_label_city">City</string>
     <string name="branch_info_location">MAP LOCATION</string>
