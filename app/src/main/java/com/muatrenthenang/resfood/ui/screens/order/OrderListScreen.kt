@@ -50,7 +50,7 @@ fun OrderListScreen(
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Tabs matching ReservationListScreen style
-    val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "REVIEW", "COMPLETED", "CANCELLED", "ALL")
+    val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "REVIEW", "COMPLETED", "CANCELLED", "REJECTED", "ALL")
     val tabTitles = listOf(
         stringResource(R.string.status_display_pending),
         stringResource(R.string.status_display_processing),
@@ -58,6 +58,7 @@ fun OrderListScreen(
         stringResource(R.string.food_review),
         stringResource(R.string.status_display_completed),
         stringResource(R.string.status_display_cancelled),
+        stringResource(R.string.status_display_rejected),
         stringResource(R.string.common_all)
     )
     
@@ -69,7 +70,8 @@ fun OrderListScreen(
         "REVIEW" -> 3
         "COMPLETED" -> 4
         "CANCELLED" -> 5
-        "ALL" -> 6
+        "REJECTED" -> 6
+        "ALL" -> 7
         else -> 0 // Default to first (PENDING) if unknown
     }
     
@@ -114,7 +116,8 @@ fun OrderListScreen(
                             "PROCESSING" -> allOrdersList.count { it.status == "PROCESSING" }
                             "DELIVERING" -> allOrdersList.count { it.status == "DELIVERING" }
                             "COMPLETED" -> allOrdersList.count { it.status == "COMPLETED" }
-                            "CANCELLED" -> allOrdersList.count { it.status == "CANCELLED" || it.status == "REJECTED" }
+                            "CANCELLED" -> allOrdersList.count { it.status == "CANCELLED" }
+                            "REJECTED" -> allOrdersList.count { it.status == "REJECTED" }
                             "REVIEW" -> allOrdersList.count { it.status == "COMPLETED" && !it.isReviewed }
                             else -> 0
                         }
@@ -140,6 +143,7 @@ fun OrderListScreen(
                                             "DELIVERING" -> Color(0xFF3B82F6)
                                             "COMPLETED" -> SuccessGreen
                                             "CANCELLED" -> Color.Red
+                                            "REJECTED" -> Color.Red // Or LightRed if preferred
                                             "REVIEW" -> Color(0xFFF59E0B)
                                             else -> PrimaryColor
                                         }

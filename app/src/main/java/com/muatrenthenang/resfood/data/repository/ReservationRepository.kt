@@ -129,6 +129,23 @@ class ReservationRepository {
         }
     }
 
+    suspend fun rejectReservation(reservationId: String, reason: String): Result<Boolean> {
+        return try {
+            reservationsRef.document(reservationId)
+                .update(
+                    mapOf(
+                        "status" to "REJECTED",
+                        "rejection_reason" to reason,
+                        "rejected_at" to Timestamp.now()
+                    )
+                )
+                .await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getReservationById(reservationId: String): Result<TableReservation?> {
         return try {
             val snapshot = reservationsRef.document(reservationId).get().await()

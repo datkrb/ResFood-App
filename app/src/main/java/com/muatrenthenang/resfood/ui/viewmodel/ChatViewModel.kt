@@ -96,17 +96,31 @@ class ChatViewModel : ViewModel() {
              repository.getChatById(chatId).onSuccess { chat ->
                  _currentChat.value = chat
                  
-                 // Auto-fix: If name is "Admin", it's likely wrong (overwritten). Fetch real name.
-                 if (chat != null && (chat.customerName == "Admin" || chat.customerName == "Khách hàng")) {
+                 // Sync Name and Avatar from User Profile
+                 if (chat != null) {
                      val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                      db.collection("users").document(chat.customerId).get()
                         .addOnSuccessListener { doc ->
                             val realName = doc.getString("fullName")
+                            val realAvatar = doc.getString("avatarUrl") ?: ""
+                            
+                            val updates = mutableMapOf<String, Any>()
+                            var updatedChat = chat
+
                             if (!realName.isNullOrEmpty() && realName != chat.customerName) {
-                                // Update DB
-                                db.collection("chats").document(chatId).update("customerName", realName)
-                                // Update UI
-                                _currentChat.value = chat.copy(customerName = realName)
+                                updates["customerName"] = realName
+                                updatedChat = updatedChat.copy(customerName = realName)
+                            }
+                            
+                            // Sync Avatar if it's new or changed
+                            if (realAvatar.isNotEmpty() && realAvatar != chat.customerAvatarUrl) {
+                                updates["customerAvatarUrl"] = realAvatar
+                                updatedChat = updatedChat.copy(customerAvatarUrl = realAvatar)
+                            }
+
+                            if (updates.isNotEmpty()) {
+                                db.collection("chats").document(chatId).update(updates)
+                                _currentChat.value = updatedChat
                             }
                         }
                  }

@@ -549,6 +549,7 @@
     <string name="status_display_delivering">Đang giao</string>
     <string name="status_display_completed">Đã hoàn thành</string>
     <string name="status_display_cancelled">Đã hủy</string>
+    <string name="status_display_rejected">Đã từ chối</string>
 
     <string name="order_cancel_confirm_title">Xác nhận hủy đơn</string>
     <string name="order_cancel_confirm_msg">Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.</string>

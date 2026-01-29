@@ -62,6 +62,7 @@ fun ReservationDetailScreen(
         "CONFIRMED" -> Color(0xFF3B82F6)
         "COMPLETED" -> SuccessGreen
         "CANCELLED" -> Color.Gray
+        "REJECTED" -> LightRed
         else -> Color.Gray
     }
 
@@ -70,6 +71,7 @@ fun ReservationDetailScreen(
         "CONFIRMED" -> stringResource(R.string.me_status_confirmed)
         "COMPLETED" -> stringResource(R.string.me_status_completed)
         "CANCELLED" -> stringResource(R.string.order_status_cancelled)
+        "REJECTED" -> stringResource(R.string.table_status_rejected)
         else -> reservation.status
     }
     
@@ -180,6 +182,31 @@ fun ReservationDetailScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = statusColor
+                        )
+                    }
+                }
+            }
+            
+            if (reservation.status == "REJECTED" && !reservation.rejectionReason.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Surface(
+                    color = LightRed.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, LightRed.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                         Text(
+                            text = "Lý do từ chối",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = LightRed,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = reservation.rejectionReason!!,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
