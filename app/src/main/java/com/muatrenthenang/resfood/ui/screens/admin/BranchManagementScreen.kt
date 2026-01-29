@@ -220,7 +220,7 @@ fun BranchManagementScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    suffix = { Text("đ") }
+                    suffix = { Text(com.muatrenthenang.resfood.util.CurrencyHelper.currencySymbol) }
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

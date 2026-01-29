@@ -112,7 +112,7 @@ fun CardFood(
                 ) {
 
                     Text(
-                        text = stringResource(R.string.price_format_vnd, food.price),
+                        text = com.muatrenthenang.resfood.util.CurrencyHelper.format(food.price),
                         color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

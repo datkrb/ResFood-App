@@ -314,7 +314,7 @@ fun PromotionAddScreen(
                     value = discountValue,
                     onValueChange = { discountValue = it },
                     placeholder = stringResource(R.string.admin_promo_placeholder_value),
-                    trailingIcon = { Text(if(discountType == 0) "%" else "đ", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end=16.dp)) }
+                    trailingIcon = { Text(if(discountType == 0) "%" else com.muatrenthenang.resfood.util.CurrencyHelper.currencySymbol, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end=16.dp)) }
                 )
             }
 
@@ -324,7 +324,7 @@ fun PromotionAddScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(stringResource(R.string.admin_promo_label_min_order), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-                        AdminTextField(value = minOrderValue, onValueChange = { minOrderValue = it }, placeholder = "0đ")
+                        AdminTextField(value = minOrderValue, onValueChange = { minOrderValue = it }, placeholder = "0${com.muatrenthenang.resfood.util.CurrencyHelper.currencySymbol}")
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(stringResource(R.string.admin_promo_label_max_discount), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)

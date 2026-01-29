@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.data.repository.ReferralRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.muatrenthenang.resfood.R
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -37,7 +38,8 @@ data class ReferredUserInfo(
 data class ReferralStep(
     val step: String,
     val titleResId: Int,
-    val descriptionResId: Int
+    val descriptionResId: Int,
+    val descriptionArgs: List<Any> = emptyList()
 )
 
 data class ReferralHistoryItem(
@@ -69,7 +71,7 @@ class ReferralViewModel(application: Application) : AndroidViewModel(application
     private val _totalInvites = MutableStateFlow(0)
     val totalInvites: StateFlow<Int> = _totalInvites.asStateFlow()
     
-    private val _totalReward = MutableStateFlow("0đ")
+    private val _totalReward = MutableStateFlow(CurrencyHelper.format(0))
     val totalReward: StateFlow<String> = _totalReward.asStateFlow()
     
     init {
@@ -81,7 +83,7 @@ class ReferralViewModel(application: Application) : AndroidViewModel(application
         _referralSteps.value = listOf(
             ReferralStep("1", R.string.referral_step1_title, R.string.referral_step1_desc),
             ReferralStep("2", R.string.referral_step2_title, R.string.referral_step2_desc),
-            ReferralStep("3", R.string.referral_step3_title, R.string.referral_step3_desc)
+            ReferralStep("3", R.string.referral_step3_title, R.string.referral_step3_desc, listOf(CurrencyHelper.format(50000)))
         )
     }
     
@@ -130,11 +132,11 @@ class ReferralViewModel(application: Application) : AndroidViewModel(application
                             name = it.name,
                             date = getApplication<Application>().getString(R.string.me_status_completed),
                             status = getApplication<Application>().getString(R.string.me_status_completed),
-                            reward = "+50.000đ"
+                            reward = "+" + CurrencyHelper.format(50000)
                         )
                     }
                     _totalInvites.value = referredUsers.size
-                    _totalReward.value = "${referredUsers.size * 50000}đ"
+                    _totalReward.value = CurrencyHelper.format(referredUsers.size * 50000)
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

@@ -437,7 +437,7 @@ fun ReferralSteps(steps: List<ReferralStep>) {
             ReferralStepItem(
                 step = step.step,
                 title = stringResource(step.titleResId),
-                description = stringResource(step.descriptionResId),
+                description = stringResource(step.descriptionResId, *step.descriptionArgs.toTypedArray()),
                 isLast = step == steps.last()
             )
         }

@@ -270,7 +270,7 @@ private fun TotalSpendingCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = stringResource(R.string.price_format_vnd, formatter.format(totalSpending)),
+                    text = com.muatrenthenang.resfood.util.CurrencyHelper.format(totalSpending),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -401,7 +401,7 @@ private fun CategoryLegend(categorySpending: List<CategorySpending>) {
                 categorySpending.forEachIndexed { index, category ->
                     CategoryLegendItem(
                         category = category,
-                        formattedAmount = stringResource(R.string.price_format_vnd, formatter.format(category.amount))
+                        formattedAmount = com.muatrenthenang.resfood.util.CurrencyHelper.format(category.amount)
                     )
                     if (index < categorySpending.size - 1) {
                         HorizontalDivider(

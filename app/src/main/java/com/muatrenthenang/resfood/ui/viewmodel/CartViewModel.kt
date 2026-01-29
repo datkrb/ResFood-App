@@ -143,8 +143,7 @@ class CartViewModel(
     }
 
     fun formatCurrency(value: Long): String {
-        val pattern = DecimalFormat("###,###")
-        return pattern.format(value) + "đ"
+        return com.muatrenthenang.resfood.util.CurrencyHelper.format(value)
     }
 
     fun canCheckout(): Boolean {

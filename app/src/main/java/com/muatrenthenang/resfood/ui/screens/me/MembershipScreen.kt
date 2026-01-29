@@ -54,7 +54,7 @@ fun MembershipScreen(
     val progress = viewModel.getProgress()
     val nextRankTarget = viewModel.getNextRankTarget()
     
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
+
     
     val uiState by viewModel.uiState.collectAsState()
 
@@ -155,13 +155,13 @@ fun MembershipScreen(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        currencyFormatter.format(totalSpending),
+                                        com.muatrenthenang.resfood.util.CurrencyHelper.format(totalSpending),
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = contentColor
                                     )
                                     Text(
-                                        " / ${currencyFormatter.format(nextRankTarget)}",
+                                        " / ${com.muatrenthenang.resfood.util.CurrencyHelper.format(nextRankTarget)}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = secondaryContentColor,
                                         modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
@@ -218,7 +218,7 @@ fun MembershipScreen(
                                 val remaining = nextRankTarget - totalSpending
                                 val nextRank = Rank.getNextRank(currentRank)
                                 Text(
-                                    stringResource(R.string.membership_spend_more, currencyFormatter.format(remaining), if (nextRank != null) stringResource(nextRank.nameResId) else ""),
+                                    stringResource(R.string.membership_spend_more, com.muatrenthenang.resfood.util.CurrencyHelper.format(remaining), if (nextRank != null) stringResource(nextRank.nameResId) else ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = PrimaryColor.copy(alpha = 0.9f)
                                 )
@@ -460,7 +460,7 @@ fun RankTimelineItem(
                         color = contentColor
                     )
                     Text(
-                        if (rank.threshold == 0.0) stringResource(R.string.membership_start_milestone) else stringResource(R.string.membership_spend_greater, NumberFormat.getIntegerInstance().format(rank.threshold)),
+                        if (rank.threshold == 0.0) stringResource(R.string.membership_start_milestone) else stringResource(R.string.membership_spend_greater, com.muatrenthenang.resfood.util.CurrencyHelper.format(rank.threshold)),
                         style = MaterialTheme.typography.bodySmall,
                         color = secondaryContentColor
                     )

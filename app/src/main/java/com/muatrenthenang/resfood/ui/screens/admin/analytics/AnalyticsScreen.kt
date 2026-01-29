@@ -109,14 +109,14 @@ fun AnalyticsScreen(
                     ) {
                         AnalyticSummaryCard(
                             stringResource(R.string.admin_analytics_total_revenue),
-                            stringResource(R.string.price_format_vnd, analyticsState.totalRevenue.toInt()),
+                            com.muatrenthenang.resfood.util.CurrencyHelper.format(analyticsState.totalRevenue.toInt()),
                             "${analyticsState.totalOrders} ${stringResource(R.string.admin_analytics_orders_unit)}",
                             Color(0xFF4CAF50), // Green for revenue is standard
                             Modifier.weight(1f)
                         )
                         AnalyticSummaryCard(
                             stringResource(R.string.admin_analytics_avg_revenue),
-                            stringResource(R.string.price_format_vnd, if (analyticsState.totalOrders > 0) (analyticsState.totalRevenue / analyticsState.totalOrders).toInt() else 0), 
+                            com.muatrenthenang.resfood.util.CurrencyHelper.format(if (analyticsState.totalOrders > 0) (analyticsState.totalRevenue / analyticsState.totalOrders).toInt() else 0), 
                             stringResource(R.string.admin_analytics_orders_unit),
                             Color(0xFF2196F3), // Blue
                             Modifier.weight(1f)
@@ -196,7 +196,7 @@ fun AnalyticsScreen(
                                         TopProductRow(
                                             name = "${index+1}. ${item.name}", 
                                             count = "${item.count} ${stringResource(R.string.admin_analytics_orders_unit)}", 
-                                            revenue = stringResource(R.string.price_format_vnd, item.revenue.toInt())
+                                            revenue = com.muatrenthenang.resfood.util.CurrencyHelper.format(item.revenue.toInt())
                                         )
                                         if(index < analyticsState.topProducts.size - 1) {
                                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

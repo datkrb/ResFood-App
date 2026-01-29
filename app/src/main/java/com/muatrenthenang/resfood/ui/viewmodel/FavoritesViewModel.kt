@@ -106,7 +106,7 @@ class FavoritesViewModel(
     }
 
     fun formatCurrency(value: Int): String {
-        return java.text.DecimalFormat("###,###").format(value) + "đ"
+        return com.muatrenthenang.resfood.util.CurrencyHelper.format(value)
     }
 
     fun clearResult() { _actionResult.value = null }

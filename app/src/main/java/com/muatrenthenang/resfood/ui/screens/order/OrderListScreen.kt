@@ -278,7 +278,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                 }
 
                 // Price
-                val formattedPrice = stringResource(R.string.price_format_vnd, order.total)
+                val formattedPrice = com.muatrenthenang.resfood.util.CurrencyHelper.format(order.total)
                 Text(
                     text = formattedPrice,
                     fontWeight = FontWeight.Bold,
@@ -332,7 +332,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "x${item.quantity}       ${stringResource(R.string.price_format_vnd, item.price)}",
+                                text = "x${item.quantity}       ${com.muatrenthenang.resfood.util.CurrencyHelper.format(item.price)}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

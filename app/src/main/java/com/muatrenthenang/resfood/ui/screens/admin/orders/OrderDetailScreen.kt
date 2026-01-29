@@ -631,5 +631,5 @@ fun AdminRejectionReasonCard(order: Order) {
 }
 
 fun formatCurrency(amount: Int): String {
-    return NumberFormat.getCurrencyInstance(Locale("vi", "VN")).format(amount)
+    return com.muatrenthenang.resfood.util.CurrencyHelper.format(amount)
 }
