@@ -4,11 +4,11 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class SettingsRepository(context: Context) {
-    private val prefs: SharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences("resfood_prefs", Context.MODE_PRIVATE)
 
     companion object {
-        private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
-        private const val KEY_DARK_MODE_ENABLED = "dark_mode_enabled"
+        private const val KEY_NOTIFICATIONS_ENABLED = "push_notification_enabled"
+        private const val KEY_DARK_MODE_ENABLED = "is_dark_theme"
     }
 
     // Notifications

@@ -18,23 +18,23 @@ import androidx.core.os.LocaleListCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import com.muatrenthenang.resfood.data.repository.SettingsRepository
 import com.muatrenthenang.resfood.R
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = AuthRepository()
     private val promotionRepository = PromotionRepository()
     private val orderRepository = OrderRepository()
+    private val settingsRepository = SettingsRepository(application)
     
     private val _userState = MutableStateFlow<User?>(null)
     val userState: StateFlow<User?> = _userState.asStateFlow()
 
-    private val sharedPreferences = application.getSharedPreferences("resfood_prefs", Context.MODE_PRIVATE)
-
-    private val _isDarkTheme = MutableStateFlow(sharedPreferences.getBoolean("is_dark_theme", false))
+    private val _isDarkTheme = MutableStateFlow(settingsRepository.isDarkModeEnabled())
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
     // Push notification state
-    private val _isPushNotificationEnabled = MutableStateFlow(sharedPreferences.getBoolean("push_notification_enabled", true))
+    private val _isPushNotificationEnabled = MutableStateFlow(settingsRepository.isNotificationsEnabled())
     val isPushNotificationEnabled: StateFlow<Boolean> = _isPushNotificationEnabled.asStateFlow()
 
     // === MeViewModel States ===
@@ -220,13 +220,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
-        sharedPreferences.edit().putBoolean("is_dark_theme", isDark).apply()
+        settingsRepository.setDarkModeEnabled(isDark)
     }
 
     fun togglePushNotification(enabled: Boolean) {
         _isPushNotificationEnabled.value = enabled
-        sharedPreferences.edit().putBoolean("push_notification_enabled", enabled).apply()
-        sharedPreferences.edit().putBoolean("push_notification_enabled", enabled).apply()
+        settingsRepository.setNotificationsEnabled(enabled)
     }
 
     fun setLanguage(code: String) {
