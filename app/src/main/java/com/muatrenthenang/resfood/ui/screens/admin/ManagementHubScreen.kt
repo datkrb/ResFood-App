@@ -106,14 +106,6 @@ fun ManagementHubScreen(
                     )
                 }
                 item {
-                    ManagementHubItem(
-                        title = stringResource(R.string.hub_item_category),
-                        icon = Icons.Default.Category,
-                        color = Color(0xFF2196F3), // Blue
-                        onClick = onNavigateToCategory
-                    )
-                }
-                item {
                      ManagementHubItem(
                         title = stringResource(R.string.hub_item_topping),
                         icon = Icons.Default.Icecream,
