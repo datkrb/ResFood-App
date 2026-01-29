@@ -65,7 +65,7 @@ enum class FoodStatus(val displayName: String) {
 }
 
 data class AnalyticsUiState(
-    val filterType: AnalyticsFilterType = AnalyticsFilterType.TODAY,
+    val filterType: AnalyticsFilterType = AnalyticsFilterType.MONTH,
     val startDate: Long = System.currentTimeMillis(),
     val endDate: Long = System.currentTimeMillis(),
     val totalRevenue: Double = 0.0,
@@ -122,7 +122,7 @@ class AdminViewModel(
         viewModelScope.launch {
             loadOrders()
             // Initialize analytics with TODAY filter
-            setAnalyticsFilter(AnalyticsFilterType.TODAY)
+            setAnalyticsFilter(AnalyticsFilterType.MONTH)
             loadData()
         }
     }

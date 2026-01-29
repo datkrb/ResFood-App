@@ -768,8 +768,9 @@
     <string name="label_address">Địa chỉ mặc định</string>
     <string name="stats_revenue">Tổng chi tiêu</string>
     <string name="common_unknown">Chưa cập nhật</string>
-    <string name="username_hint">Tên đăng nhập</string>
+    <string name="username_hint">Email</string>
     <string name="address_empty">Chưa có địa chỉ</string>
+    <string name="admin_customer_locked_msg">Tài khoản đã bị khóa</string>
     <string name="checkout_method_sepay">Thanh toán với QR Sepay</string>
     <string name="waiting_payment">Chờ thanh toán</string>
     <string name="prepare_payment">Tiến hành thanh toán</string>

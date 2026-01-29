@@ -25,7 +25,9 @@ data class User(
     // === Rank & Rewards ===
     val totalSpending: Double = 0.0,             // Tổng chi tiêu tích lũy
     val claimedRewards: List<String> = emptyList(), // Danh sách ID các phần thưởng đã nhận
-    val isLocked: Boolean = false // Trạng thái khóa tài khoản
+    @get:com.google.firebase.firestore.PropertyName("isLocked")
+    @set:com.google.firebase.firestore.PropertyName("isLocked")
+    var isLocked: Boolean = false // Trạng thái khóa tài khoản
 ) {
     /**
      * Lấy địa chỉ mặc định của user
