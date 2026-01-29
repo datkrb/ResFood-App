@@ -218,7 +218,7 @@ fun VoucherSelectionCard(
     // Logic hiển thị badge số lượng
     val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
     val isPrivate = !promotion.isPublic()
-    val quantity = if (isPrivate) promotion.getRemainingQuantity(userId) else 0
+    var quantity = if (isPrivate) promotion.getRemainingQuantity(userId) else 0
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Card(
@@ -307,21 +307,24 @@ fun VoucherSelectionCard(
             }
         }
 
-        // Badge số lượng (chỉ hiện cho voucher cá nhân từ 1 trở lên)
+        // Badge số lượng
+        var q = 1
         if (isPrivate && quantity > 0) {
-            Surface(
-                color = MaterialTheme.colorScheme.error,
-                shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Text(
-                    text = "x$quantity",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                )
-            }
+            q = quantity
+        }
+
+        Surface(
+            color = MaterialTheme.colorScheme.error,
+            shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Text(
+                text = "x$q",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            )
         }
     }
 }
