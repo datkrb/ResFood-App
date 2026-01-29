@@ -494,6 +494,10 @@
     <string name="voucher_input_hint">Nhập mã Voucher</string>
     <string name="voucher_freeship">FREESHIP</string>
     <string name="voucher_resfood">RESFOOD</string>
+    <string name="voucher_max_discount">Giảm tối đa %1$s</string>
+    <string name="voucher_not_eligible">Chưa đủ điều kiện sử dụng</string>
+    <string name="voucher_not_eligible_min_order">Mã %1$s: Chưa đủ điều kiện (Min %2$s)</string>
+    <string name="voucher_shipping_not_eligible">Mã vận chuyển: Chưa đủ điều kiện</string>
 
     <!-- Food Detail -->
     <string name="food_detail_loading">Đang tải...</string>

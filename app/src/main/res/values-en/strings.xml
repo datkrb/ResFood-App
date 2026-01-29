@@ -405,6 +405,10 @@
     <string name="voucher_input_hint">Enter Voucher Code</string>
     <string name="voucher_freeship">FREESHIP</string>
     <string name="voucher_resfood">RESFOOD</string>
+    <string name="voucher_max_discount">Max discount %1$s</string>
+    <string name="voucher_not_eligible">Not eligible to use</string>
+    <string name="voucher_not_eligible_min_order">Code %1$s: Not eligible (Min %2$s)</string>
+    <string name="voucher_shipping_not_eligible">Shipping voucher: Not eligible</string>
 
     <!-- Food Detail -->
     <string name="food_detail_loading">Loading...</string>

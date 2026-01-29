@@ -85,6 +85,7 @@ fun CheckoutScreen(
             currentProductVoucher = productVoucher,
             currentShippingVoucher = shippingVoucher,
             promotions = availablePromotions,
+            orderTotal = subTotal,
             onApplyVouchers = { pV, sV ->
                 vm.setVouchers(pV, sV)
                 showVoucherSelection = false
@@ -477,6 +478,13 @@ fun CheckoutScreen(
                                     }
                                     Text(text = "-${vm.formatCurrency(productDiscount)}", color = SuccessGreen, fontWeight = FontWeight.Medium)
                                 }
+                            } else if (productVoucher != null) {
+                                Text(
+                                    text = stringResource(R.string.voucher_not_eligible_min_order, productVoucher!!.code, vm.formatCurrency(productVoucher!!.minOrderValue.toLong())),
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 12.sp,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                )
                             }
 
                             if (shippingDiscount > 0) {
@@ -488,6 +496,13 @@ fun CheckoutScreen(
                                     }
                                     Text(text = "-${vm.formatCurrency(shippingDiscount)}", color = Color(0xFF0097A7), fontWeight = FontWeight.Medium)
                                 }
+                            } else if (shippingVoucher != null) {
+                                 Text(
+                                    text = stringResource(R.string.voucher_shipping_not_eligible),
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 12.sp,
+                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                )
                             }
 
                             Divider()
