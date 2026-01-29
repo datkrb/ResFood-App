@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -219,13 +220,47 @@ fun OrderManagementScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            
+            val userOrders = if (userId != null) orders.filter { it.userId == userId } else orders
+            val targetCustomer = if (userId != null) customers.find { it.id == userId } else null
+
             Column {
-            // Search Bar
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it }
-            )
+                // User Header (Only when filtering by user)
+                if (targetCustomer != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.padding(16.dp).fillMaxWidth()
+                    ) {
+                        Row(
+                             modifier = Modifier.padding(16.dp),
+                             verticalAlignment = Alignment.CenterVertically
+                        ) {
+                             if (targetCustomer.avatarUrl != null) {
+                                 AsyncImage(
+                                     model = targetCustomer.avatarUrl,
+                                     contentDescription = null,
+                                     modifier = Modifier.size(50.dp).clip(CircleShape),
+                                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                 )
+                             } else {
+                                Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(50.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                             }
+                             Spacer(modifier = Modifier.width(16.dp))
+                             Column {
+                                 Text(targetCustomer.fullName, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                 Text(targetCustomer.phone ?: stringResource(R.string.phone_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f))
+                             }
+                        }
+                    }
+                }
+
+                // Search Bar (Hide when filtering by user)
+                if (userId == null) {
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it }
+                    )
+                }
 
             // Date Filter Chips
             Row(
@@ -263,10 +298,10 @@ fun OrderManagementScreen(
                 divider = {}
             ) {
                 tabs.forEachIndexed { index, status ->
-                    // Calculate count for this status
+                    // Calculate count for this status based on userOrders (filtered scope)
                     val count = when(status) {
-                        "ALL" -> orders.size
-                        else -> orders.count { it.status == status }
+                        "ALL" -> userOrders.size
+                        else -> userOrders.count { it.status == status }
                     }
                     
                     Tab(

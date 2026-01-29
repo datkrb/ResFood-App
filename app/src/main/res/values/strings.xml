@@ -110,7 +110,7 @@
     <string name="admin_customer_search_hint">Tìm tên hoặc số điện thoại...</string>
     <string name="admin_customer_list">Danh sách</string>
     <string name="admin_customer_sort">Sắp xếp</string>
-    <string name="admin_customer_joined">Tham gia</string>
+    <string name="admin_customer_joined">Ngày tham gia</string>
     <string name="admin_customer_edit_title">Chỉnh sửa khách hàng</string>
     <string name="label_name">Tên</string>
     <string name="label_points">Điểm tích lũy</string>
@@ -302,13 +302,6 @@
     <string name="review_anonymous">Người dùng ẩn danh</string>
     <string name="review_out_of_5">trên 5</string>
     <string name="common_send">Gửi</string>
-    <string name="order_review_title">Đánh giá đơn hàng</string>
-    <string name="order_review_subtitle">Hãy đánh giá chất lượng sản phẩm để chúng tôi phục vụ tốt hơn nhé!</string>
-    <string name="order_review_submit_btn">Gửi đánh giá</string>
-    <string name="order_review_success">Đã gửi đánh giá thành công!</string>
-    <string name="order_review_quality_label">Chất lượng món ăn</string>
-    <string name="order_review_comment_label">Đánh giá (Tùy chọn)</string>
-    <string name="order_review_comment_hint">Món ăn thế nào? Hãy chia sẻ cảm nhận...</string>
 
     <!-- Admin Dashboard -->
     <string name="dashboard_welcome_back">CHÀO MỪNG TRỞ LẠI</string>
@@ -748,6 +741,14 @@
     <string name="reward_status_available">Có thể nhận</string>
     <string name="reward_status_claimed">Đã nhận</string>
     <string name="home_points">%1$d điểm</string>
+    <string name="order_review_title">Đánh giá đơn hàng</string>
+    <string name="order_review_subtitle">Hãy đánh giá chất lượng sản phẩm để chúng tôi phục vụ tốt hơn nhé!</string>
+    <string name="order_review_submit_btn">Gửi đánh giá</string>
+    <string name="order_review_success">Đã gửi đánh giá thành công!</string>
+    <string name="order_review_quality_label">Chất lượng món ăn</string>
+    <string name="order_review_comment_label">Đánh giá (Tùy chọn)</string>
+    <string name="order_review_comment_hint">Món ăn thế nào? Hãy chia sẻ cảm nhận...</string>
+
     <string name="admin_customer_empty">Không tìm thấy khách hàng nào</string>
 
     <!-- Customer Management -->
@@ -763,4 +764,10 @@
     <string name="filter_rank_loyal">Thân thiết</string>
     <string name="filter_rank_diamond">Kim cương</string>
     <string name="customer_status_locked">Đã khóa</string>
+    <string name="label_phone">Số điện thoại</string>
+    <string name="label_address">Địa chỉ mặc định</string>
+    <string name="stats_revenue">Tổng chi tiêu</string>
+    <string name="common_unknown">Chưa cập nhật</string>
+    <string name="username_hint">Tên đăng nhập</string>
+    <string name="address_empty">Chưa có địa chỉ</string>
 </resources>

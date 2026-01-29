@@ -21,6 +21,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,6 +46,9 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import android.widget.Toast
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,12 +72,14 @@ fun CustomerManagementScreen(
     val loyalLabel = stringResource(R.string.filter_rank_loyal)
     val memberLabel = stringResource(R.string.rank_member)
     
-    val filterOptions = listOf(allFilterLabel, memberLabel, vipSilverLabel, vipGoldLabel, vipDiamondLabel, loyalLabel)
+    val filterOptions = listOf(allFilterLabel, memberLabel, vipSilverLabel, vipGoldLabel, vipDiamondLabel)
     var selectedFilter by remember { mutableStateOf(allFilterLabel) }
     
+
     // Dialog States
     var showLockDialog by remember { mutableStateOf(false) }
     var userToLock by remember { mutableStateOf<User?>(null) }
+    var selectedCustomerForDetail by remember { mutableStateOf<User?>(null) }
     
     // Filtering Logic
     val filteredCustomers = customers.filter { user ->
@@ -122,6 +131,14 @@ fun CustomerManagementScreen(
                     Text(stringResource(R.string.common_cancel))
                 }
             }
+        )
+    }
+
+    // Detail Dialog
+    if (selectedCustomerForDetail != null) {
+        CustomerDetailDialog(
+            customer = selectedCustomerForDetail!!,
+            onDismiss = { selectedCustomerForDetail = null }
         )
     }
 
@@ -282,7 +299,8 @@ fun CustomerManagementScreen(
                                     userToLock = customer
                                     showLockDialog = true
                                 },
-                                onViewOrders = { onNavigateToOrders(customer.id) }
+                                onViewOrders = { onNavigateToOrders(customer.id) },
+                                onDetail = { selectedCustomerForDetail = customer }
                             )
                         }
                     }
@@ -344,16 +362,24 @@ fun CustomerItem(
     customer: User,
     onChat: () -> Unit,
     onLockToggle: () -> Unit,
-    onViewOrders: () -> Unit
+    onViewOrders: () -> Unit,
+    onDetail: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
+    // Background color for locked state
+    val cardColor = if (customer.isLocked) {
+        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f) 
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { showMenu = true }, // Making the whole card trigger actions or menu
+            .clickable { onDetail() }, // Click to show detail
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -423,53 +449,57 @@ fun CustomerItem(
                         modifier = Modifier.weight(1f)
                     )
                     
-                    // Rank Badge
-                    val (rankText, rankColor) = when {
-                        customer.rank.equals("VIP GOLD", ignoreCase = true) || customer.rank.equals("Vàng", ignoreCase = true) -> stringResource(R.string.rank_gold) to Color(0xFFFFC107)
-                        customer.rank.equals("SILVER", ignoreCase = true) || customer.rank.equals("Bạc", ignoreCase = true) -> stringResource(R.string.rank_silver) to Color(0xFF9E9E9E)
-                        customer.rank.equals("DIAMOND", ignoreCase = true) || customer.rank.equals("Kim cương", ignoreCase = true) -> stringResource(R.string.filter_rank_diamond) to Color(0xFF00BCD4)
-                        customer.rank.equals("LOYAL", ignoreCase = true) || customer.rank.equals("Thân thiết", ignoreCase = true) -> stringResource(R.string.filter_rank_loyal) to Color(0xFFE91E63)
-                        else -> stringResource(R.string.rank_member) to MaterialTheme.colorScheme.primary
-                    }
-                    
-                    Surface(
-                        color = rankColor.copy(alpha = 0.1f),
-                        contentColor = rankColor,
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Text(
-                            text = rankText.uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
+                    if (customer.isLocked) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.customer_status_locked).uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    } else {
+                        // Rank Badge
+                        val (rankText, rankColor) = when {
+                            customer.rank.equals("VIP GOLD", ignoreCase = true) || customer.rank.equals("Vàng", ignoreCase = true) -> stringResource(R.string.rank_gold) to Color(0xFFFFC107)
+                            customer.rank.equals("SILVER", ignoreCase = true) || customer.rank.equals("Bạc", ignoreCase = true) -> stringResource(R.string.rank_silver) to Color(0xFF9E9E9E)
+                            customer.rank.equals("DIAMOND", ignoreCase = true) || customer.rank.equals("Kim cương", ignoreCase = true) -> stringResource(R.string.filter_rank_diamond) to Color(0xFF00BCD4)
+                            customer.rank.equals("LOYAL", ignoreCase = true) || customer.rank.equals("Thân thiết", ignoreCase = true) -> stringResource(R.string.filter_rank_loyal) to Color(0xFFE91E63)
+                            else -> stringResource(R.string.rank_member) to MaterialTheme.colorScheme.primary
+                        }
+                        
+                        Surface(
+                            color = rankColor.copy(alpha = 0.1f),
+                            contentColor = rankColor,
+                            shape = RoundedCornerShape(6.dp),
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Text(
+                                text = rankText.uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
-                // Details Row
+                // Details Row - Removed Points, show phone
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Star, 
+                        Icons.Default.Phone, 
                         contentDescription = null, 
-                        tint = Color(0xFFFFC107),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        "${customer.points} ${stringResource(R.string.label_points)}", 
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    Text(
-                        "  •  ",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-
                     Text(
                         customer.phone ?: stringResource(R.string.phone_empty), 
                         style = MaterialTheme.typography.bodySmall,
@@ -517,6 +547,111 @@ fun CustomerItem(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CustomerDetailDialog(
+    customer: User,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = null, // Custom content
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    if (customer.avatarUrl != null) {
+                        AsyncImage(
+                            model = customer.avatarUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = customer.fullName.firstOrNull()?.toString()?.uppercase() ?: "U",
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }
+                
+                // Name & Rank
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        customer.fullName, 
+                        style = MaterialTheme.typography.titleLarge, 
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        customer.rank.uppercase(), 
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                HorizontalDivider()
+
+                // Info Rows
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    InfoRow(icon = Icons.Default.Email, label = stringResource(R.string.username_hint), value = customer.email)
+                    InfoRow(icon = Icons.Default.Phone, label = stringResource(R.string.label_phone), value = customer.phone ?: stringResource(R.string.phone_empty))
+                    
+
+                    
+                    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val joinedDate = dateFormat.format(Date(customer.createdAt))
+                    InfoRow(icon = Icons.Default.DateRange, label = stringResource(R.string.admin_customer_joined), value = joinedDate)
+                    
+                    // Spending (if available in User model, else remove or calculate). Assuming totalSpending exists.
+                    // If not, we can show Points.
+                     InfoRow(
+                        icon = Icons.Default.AttachMoney, 
+                        label = stringResource(R.string.stats_revenue), 
+                        value = "${String.format("%,.0f", customer.totalSpending ?: 0.0)} đ"
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_close))
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        textContentColor = MaterialTheme.colorScheme.onSurface
+    )
+}
+
+@Composable
+fun InfoRow(icon: ImageVector, label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Icon(
+            icon, 
+            contentDescription = null, 
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

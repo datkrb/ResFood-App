@@ -765,6 +765,11 @@
     <string name="filter_rank_loyal">Loyal</string>
     <string name="filter_rank_diamond">Diamond</string>
     <string name="customer_status_locked">Locked</string>
+    <string name="label_phone">Phone Number</string>
+    <string name="label_address">Default Address</string>
+    <string name="stats_revenue">Total Spending</string>
+    <string name="common_unknown">Unknown</string>
+    <string name="address_empty">No Address</string>
 </resources>
 
 
