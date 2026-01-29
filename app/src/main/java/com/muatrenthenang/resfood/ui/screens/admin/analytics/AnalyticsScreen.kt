@@ -1,7 +1,10 @@
 package com.muatrenthenang.resfood.ui.screens.admin.analytics
 
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import java.text.NumberFormat
+import java.util.Locale
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -108,14 +111,14 @@ fun AnalyticsScreen(
                     ) {
                         AnalyticSummaryCard(
                             stringResource(R.string.admin_analytics_total_revenue),
-                            stringResource(R.string.price_format_vnd, analyticsState.totalRevenue.toInt()),
+                            stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(analyticsState.totalRevenue)),
                             "${analyticsState.totalOrders} ${stringResource(R.string.admin_analytics_orders_unit)}",
                             Color(0xFF4CAF50),
                             Modifier.weight(1f)
                         )
                         AnalyticSummaryCard(
                             stringResource(R.string.admin_analytics_avg_revenue),
-                            stringResource(R.string.price_format_vnd, if (analyticsState.totalOrders > 0) (analyticsState.totalRevenue / analyticsState.totalOrders).toInt() else 0), 
+                            stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(if (analyticsState.totalOrders > 0) analyticsState.totalRevenue / analyticsState.totalOrders else 0.0)), 
                             stringResource(R.string.admin_analytics_orders_unit),
                             Color(0xFF2196F3),
                             Modifier.weight(1f)
@@ -171,7 +174,7 @@ fun AnalyticsScreen(
                                         TopProductRow(
                                             name = "${index+1}. ${item.name}", 
                                             count = "${item.count} ${stringResource(R.string.admin_analytics_orders_unit)}", 
-                                            revenue = stringResource(R.string.price_format_vnd, item.revenue.toInt())
+                                            revenue = stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(item.revenue))
                                         )
                                         if(index < analyticsState.topProducts.size - 1) {
                                             HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))

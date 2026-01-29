@@ -157,6 +157,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

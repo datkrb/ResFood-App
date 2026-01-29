@@ -27,7 +27,7 @@
     <string name="common_save">Lưu</string>
     <string name="common_back">Quay lại</string>
     <string name="common_confirm">Xác nhận</string>
-    <string name="price_format_vnd">%1$dđ</string>
+    <string name="price_format_vnd">%1$sđ</string>
 
 
     <!-- Auth -->
