@@ -320,9 +320,18 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
+                                maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            if (!item.selectedToppings.isNullOrEmpty()) {
+                                Text(
+                                    text = "+ ${item.selectedToppings.joinToString(", ") { it.name }}",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "x${item.quantity}       ${String.format("%,dđ", item.price).replace(',', '.')}",

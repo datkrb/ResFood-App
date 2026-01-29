@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.model.Promotion
+import kotlinx.coroutines.flow.StateFlow
 
 enum class PaymentMethod { SEPAY, COD }
 
@@ -194,59 +195,51 @@ class CheckoutViewModel(
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
     fun setAddress(a: Address) { _address.value = a }
 
-    val subTotal = _items.map { list ->
-        list.sumOf { it.food.price.toLong() * it.quantity }
+    val subTotal: StateFlow<Long> = _items.map { items ->
+        items.sumOf { (it.food.price.toLong() + it.toppings.sumOf { t -> t.price }) * it.quantity }
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    // Tính toán discount từ Product Voucher
-    val productDiscount = kotlinx.coroutines.flow.combine(_selectedProductVoucher, subTotal) { voucher, sub ->
+    val productDiscount: StateFlow<Long> = kotlinx.coroutines.flow.combine(subTotal, _selectedProductVoucher) { sub, voucher ->
         if (voucher == null) return@combine 0L
         if (sub < voucher.minOrderValue) return@combine 0L
 
-        var discount = if (voucher.discountType == 1) { // Amount
-            voucher.discountValue.toLong()
-        } else { // Percent
-            if (voucher.discountType == 0) {
-                (sub * voucher.discountValue) / 100
-            } else {
-                voucher.discountValue.toLong()
+        var discount = 0L
+        // 0: PERCENT, 1: AMOUNT
+        if (voucher.discountType == 0) {
+            discount = (sub * voucher.discountValue / 100).toLong()
+            if (voucher.maxDiscountValue > 0) {
+                discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
             }
-        }
-        
-        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
-            discount = voucher.maxDiscountValue.toLong()
+        } else {
+            discount = voucher.discountValue.toLong()
         }
         discount
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    // Tính toán discount từ Shipping Voucher
-    val shippingDiscount = kotlinx.coroutines.flow.combine(_selectedShippingVoucher, subTotal, _shippingFee) { voucher, sub, fee ->
+    val shippingDiscount: StateFlow<Long> = kotlinx.coroutines.flow.combine(_shippingFee, _selectedShippingVoucher) { fee, voucher ->
         if (voucher == null) return@combine 0L
-        if (sub < voucher.minOrderValue) return@combine 0L
 
-        var discount = if (voucher.discountType == 1) {
-             voucher.discountValue.toLong()
-        } else {
-             if (voucher.discountType == 0) {
-                (fee * voucher.discountValue) / 100
-            } else {
-                voucher.discountValue.toLong()
+        var discount = 0L
+        if (voucher.discountType == 0) {
+            discount = (fee * voucher.discountValue / 100).toLong()
+            if (voucher.maxDiscountValue > 0) {
+                discount = discount.coerceAtMost(voucher.maxDiscountValue.toLong())
             }
+        } else {
+            discount = voucher.discountValue.toLong()
         }
-        
-        if (voucher.maxDiscountValue > 0 && discount > voucher.maxDiscountValue) {
-            discount = voucher.maxDiscountValue.toLong()
-        }
-        // Cannot exceed shipping fee
-        minOf(discount, fee)
+        // Cannot discount more than the shipping fee itself
+        discount.coerceAtMost(fee)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
     val totalDiscount = kotlinx.coroutines.flow.combine(productDiscount, shippingDiscount) { p, s -> p + s }
         .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    val total = kotlinx.coroutines.flow.combine(subTotal, totalDiscount, _shippingFee) { sub, disc, fee ->
-        maxOf(0L, sub + fee - disc)
+    val total: StateFlow<Long> = kotlinx.coroutines.flow.combine(subTotal, _shippingFee, totalDiscount) { sub, ship, disc ->
+        (sub + ship - disc).coerceAtLeast(0L)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
+
+    // ... (rest of functions) ...
 
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
@@ -280,8 +273,9 @@ class CheckoutViewModel(
                         foodName = cartItem.food.name,
                         foodImage = cartItem.food.imageUrl,
                         quantity = cartItem.quantity,
-                        price = cartItem.food.price,
-                        note = null
+                        price = cartItem.food.price + cartItem.toppings.sumOf { it.price }, // Price includes toppings
+                        note = cartItem.note,
+                        selectedToppings = cartItem.toppings
                     )
                 }
 

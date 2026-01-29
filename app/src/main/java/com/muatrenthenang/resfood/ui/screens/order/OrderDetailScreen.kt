@@ -432,6 +432,15 @@ fun OrderItemRow(item: OrderItem) {
                     maxLines = 1
                 )
             }
+            if (!item.selectedToppings.isNullOrEmpty()) {
+                Text(
+                    "Topping: ${item.selectedToppings.joinToString(", ") { it.name }}",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
              Text(
                 text = "x${item.quantity}",
                 fontSize = 14.sp,

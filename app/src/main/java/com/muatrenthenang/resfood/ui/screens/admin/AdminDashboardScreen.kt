@@ -169,7 +169,7 @@ fun TopAppBarSection(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "WELCOME BACK",
+                        text = "CHÀO MỪNG TRỞ LẠI",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -204,7 +204,7 @@ fun TopAppBarSection(
             }
         }
         Text(
-            text = "Dashboard",
+            text = "Bảng điều khiển",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 8.dp)
@@ -223,9 +223,9 @@ fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) 
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TimeFilterButton(text = "Today", isSelected = selectedRange == "Today", modifier = Modifier.weight(1f), onClick = { onRangeSelected("Today") })
-        TimeFilterButton(text = "This Month", isSelected = selectedRange == "This Month", modifier = Modifier.weight(1f), onClick = { onRangeSelected("This Month") })
-        TimeFilterButton(text = "All", isSelected = selectedRange == "All", modifier = Modifier.weight(1f), onClick = { onRangeSelected("All") })
+        TimeFilterButton(text = "Hôm nay", isSelected = selectedRange == "Today", modifier = Modifier.weight(1f), onClick = { onRangeSelected("Today") })
+        TimeFilterButton(text = "Tháng này", isSelected = selectedRange == "This Month", modifier = Modifier.weight(1f), onClick = { onRangeSelected("This Month") })
+        TimeFilterButton(text = "Tất cả", isSelected = selectedRange == "All", modifier = Modifier.weight(1f), onClick = { onRangeSelected("All") })
     }
 }
 
@@ -319,7 +319,7 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "Total Revenue", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(text = "Tổng doanh thu", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     Text(
                         text = "$${state.totalRevenue}",
                         fontWeight = FontWeight.Bold,
@@ -374,7 +374,7 @@ fun StatsHeroSection(
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = "${state.newOrdersCount} New",
+                                text = "${state.newOrdersCount} Mới",
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
@@ -383,7 +383,7 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "New Orders", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
+                    Text(text = "Đơn hàng mới", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
                     Text(
                         text = "${state.newOrders}",
                         fontWeight = FontWeight.Bold,
@@ -405,7 +405,7 @@ fun QuickActionsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Quick Actions",
+            text = "Tác vụ nhanh",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -418,7 +418,7 @@ fun QuickActionsSection(
                 // "Add Item" -> Food Management
                 QuickActionButton(
                     icon = Icons.Default.AddCircle,
-                    label = "Add Item",
+                    label = "Thêm món",
                     color = Color(0xFF2196F3), // Blue
                     onClick = onNavigateToFoodManagement
                 )
@@ -426,7 +426,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.Campaign,
-                    label = "Promo",
+                    label = "Khuyến mãi",
                     color = Color(0xFF9C27B0), // Purple
                     onClick = onNavigateToPromo
                 )
@@ -434,7 +434,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.Badge,
-                    label = "Staff/Cust", // Changed label slightly or keep generic
+                    label = "Khách hàng", // Changed label slightly or keep generic
                     color = Color(0xFFFF9800), // Orange
                     onClick = onNavigateToCustomers
                 )
@@ -442,7 +442,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.TableBar,
-                    label = "Tables",
+                    label = "Bàn",
                     color = Color(0xFF009688), // Teal
                     onClick = onNavigateToTables
                 )
@@ -484,7 +484,7 @@ fun OperationsStatusSection(
 ) {
     Column(modifier = Modifier.padding(top = 16.dp)) {
         Text(
-            text = "Operations",
+            text = "Hoạt động vận hành",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -498,15 +498,15 @@ fun OperationsStatusSection(
                     modifier = Modifier.weight(1f).clickable { onNavigateToOrders() },
                     icon = Icons.Default.HourglassTop,
                     color = Color(0xFFFFC107), // Yellow
-                    title = "Pending",
-                    subtitle = "${state.pendingOrders} Orders"
+                    title = "Chờ duyệt",
+                    subtitle = "${state.pendingOrders} Đơn"
                 )
                 OperationCard(
                     modifier = Modifier.weight(1f).clickable { onNavigateToOrders() },
                     icon = Icons.Default.Kitchen, // Skillet替代
                     color = Color(0xFF2196F3), // Blue
-                    title = "Processing",
-                    subtitle = "${state.processingOrders} Orders"
+                    title = "Đang làm",
+                    subtitle = "${state.processingOrders} Đơn"
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -514,15 +514,15 @@ fun OperationsStatusSection(
                     modifier = Modifier.weight(1f).clickable { onNavigateToTables() },
                     icon = Icons.Default.EventSeat,
                     color = Color(0xFF9C27B0), // Purple
-                    title = "Reservations",
-                    subtitle = "${state.reservations} Tables"
+                    title = "Đặt bàn",
+                    subtitle = "${state.reservations} bàn"
                 )
                 OperationCard(
                     modifier = Modifier.weight(1f).clickable { onNavigateToFoodManagement() },
                     icon = Icons.Default.ProductionQuantityLimits,
                     color = Color(0xFFF44336), // Red
-                    title = "Out of Stock",
-                    subtitle = "${state.outOfStockItems} Items"
+                    title = "Hết hàng",
+                    subtitle = "${state.outOfStockItems} món"
                 )
             }
         }
@@ -572,9 +572,9 @@ fun RecentActivitySection(activities: List<ActivityItem>) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Recent Activity", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(text = "Hoạt động gần đây", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             TextButton(onClick = { }) {
-                Text(text = "View All")
+                Text(text = "Xem tất cả")
             }
         }
         Column(

@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ShareAndReview(
     onShareClick: () -> Unit,
-    onReviewClick: () -> Unit
+    onReviewClick: () -> Unit,
+    reviewCount: Int
 ) {
     androidx.compose.foundation.layout.Column(
         modifier = Modifier.fillMaxWidth(),
@@ -42,7 +43,7 @@ fun ShareAndReview(
             ReviewActionChip(
                 icon = Icons.Default.RateReview,
                 color = Color(0xff339cff),
-                text = "Đánh giá",
+                text = "Đánh giá ($reviewCount)",
                 paddingValues = PaddingValues(
                     horizontal = 36.dp,
                     vertical = 10.dp
