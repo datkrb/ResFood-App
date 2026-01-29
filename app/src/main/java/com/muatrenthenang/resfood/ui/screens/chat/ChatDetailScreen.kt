@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
@@ -24,6 +25,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.viewmodel.ChatViewModel
 import com.google.firebase.auth.FirebaseAuth
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,13 +56,50 @@ fun ChatDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    val titleText = if (isAdmin) {
-                        currentChat?.customerName ?: stringResource(R.string.chat_customer_default)
-                    } else {
-                        stringResource(R.string.chat_admin_support)
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isAdmin) {
+                            val avatarUrl = currentChat?.customerAvatarUrl ?: ""
+                            if (avatarUrl.isNotEmpty()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(avatarUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Avatar",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Gray),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = currentChat?.customerName
+                                    ?: stringResource(R.string.chat_customer_default),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                maxLines = 1
+                            )
+                        } else {
+                            Text(stringResource(R.string.chat_admin_support), fontWeight = FontWeight.Bold)
+                        }
                     }
-                    Text(titleText, fontWeight = FontWeight.Bold) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {

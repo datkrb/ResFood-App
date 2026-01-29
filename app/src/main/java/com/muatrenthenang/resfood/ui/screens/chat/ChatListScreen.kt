@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
@@ -29,6 +30,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.viewmodel.ChatViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +73,7 @@ fun ChatListScreen(
                 items(chats, key = { it.id }) { chat ->
                     ChatItem(
                         name = chat.customerName,
+                        avatarUrl = chat.customerAvatarUrl,
                         lastMessage = chat.lastMessage,
                         time = java.text.SimpleDateFormat("HH:mm").format(chat.lastMessageTime.toDate()),
                         unreadCount = chat.unreadCountAdmin,
@@ -84,6 +90,7 @@ fun ChatListScreen(
 @Composable
 fun ChatItem(
     name: String,
+    avatarUrl: String,
     lastMessage: String,
     time: String,
     unreadCount: Int,
@@ -100,18 +107,32 @@ fun ChatItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Avatar Placeholder
-        Box(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = name.take(1).uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+        if (avatarUrl.isNotEmpty()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(avatarUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(16.dp))
