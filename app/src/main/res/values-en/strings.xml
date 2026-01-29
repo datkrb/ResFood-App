@@ -655,6 +655,8 @@
     <string name="branch_label_shipping">Shipping Fee (VND)</string>
     <string name="branch_label_address_line">Address (Number, Street)</string>
     <string name="branch_label_ward">Ward/Commune</string>
+    <string name="branch_label_shipping_per_km">Fee per KM</string>
+    <string name="branch_label_min_shipping">Minimum Fee</string>
     <string name="branch_label_district">District</string>
     <string name="branch_label_city">City</string>
     <string name="branch_info_location">MAP LOCATION</string>

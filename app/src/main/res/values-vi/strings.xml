@@ -640,6 +640,8 @@
     <string name="branch_label_shipping">Phí vận chuyển (VNĐ)</string>
     <string name="branch_label_address_line">Địa chỉ (số nhà, đường)</string>
     <string name="branch_label_ward">Phường/Xã</string>
+    <string name="branch_label_shipping_per_km">Phí mỗi KM</string>
+    <string name="branch_label_min_shipping">Phí tối thiểu</string>
     <string name="branch_label_district">Quận/Huyện</string>
     <string name="branch_label_city">Thành phố</string>
     <string name="branch_info_location">VỊ TRÍ TRÊN BẢN ĐỒ</string>
