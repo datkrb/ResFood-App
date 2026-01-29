@@ -433,10 +433,27 @@ class AdminViewModel(
         }
     }
 
-    fun rejectOrder(orderId: String, onSuccess: () -> Unit = {}) {
+    fun rejectOrder(orderId: String, reason: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            orderRepository.updateOrderStatus(orderId, "REJECTED")
-            onSuccess()
+            val order = getOrderById(orderId)
+            if (order != null) {
+                // Reject order with reason
+                orderRepository.rejectOrderWithReason(orderId, reason)
+                
+                // Send notification to user
+                val notif = Notification(
+                    userId = order.userId,
+                    title = "Đơn hàng bị từ chối",
+                    body = "Đơn hàng #${order.id.takeLast(6).uppercase()} đã bị từ chối. Lý do: $reason",
+                    type = "order_update",
+                    referenceId = orderId,
+                    isRead = false,
+                    createdAt = Timestamp.now()
+                )
+                notificationRepository.createNotification(notif)
+                
+                onSuccess()
+            }
         }
     }
 

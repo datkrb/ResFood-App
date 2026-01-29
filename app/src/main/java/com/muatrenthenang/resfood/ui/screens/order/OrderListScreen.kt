@@ -80,7 +80,6 @@ fun OrderListScreen(
     }
 
     val orders by viewModel.orders.collectAsState()
-    var showReviewDialogForOrder by remember { mutableStateOf<Order?>(null) }
     val allOrdersList by viewModel.allOrders.collectAsState()
 
     Scaffold(
@@ -204,22 +203,11 @@ fun OrderListScreen(
                         order = order, 
                         viewModel = viewModel, 
                         onClick = { onNavigateToDetail(order.id) },
-                        onReviewClick = { showReviewDialogForOrder = order }
+                        onReviewClick = { onNavigateToReview(order.id) }
                     )
                 }
             }
         }
-    }
-    
-    if (showReviewDialogForOrder != null) {
-        com.muatrenthenang.resfood.ui.screens.order.ReviewSelectionDialog(
-            order = showReviewDialogForOrder!!,
-            onDismiss = { showReviewDialogForOrder = null },
-            onItemSelect = { foodId ->
-                showReviewDialogForOrder = null
-                onNavigateToReview(foodId)
-            }
-        )
     }
 }
 
@@ -382,7 +370,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
                     
-                    if (order.status == "COMPLETED") {
+                    if (order.status == "COMPLETED" && !order.isReviewed) {
                         Button(
                             onClick = onReviewClick,
                             modifier = Modifier.height(32.dp),
@@ -409,6 +397,7 @@ fun getStatusDisplay(status: String): Pair<String, Color> {
         "DELIVERING" -> stringResource(R.string.status_display_delivering) to Color(0xFF3B82F6) // Blue
         "COMPLETED" -> stringResource(R.string.status_display_completed) to SuccessGreen
         "CANCELLED" -> stringResource(R.string.status_display_cancelled) to Color.Red
+        "REJECTED" -> stringResource(R.string.admin_order_status_rejected) to Color(0xFFDC2626) // Red
         else -> status to Color.Gray
     }
 }

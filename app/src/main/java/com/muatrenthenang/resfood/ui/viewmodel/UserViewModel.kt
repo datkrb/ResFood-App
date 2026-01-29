@@ -115,7 +115,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                         pending = orders.count { it.status == "PENDING" },
                         processing = orders.count { it.status == "PROCESSING" },
                         delivering = orders.count { it.status == "DELIVERING" },
-                        toReview = orders.count { it.status == "COMPLETED" }
+                        toReview = orders.count { it.status == "COMPLETED" && !it.isReviewed }
                     )
                 }
             } catch (e: Exception) {

@@ -52,6 +52,20 @@ class OrderRepository {
         }
     }
 
+    suspend fun rejectOrderWithReason(orderId: String, reason: String): Result<Boolean> {
+        return try {
+            val updates = mapOf(
+                "status" to "REJECTED",
+                "rejectionReason" to reason,
+                "rejectedAt" to com.google.firebase.Timestamp.now()
+            )
+            ordersRef.document(orderId).update(updates).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getOrderById(orderId: String): Result<Order> {
          return try {
             val doc = ordersRef.document(orderId).get().await()
@@ -121,6 +135,18 @@ class OrderRepository {
             )).await()
             
             Result.success(total)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Mark order as reviewed
+     */
+    suspend fun markOrderAsReviewed(orderId: String): Result<Boolean> {
+        return try {
+            ordersRef.document(orderId).update("isReviewed", true).await()
+            Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
         }

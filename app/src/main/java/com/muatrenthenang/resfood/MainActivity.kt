@@ -438,7 +438,7 @@ class MainActivity : AppCompatActivity() {
                                 status = status,
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") },
-                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
+                                onNavigateToReview = { orderId -> navController.navigate("order_review/$orderId") }
                             )
                         }
 
@@ -446,11 +446,29 @@ class MainActivity : AppCompatActivity() {
                             route = "order_detail/{orderId}",
                             arguments = listOf(navArgument("orderId") { defaultValue = "" })
                         ) { backStackEntry ->
+                            
                             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
                             UserOrderDetailScreen(
                                 orderId = orderId,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
+                                onNavigateToReview = { oid -> navController.navigate("order_review/$oid") },
+                                onNavigateToChat = {
+                                    val userId = userViewModel.userState.value?.id
+                                    if (userId != null) {
+                                        navController.navigate("chat_detail/$userId")
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "order_review/{orderId}",
+                            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            com.muatrenthenang.resfood.ui.screens.order.OrderReviewScreen(
+                                orderId = orderId,
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 
