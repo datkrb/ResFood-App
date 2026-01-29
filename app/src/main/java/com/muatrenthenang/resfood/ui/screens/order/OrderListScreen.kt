@@ -34,6 +34,7 @@ import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.OrderListViewModel
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.ui.res.stringResource

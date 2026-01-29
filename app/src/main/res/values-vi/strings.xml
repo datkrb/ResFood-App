@@ -27,7 +27,7 @@
     <string name="common_save">Lưu</string>
     <string name="common_back">Quay lại</string>
     <string name="common_confirm">Xác nhận</string>
-    <string name="price_format_vnd">%1$dđ</string>
+    <string name="price_format_vnd">%1$sđ</string>
 
 
     <!-- Auth -->
@@ -732,6 +732,8 @@
     <string name="cat_drink">Nước uống</string>
     <string name="cat_dessert">Tráng miệng</string>
     <string name="cat_appetizer">Khai vị</string>
+    <string name="hub_item_topping">Topping</string>
+    <string name="hub_item_branch">Nhà hàng</string>
     <string name="cat_other">Khác</string>
     <string name="stats_week_label">Tuần %1$d</string>
     <!-- Rank Names -->

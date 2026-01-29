@@ -151,7 +151,11 @@ fun MeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                LogoutSection(onLogout = onLogout)
+                LogoutSection(onLogout = {
+                    vm.logout {
+                        onLogout()
+                    }
+                })
 
 
                 Spacer(modifier = Modifier.height(100.dp))
@@ -184,6 +188,7 @@ private fun MeTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
