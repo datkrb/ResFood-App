@@ -346,6 +346,8 @@
     <string name="branch_label_capacity">Sức chứa tối đa</string>
     <string name="branch_label_tables">Số bàn</string>
     <string name="branch_label_shipping">Phí vận chuyển (VNĐ)</string>
+    <string name="branch_label_min_shipping">Phí tối thiểu (VNĐ)</string>
+    <string name="branch_label_shipping_per_km">Phí mỗi KM (VNĐ)</string>
     <string name="branch_info_address">ĐỊA CHỈ</string>
     <string name="branch_label_address_line">Địa chỉ (số nhà, đường)</string>
     <string name="branch_label_ward">Phường/Xã</string>

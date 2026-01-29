@@ -213,16 +213,29 @@ fun BranchManagementScreen(
                 }
                 
                 // Shipping Fee
-                OutlinedTextField(
-                    value = formState.shippingFee,
-                    onValueChange = { viewModel.updateFormField(shippingFee = it) },
-                    label = { Text(stringResource(R.string.branch_label_shipping)) },
-                    leadingIcon = { Icon(Icons.Default.LocalShipping, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    suffix = { Text(CurrencyHelper.currencySymbol) }
-                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = formState.minShippingFee,
+                        onValueChange = { viewModel.updateFormField(minShippingFee = it) },
+                        label = { Text(stringResource(R.string.branch_label_min_shipping)) },
+                        leadingIcon = { Icon(Icons.Default.LocalShipping, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        suffix = { Text(CurrencyHelper.currencySymbol) }
+                    )
+
+                    OutlinedTextField(
+                        value = formState.shippingFeePerKm,
+                        onValueChange = { viewModel.updateFormField(shippingFeePerKm = it) },
+                        label = { Text(stringResource(R.string.branch_label_shipping_per_km)) },
+                        leadingIcon = { Icon(Icons.Default.Speed, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        suffix = { Text(CurrencyHelper.currencySymbol) }
+                    )
+                }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 

@@ -371,7 +371,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.order_date_label) + dateFormat.format(order.createdAt.toDate()),
+                        text = stringResource(R.string.order_date_label) + " " + dateFormat.format(order.createdAt.toDate()),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
