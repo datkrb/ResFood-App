@@ -738,6 +738,8 @@
     <string name="cat_drink">Drinks</string>
     <string name="cat_dessert">Desserts</string>
     <string name="cat_appetizer">Appetizers</string>
+    <string name="hub_item_topping">Topping</string>
+    <string name="hub_item_branch">Branch</string>
     <string name="cat_other">Other</string>
     <string name="stats_week_label">Week %1$d</string>
     <!-- Rank Names -->
