@@ -72,6 +72,7 @@ fun CheckoutScreen(
     val productVoucher by vm.selectedProductVoucher.collectAsState()
     val shippingVoucher by vm.selectedShippingVoucher.collectAsState()
     val currentShippingFee by vm.shippingFee.collectAsState()
+    val distanceText by vm.distanceText.collectAsState()
 
     // Calculated values
     val subTotal by vm.subTotal.collectAsState(initial = 0L)
@@ -340,6 +341,15 @@ fun CheckoutScreen(
                                     fontSize = 14.sp,
                                     lineHeight = 20.sp
                                 )
+                                if (distanceText != null) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Khoảng cách: $distanceText",
+                                        color = PrimaryColor,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                         
@@ -450,7 +460,11 @@ fun CheckoutScreen(
                                 Text(text = vm.formatCurrency(subTotal), fontWeight = FontWeight.Medium)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(text = stringResource(R.string.cart_shipping_fee), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                val shipLabel = stringResource(R.string.cart_shipping_fee)
+                                Text(
+                                    text = if (distanceText != null) "$shipLabel ($distanceText)" else shipLabel, 
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
+                                )
                                 Text(text = vm.formatCurrency(currentShippingFee), fontWeight = FontWeight.Medium)
                             }
                             

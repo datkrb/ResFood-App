@@ -22,6 +22,8 @@ import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.model.Promotion
 import kotlinx.coroutines.flow.StateFlow
+import com.muatrenthenang.resfood.data.remote.OrsClient
+import com.muatrenthenang.resfood.BuildConfig
 
 enum class PaymentMethod { SEPAY, COD }
 
@@ -33,6 +35,9 @@ class CheckoutViewModel(
     private val _branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
     private val _promotionRepository: PromotionRepository = PromotionRepository()
+    
+    // Branch info cache
+    private var _cachedBranch: com.muatrenthenang.resfood.data.model.Branch? = null
 
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items = _items.asStateFlow()
@@ -96,6 +101,12 @@ class CheckoutViewModel(
 
     private val _shippingFee = MutableStateFlow(15000L)
     val shippingFee = _shippingFee.asStateFlow()
+    
+    private val _distance = MutableStateFlow(0.0)
+    val distance = _distance.asStateFlow()
+    
+    private val _distanceText = MutableStateFlow<String?>(null)
+    val distanceText = _distanceText.asStateFlow()
 
     init {
         loadSelectedCartItems()
@@ -112,11 +123,58 @@ class CheckoutViewModel(
             _shippingLoading.value = true
             try {
                 _branchRepository.getPrimaryBranch().onSuccess { branch ->
-                    _shippingFee.value = branch.shippingFee
+                    _cachedBranch = branch
+                    _shippingFee.value = branch.minShippingFee
+                    calculateFeeInternal()
+                }
+                .onFailure {
+                    // Fallback
+                    _shippingFee.value = 15000L
                 }
             } finally {
                 _shippingLoading.value = false
             }
+        }
+    }
+    
+    private suspend fun calculateFeeInternal() {
+        val branch = _cachedBranch ?: return
+        val currentAddress = _address.value
+        
+        // Check if allow calculation
+        if (currentAddress.latitude == null || currentAddress.longitude == null || 
+            branch.address.latitude == null || branch.address.longitude == null) {
+             return
+        }
+
+        try {
+            val apiKey = BuildConfig.OPENROUTESERVICE_API_KEY
+            if (apiKey.isBlank()) return
+            
+            // Format: "lng,lat"
+            val start = "${branch.address.longitude},${branch.address.latitude}"
+            val end = "${currentAddress.longitude},${currentAddress.latitude}"
+            
+            val response = OrsClient.api.getDirections(apiKey, start, end)
+            if (response.isSuccessful) {
+                val distMeters = response.body()?.features?.firstOrNull()?.properties?.summary?.distance ?: 0.0
+                val distKm = distMeters / 1000.0
+                _distance.value = distKm
+                _distanceText.value = String.format("%.1f km", distKm)
+                
+                // Calculate Fee
+                // <= 1km: minFee
+                // > 1km: minFee + (dist - 1) * perKm
+                if (distKm <= 1.0) {
+                    _shippingFee.value = branch.minShippingFee
+                } else {
+                    val extraKm = distKm - 1.0
+                    val extraFee = (extraKm * branch.shippingFeePerKm).toLong()
+                    _shippingFee.value = branch.minShippingFee + extraFee
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -157,6 +215,7 @@ class CheckoutViewModel(
                 if (result.isSuccess) {
                     result.getOrNull()?.let { defaultAddress ->
                         _address.value = defaultAddress
+                        calculateFeeInternal()
                     } ?: run {
                         // Không có địa chỉ nào, hiển thị placeholder
                         _address.value = Address(
@@ -223,7 +282,10 @@ class CheckoutViewModel(
     }
 
     fun setPaymentMethod(m: PaymentMethod) { _paymentMethod.value = m }
-    fun setAddress(a: Address) { _address.value = a }
+    fun setAddress(a: Address) { 
+        _address.value = a
+        viewModelScope.launch { calculateFeeInternal() }
+    }
 
     val subTotal: StateFlow<Long> = _items.map { items ->
         items.sumOf { (it.food.price.toLong() + it.toppings.sumOf { t -> t.price }) * it.quantity }
@@ -319,6 +381,11 @@ class CheckoutViewModel(
                     discount = totalDiscount.value.toInt(),
                     deliveryFee = _shippingFee.value.toInt(),
                     total = total.value.toInt(),
+                    
+                    // Added info
+                    distance = _distance.value,
+                    distanceText = _distanceText.value,
+                    
                     status = "PENDING",
                     paymentMethod = when (_paymentMethod.value) {
                         PaymentMethod.COD -> "COD"
@@ -405,6 +472,11 @@ class CheckoutViewModel(
                     discount = totalDiscount.value.toInt(),
                     deliveryFee = _shippingFee.value.toInt(),
                     total = total.value.toInt(),
+                    
+                    // Added info
+                    distance = _distance.value,
+                    distanceText = _distanceText.value,
+
                     status = "WAITING_PAYMENT",
                     paymentMethod = "SEPAY",
                     createdAt = Timestamp.now(),

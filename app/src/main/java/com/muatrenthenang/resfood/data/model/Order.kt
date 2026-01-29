@@ -17,6 +17,10 @@ data class Order(
     val status: String = "PENDING", // PENDING, PROCESSING, DELIVERING, COMPLETED, CANCELLED, REJECTED
     val paymentMethod: String = "COD",
     val createdAt: Timestamp = Timestamp.now(),
+
+    // === DELIVERY INFO ===
+    val distance: Double = 0.0, // Khoảng cách user đến branch (km)
+    val distanceText: String? = null, // Ví dụ: "5.2 km"
     
     // === VOUCHER FIELDS ===
     val productVoucherCode: String? = null,   // Mã voucher giảm giá sản phẩm

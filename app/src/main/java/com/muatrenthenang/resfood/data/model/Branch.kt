@@ -15,7 +15,9 @@ data class Branch(
     @get:PropertyName("image_url") @set:PropertyName("image_url") var imageUrl: String? = null,
     var phone: String = "",
     @get:PropertyName("opening_hours") @set:PropertyName("opening_hours") var openingHours: String = "10:00 - 22:00",
-    @get:PropertyName("shipping_fee") @set:PropertyName("shipping_fee") var shippingFee: Long = 15000
+    @get:PropertyName("shipping_fee") @set:PropertyName("shipping_fee") var shippingFee: Long = 15000,
+    @get:PropertyName("min_shipping_fee") @set:PropertyName("min_shipping_fee") var minShippingFee: Long = 15000,
+    @get:PropertyName("shipping_fee_per_km") @set:PropertyName("shipping_fee_per_km") var shippingFeePerKm: Long = 5000
 ) {
     companion object {
         const val PRIMARY_BRANCH_ID = "main_branch"

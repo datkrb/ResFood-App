@@ -351,6 +351,15 @@ fun DeliveryInfoCard(order: Order) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
                     )
+                    if (order.distanceText != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Khoảng cách: ${order.distanceText}",
+                            fontSize = 13.sp,
+                            color = PrimaryColor,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
 
@@ -497,7 +506,7 @@ fun PaymentDetailsCard(order: Order) {
             Spacer(modifier = Modifier.height(12.dp))
             
             PaymentRow(stringResource(R.string.order_items_total, order.items.size), order.subtotal)
-            PaymentRow(stringResource(R.string.order_shipping), order.deliveryFee)
+            PaymentRow(stringResource(R.string.order_shipping) + if (order.distanceText != null) " (${order.distanceText})" else "", order.deliveryFee)
             
             if (order.productDiscount > 0) {
                 Row(
