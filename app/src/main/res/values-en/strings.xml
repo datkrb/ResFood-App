@@ -750,6 +750,21 @@
     <string name="reward_status_available">Available</string>
     <string name="reward_status_claimed">Claimed</string>
     <string name="home_points">%1$d points</string>
+    <string name="admin_customer_empty">No customers found</string>
+
+    <!-- Customer Management -->
+    <string name="admin_customer_lock_title">Lock Account</string>
+    <string name="admin_customer_unlock_title">Unlock Account</string>
+    <string name="admin_customer_lock_confirm">Are you sure you want to lock this account?</string>
+    <string name="admin_customer_unlock_confirm">Are you sure you want to unlock this account?</string>
+    <string name="admin_customer_lock_success">Account locked successfully</string>
+    <string name="admin_customer_unlock_success">Account unlocked successfully</string>
+    <string name="action_view_orders">View Orders</string>
+    <string name="action_lock_account">Lock Account</string>
+    <string name="action_unlock_account">Unlock</string>
+    <string name="filter_rank_loyal">Loyal</string>
+    <string name="filter_rank_diamond">Diamond</string>
+    <string name="customer_status_locked">Locked</string>
 </resources>
 
 

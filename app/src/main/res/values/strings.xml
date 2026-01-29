@@ -748,4 +748,19 @@
     <string name="reward_status_available">Có thể nhận</string>
     <string name="reward_status_claimed">Đã nhận</string>
     <string name="home_points">%1$d điểm</string>
+    <string name="admin_customer_empty">Không tìm thấy khách hàng nào</string>
+
+    <!-- Customer Management -->
+    <string name="admin_customer_lock_title">Khóa tài khoản</string>
+    <string name="admin_customer_unlock_title">Mở khóa tài khoản</string>
+    <string name="admin_customer_lock_confirm">Bạn có chắc chắn muốn khóa tài khoản này không?</string>
+    <string name="admin_customer_unlock_confirm">Bạn có chắc chắn muốn mở khóa tài khoản này không?</string>
+    <string name="admin_customer_lock_success">Đã khóa tài khoản thành công</string>
+    <string name="admin_customer_unlock_success">Đã mở khóa tài khoản thành công</string>
+    <string name="action_view_orders">Xem đơn hàng</string>
+    <string name="action_lock_account">Khóa tài khoản</string>
+    <string name="action_unlock_account">Mở khóa</string>
+    <string name="filter_rank_loyal">Thân thiết</string>
+    <string name="filter_rank_diamond">Kim cương</string>
+    <string name="customer_status_locked">Đã khóa</string>
 </resources>

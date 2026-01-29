@@ -44,6 +44,7 @@ import com.muatrenthenang.resfood.R
 @Composable
 fun OrderManagementScreen(
     viewModel: AdminViewModel,
+    userId: String? = null, // Optional filtering by customer
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit
 ) {
@@ -63,12 +64,15 @@ fun OrderManagementScreen(
         stringResource(R.string.admin_order_tab_all)
     )
     
-    var selectedTabIndex by remember { mutableStateOf(0) } // Default to PENDING
+    // Auto-select ALL tab if filtering by user to show all their orders initially
+    var selectedTabIndex by remember { mutableStateOf(if (userId != null) 6 else 0) } 
     var selectedDateFilter by remember { mutableStateOf("ALL") } // Using Internal Key for simplicity, mapped to display below
     var searchQuery by remember { mutableStateOf("") }
 
     // Filter Logic
     val filteredOrders = orders.filter { order ->
+        val matchesUser = if (userId != null) order.userId == userId else true
+        
         val selectedStatus = tabs[selectedTabIndex]
         val matchesStatus = when(selectedStatus) {
              "ALL" -> true
@@ -92,7 +96,7 @@ fun OrderManagementScreen(
             order.userName.contains(searchQuery, ignoreCase = true) ||
             order.userPhone.contains(searchQuery)
         }
-        matchesStatus && matchesDate && matchesSearch
+        matchesUser && matchesStatus && matchesDate && matchesSearch
     }.sortedByDescending { it.createdAt }
 
     // State for Reject Dialog
