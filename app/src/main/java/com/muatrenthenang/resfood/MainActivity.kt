@@ -725,7 +725,8 @@ class MainActivity : AppCompatActivity() {
                             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
                             OrderDetailScreen(
                                 orderId = orderId,
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") }
                             )
                         }
 
@@ -774,6 +775,7 @@ class MainActivity : AppCompatActivity() {
                             com.muatrenthenang.resfood.ui.screens.admin.tables.TableReservationDetailScreen(
                                 reservationId = reservationId,
                                 onNavigateBack = { navController.popBackStack() },
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") },
                                 viewModel = adminViewModel
                             )
                         }
