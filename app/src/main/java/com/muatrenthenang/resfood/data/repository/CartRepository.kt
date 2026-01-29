@@ -22,14 +22,39 @@ class CartRepository {
                 .await()
             val items = mutableListOf<CartItem>()
             for (doc in snapshot) {
-                val foodId = doc.getString("foodId") ?: doc.id
+                // CartItem Document ID
+                val docId = doc.id
+                
+                val foodId = doc.getString("foodId") ?: ""
                 val quantity = doc.getLong("quantity")?.toInt() ?: 1
                 val isSelected = doc.getBoolean("isSelected") ?: true
                 val note = doc.getString("note")
-                val foodDoc = db.collection("foods").document(foodId).get().await()
-                val food = foodDoc.toObject(Food::class.java)?.copy(id = foodId)
-                if (food != null) {
-                    items.add(CartItem(food, quantity, isSelected, note))
+                
+                // Parse Toppings
+                val toppingsList = doc.get("toppings") as? List<Map<String, Any>> ?: emptyList()
+                val toppings = toppingsList.map { map ->
+                    com.muatrenthenang.resfood.data.model.Topping(
+                        name = map["name"] as? String ?: "",
+                        price = (map["price"] as? Long)?.toInt() ?: 0,
+                        imageUrl = map["imageUrl"] as? String
+                    )
+                }
+
+                if (foodId.isNotEmpty()) {
+                    val foodDoc = db.collection("foods").document(foodId).get().await()
+                    val food = foodDoc.toObject(Food::class.java)?.copy(id = foodId)
+                    if (food != null) {
+                        items.add(
+                            CartItem(
+                                id = docId, // Important: Use Document ID
+                                food = food,
+                                quantity = quantity,
+                                isSelected = isSelected,
+                                note = note,
+                                toppings = toppings
+                            )
+                        )
+                    }
                 }
             }
             Result.success(items)
@@ -39,36 +64,82 @@ class CartRepository {
     }
 
     // Thêm hoặc cập nhật 1 item vào cart
-    suspend fun addOrUpdateCartItem(foodId: String, quantity: Int, note: String? = null, isSelected: Boolean = true): Result<Boolean> {
+    // Logic mới: Một món + toppings khác nhau = Item khác nhau
+    // Cần check xem đã có item nào trùng foodId AND trùng list toppings chưa
+    suspend fun addOrUpdateCartItem(
+        foodId: String, 
+        quantity: Int, 
+        note: String? = null, 
+        isSelected: Boolean = true,
+        toppings: List<com.muatrenthenang.resfood.data.model.Topping> = emptyList(),
+        isAccumulate: Boolean = false // New param: true = add to existing, false = set quantity
+    ): Result<Boolean> {
         val userId = auth.currentUser?.uid
             ?: return Result.failure(Exception("User chưa đăng nhập"))
+            
         return try {
-            db.collection("carts")
-                .document(userId)
-                .collection("cartItems")
-                .document(foodId)
-                .set(mapOf(
+            val cartRef = db.collection("carts").document(userId).collection("cartItems")
+            
+            // 1. Get all items to find match
+            val snapshot = cartRef.get().await()
+            
+            var existingDocId: String? = null
+            var currentQuantity = 0
+            
+            for (doc in snapshot) {
+                val fId = doc.getString("foodId")
+                if (fId == foodId) {
+                    val dbToppingsList = doc.get("toppings") as? List<Map<String, Any>> ?: emptyList()
+                    val dbToppings = dbToppingsList.map { map ->
+                        com.muatrenthenang.resfood.data.model.Topping(
+                            name = map["name"] as? String ?: "",
+                            price = (map["price"] as? Long)?.toInt() ?: 0,
+                            imageUrl = map["imageUrl"] as? String
+                        )
+                    }
+                    
+                    if (dbToppings.size == toppings.size && dbToppings.containsAll(toppings) && toppings.containsAll(dbToppings)) {
+                        existingDocId = doc.id
+                        currentQuantity = doc.getLong("quantity")?.toInt() ?: 0
+                        break
+                    }
+                }
+            }
+
+            if (existingDocId != null) {
+                val finalQuantity = if (isAccumulate) currentQuantity + quantity else quantity
+                
+                cartRef.document(existingDocId).update(mapOf(
+                    "quantity" to finalQuantity,
+                    "note" to note,
+                    "isSelected" to isSelected,
+                    "toppings" to toppings
+                )).await()
+            } else {
+                val newItem = mapOf(
                     "foodId" to foodId,
                     "quantity" to quantity,
                     "note" to note,
-                    "isSelected" to isSelected
-                ))
-                .await()
+                    "isSelected" to isSelected,
+                    "toppings" to toppings
+                )
+                cartRef.add(newItem).await()
+            }
             Result.success(true)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    // Xóa 1 item khỏi cart
-    suspend fun removeCartItem(foodId: String): Result<Boolean> {
+    // Xóa 1 item khỏi cart (by Doc ID)
+    suspend fun removeCartItem(cartItemId: String): Result<Boolean> {
         val userId = auth.currentUser?.uid
             ?: return Result.failure(Exception("User chưa đăng nhập"))
         return try {
             db.collection("carts")
                 .document(userId)
                 .collection("cartItems")
-                .document(foodId)
+                .document(cartItemId)
                 .delete()
                 .await()
             Result.success(true)

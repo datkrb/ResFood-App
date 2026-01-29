@@ -456,6 +456,10 @@ fun OrderItemRow(item: OrderItem) {
                  Spacer(modifier = Modifier.height(4.dp))
                   Text("${stringResource(R.string.admin_order_note_prefix)} ${item.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
              }
+             if (item.selectedToppings.isNotEmpty()) {
+                 Spacer(modifier = Modifier.height(4.dp))
+                 Text("Topping: ${item.selectedToppings.joinToString(", ") { it.name }}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+             }
          }
          
          Text("x${item.quantity}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)

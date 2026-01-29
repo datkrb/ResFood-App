@@ -7,6 +7,7 @@ import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Topping
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ import com.muatrenthenang.resfood.data.repository.FoodRepository
 import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.data.repository.FavoritesRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
+import com.muatrenthenang.resfood.data.repository.ToppingRepository
 import com.muatrenthenang.resfood.data.repository.AuthRepository
 
 class FoodDetailViewModel(
@@ -22,6 +24,7 @@ class FoodDetailViewModel(
     private val _cartRepository: CartRepository = CartRepository(),
     private val _favoritesRepository: FavoritesRepository = FavoritesRepository(),
     private val _orderRepository: OrderRepository = OrderRepository(),
+    private val _toppingRepository: ToppingRepository = ToppingRepository(),
     private val _authRepository: AuthRepository = AuthRepository()
 
 ) : ViewModel() {
@@ -51,56 +54,45 @@ class FoodDetailViewModel(
     private val _ratingHistogram = MutableStateFlow<Map<Int, Int>>(emptyMap())
     val ratingHistogram: StateFlow<Map<Int, Int>> = _ratingHistogram.asStateFlow()
 
-    val listTopping = listOf(
-        Topping(
-            name = "Trứng lòng đào",
-            price = 5000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-        Topping(
-            name = "Thịt nướng",
-            price = 7000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-        Topping(
-            name = "Tốp mỡ",
-            price = 3000,
-            imageUrl = "https://cdn.tgdd.vn/2021/11/CookRecipe/GalleryStep/thanh-pham-453.jpg"
-        ),
-    )
+
     //
 
     fun loadFoodDetail(foodId: String) {
         viewModelScope.launch {
-            val result = _foodRepository.getFood(foodId)
-            if (result.isSuccess) {
-                val foodItem = result.getOrNull()
+            // Load Food
+            val foodResult = _foodRepository.getFood(foodId)
+            if (foodResult.isSuccess) {
+                val foodItem = foodResult.getOrNull()
                 _food.value = foodItem
                 _totalPrice.value = foodItem?.price ?: 0
-                // Check favorites status for this food
+                
+                // Load favorites status
                 foodItem?.id?.let { id ->
                     val favRes = _favoritesRepository.isFavorite(id)
-                    if (favRes.isSuccess) {
-                        _isFavorite.value = favRes.getOrNull() ?: false
-                    } else {
-                        _isFavorite.value = false
-                    }
+                    _isFavorite.value = favRes.getOrNull() ?: false
                 }
             } else {
                 _food.value = null
                 _isFavorite.value = false
             }
+
+            // Load Toppings
+            val toppingResult = _toppingRepository.getToppings()
+            if (toppingResult.isSuccess) {
+                _allToppings.value = toppingResult.getOrNull()
+            } else {
+                _allToppings.value = emptyList()
+            }
+
              // Calculate histogram whenever food updates
             _food.value?.let { food ->
                 calculateRatingHistogram(food.reviews)
             }
             // Check if user can review
              checkIfUserCanReview(foodId)
-        }
-        //_food.value = sampleFoods.find { it.id == foodId }
-        _allToppings.value = listTopping
 
-        updateTotalPrice()
+            updateTotalPrice()
+        }
     }
 
     fun increaseQuantity() {
@@ -138,17 +130,32 @@ class FoodDetailViewModel(
         _totalPrice.value = (foodPrice * currentQuantity) + toppingsPrice
     }
 
+    // One-time events (Toast messages)
+    private val _toastMessage = kotlinx.coroutines.flow.MutableSharedFlow<String>(replay = 0)
+    val toastMessage = _toastMessage.asSharedFlow()
+
+    // Helper to emit toast
+    private fun showToast(message: String) {
+        viewModelScope.launch {
+            _toastMessage.emit(message)
+        }
+    }
+
     fun addToCart(){
         viewModelScope.launch {
             val foodItem = _food.value ?: return@launch
             val result = _cartRepository.addOrUpdateCartItem(
                 foodId = foodItem.id ?: return@launch,
                 quantity = _quantity.value,
-                note = null
+                note = null,
+                toppings = _selectedToppings.value.toList(),
+                isAccumulate = true
             )
             if (result.isSuccess) {
+                showToast("Đã thêm vào giỏ hàng")
                 Log.d("FoodDetailViewModel", "Added to cart successfully")
             } else {
+                showToast("Thêm vào giỏ hàng thất bại: ${result.exceptionOrNull()?.message}")
                 Log.d("FoodDetailViewModel", "Failed to add to cart: ${result.exceptionOrNull()?.localizedMessage}")
             }
         }
@@ -163,8 +170,10 @@ class FoodDetailViewModel(
                 val result = _favoritesRepository.removeFavorite(foodId)
                 if (result.isSuccess) {
                     _isFavorite.value = false
+                    showToast("Đã xóa khỏi danh sách yêu thích")
                     Log.d("FoodDetailViewModel", "Removed from favorites")
                 } else {
+                    showToast("Lỗi khi xóa khỏi yêu thích")
                     Log.d("FoodDetailViewModel", "Failed to remove favorite: ${result.exceptionOrNull()?.localizedMessage}")
                 }
             } else {
@@ -172,8 +181,10 @@ class FoodDetailViewModel(
                 val result = _favoritesRepository.addFavorite(foodId)
                 if (result.isSuccess) {
                     _isFavorite.value = true
+                    showToast("Đã thêm vào danh sách yêu thích")
                     Log.d("FoodDetailViewModel", "Added to favorites")
                 } else {
+                    showToast("Lỗi khi thêm vào yêu thích")
                     Log.d("FoodDetailViewModel", "Failed to add favorite: ${result.exceptionOrNull()?.localizedMessage}")
                 }
             }

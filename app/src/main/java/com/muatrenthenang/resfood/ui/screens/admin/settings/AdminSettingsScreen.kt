@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,8 +48,7 @@ fun AdminSettingsScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToMenu: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToOrders: () -> Unit,
-    onNavigateToBranch: () -> Unit = {}
+    onNavigateToOrders: () -> Unit
 ) {
     // State
     var showProfileDialog by remember { mutableStateOf(false) }
@@ -104,15 +104,7 @@ fun AdminSettingsScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Restaurant Section
-            Text("Nhà hàng", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
-            SettingsItem(
-                icon = Icons.Default.Store, 
-                title = "Quản lý chi nhánh", 
-                onClick = onNavigateToBranch
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
+
 
             // App Settings
             Text(stringResource(R.string.settings_app), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))

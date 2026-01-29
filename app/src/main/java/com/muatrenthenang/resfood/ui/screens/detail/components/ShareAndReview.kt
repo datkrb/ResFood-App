@@ -28,7 +28,8 @@ import com.muatrenthenang.resfood.R
 @Composable
 fun ShareAndReview(
     onShareClick: () -> Unit,
-    onReviewClick: () -> Unit
+    onReviewClick: () -> Unit,
+    reviewCount: Int
 ) {
     androidx.compose.foundation.layout.Column(
         modifier = Modifier.fillMaxWidth(),

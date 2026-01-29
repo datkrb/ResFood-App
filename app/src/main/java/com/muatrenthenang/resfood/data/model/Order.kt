@@ -36,5 +36,6 @@ data class OrderItem(
     val foodImage: String? = null,
     val quantity: Int = 0,
     val price: Int = 0,
-    val note: String? = null
+    val note: String? = null,
+    val selectedToppings: List<Topping> = emptyList()
 )

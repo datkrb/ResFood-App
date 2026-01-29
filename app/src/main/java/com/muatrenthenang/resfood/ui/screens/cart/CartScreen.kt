@@ -170,7 +170,7 @@ fun CartScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
                                 ) {
                                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(text = stringResource(R.string.cart_checkout_btn), color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text(text = "Tiến hành thanh toán", color = Color.White, fontWeight = FontWeight.Bold)
                                         Surface(
                                             shape = CircleShape,
                                             color = Color.White.copy(alpha = 0.15f)
@@ -249,7 +249,7 @@ fun CartScreen(
                                     // Image
                                     Box(modifier = Modifier
                                         .size(80.dp)
-                                        .clip(RoundedCornerShape(12.dp))) {
+                                        .clip(RoundedCornerShape(12.dp)),) {
                                         if (food.imageUrl != null) {
                                             AsyncImage(
                                                 model = food.imageUrl,
@@ -269,7 +269,7 @@ fun CartScreen(
                                                 // Use Checkbox for accessibility; update ViewModel on change
                                                 Checkbox(
                                                     checked = item.isSelected,
-                                                    onCheckedChange = { checked -> viewModel.setItemSelected(food.id, checked) },
+                                                    onCheckedChange = { checked -> viewModel.setItemSelected(item.id, checked) },
                                                     modifier = Modifier.padding(1.dp),
                                                     colors = CheckboxDefaults.colors(checkedColor = PrimaryColor, uncheckedColor = Color.White)
                                                 )
@@ -297,15 +297,25 @@ fun CartScreen(
                                                     overflow = TextOverflow.Ellipsis,
                                                     fontSize = 16.sp
                                                 )
+                                                // Show Toppings
+                                                if (item.toppings.isNotEmpty()) {
+                                                    Text(
+                                                        text = item.toppings.joinToString(", ") { it.name },
+                                                        color = Color.Gray,
+                                                        fontSize = 12.sp,
+                                                        maxLines = 2,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
                                                 Text(
-                                                    text = viewModel.formatCurrency(food.price.toLong()),
+                                                    text = viewModel.formatCurrency(food.price.toLong() + item.toppings.sumOf { it.price }),
                                                     color = PrimaryColor,
                                                     fontWeight = FontWeight.SemiBold,
                                                     fontSize = 14.sp
                                                 )
                                             }
                                             IconButton(
-                                                onClick = { deletingItemId = food.id; showDeleteDialog = true }
+                                                onClick = { deletingItemId = item.id; showDeleteDialog = true }
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Delete,
@@ -317,7 +327,7 @@ fun CartScreen(
                                         Spacer(modifier = Modifier.height(6.dp))
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             IconButton(
-                                                onClick = { viewModel.changeQuantity(food.id, -1) },
+                                                onClick = { viewModel.changeQuantity(item.id, -1) },
                                                 modifier = Modifier.size(36.dp)
                                             ){
                                                 Box(
@@ -336,7 +346,7 @@ fun CartScreen(
                                             }
                                             Text(text = item.quantity.toString(), modifier = Modifier.width(28.dp), fontWeight = FontWeight.Medium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                                             IconButton(
-                                                onClick = { viewModel.changeQuantity(food.id, 1) },
+                                                onClick = { viewModel.changeQuantity(item.id, 1) },
                                                 modifier = Modifier.size(36.dp)
                                             ) {
                                                 Box(
@@ -365,7 +375,7 @@ fun CartScreen(
             }
 
             // Xác nhận xóa 1 item
-            val deletingItem = items.firstOrNull { it.food.id == deletingItemId }
+            val deletingItem = items.firstOrNull { it.id == deletingItemId }
 
             if (showDeleteDialog) {
                 AlertDialog(

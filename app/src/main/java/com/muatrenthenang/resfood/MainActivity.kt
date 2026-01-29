@@ -162,6 +162,13 @@ class MainActivity : AppCompatActivity() {
                                 onNavigateToNotifications = {
                                     navController.navigate("notification_list")
                                 },
+                                onNavigateToProfile = {
+                                    navController.navigate("me") {
+                                        popUpTo("home") { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                                 paddingValues = innerPadding
                             )
                         }
@@ -516,6 +523,8 @@ class MainActivity : AppCompatActivity() {
                                 onNavigateToCustomers = { navController.navigate("admin_customers") },
                                 onNavigateToOrders = { navController.navigate("admin_orders") },
                                 onNavigateToTables = { navController.navigate("admin_tables") },
+                                onNavigateToTopping = { navController.navigate("admin_topping_management") },
+                                onNavigateToBranch = { navController.navigate("admin_branch") },
                                 onNavigateToHome = {
                                     navController.navigate("admin_dashboard") {
                                         popUpTo("admin_dashboard") { inclusive = true }
@@ -623,6 +632,38 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
 
+                        // Topping Management Routes
+                        composable("admin_topping_management") {
+                            com.muatrenthenang.resfood.ui.screens.admin.topping.ToppingManagementScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToEdit = { toppingId ->
+                                    if (toppingId != null) {
+                                        navController.navigate("admin_topping_edit/$toppingId")
+                                    } else {
+                                        navController.navigate("admin_topping_edit_new")
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "admin_topping_edit/{toppingId}",
+                            arguments = listOf(navArgument("toppingId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val toppingId = backStackEntry.arguments?.getString("toppingId")
+                            com.muatrenthenang.resfood.ui.screens.admin.topping.ToppingEditScreen(
+                                toppingId = toppingId,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable("admin_topping_edit_new") {
+                            com.muatrenthenang.resfood.ui.screens.admin.topping.ToppingEditScreen(
+                                toppingId = null,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+
                         // New Admin Screens
                         composable("admin_orders") {
                             val adminViewModel: AdminViewModel = viewModel()
@@ -724,8 +765,7 @@ class MainActivity : AppCompatActivity() {
                                 },
                                 onNavigateToMenu = { navController.navigate("admin_management") },
                                 onNavigateToAnalytics = { navController.navigate("admin_analytics") },
-                                onNavigateToOrders = { navController.navigate("admin_orders") },
-                                onNavigateToBranch = { navController.navigate("admin_branch") }
+                                onNavigateToOrders = { navController.navigate("admin_orders") }
                             )
                         }
 

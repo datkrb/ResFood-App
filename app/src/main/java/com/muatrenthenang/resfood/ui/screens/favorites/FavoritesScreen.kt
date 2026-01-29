@@ -201,7 +201,7 @@ fun FavoritesScreen(
                                                 Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
                                                     Spacer(modifier = Modifier.width(6.dp))
-                                                    Text(text = "${food.rating}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                                                    Text(text = String.format("%.1f", food.rating), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                                                 }
                                             }
                                             Spacer(modifier = Modifier.width(8.dp))

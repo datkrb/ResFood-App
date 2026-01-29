@@ -310,12 +310,31 @@ fun CheckoutScreen(
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = vm.formatCurrency((it.food.price).toLong()),
+                                            text = vm.formatCurrency((it.food.price + it.toppings.sumOf { t -> t.price }).toLong()),
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.wrapContentWidth()
                                         )
                                     }
-                                    Text(text = stringResource(R.string.checkout_item_note), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
+                                    // Toppings
+                                    if (it.toppings.isNotEmpty()) {
+                                        Text(
+                                            text = it.toppings.joinToString(", ") { t -> t.name },
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                            fontSize = 12.sp,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    // Note
+                                    if (!it.note.isNullOrBlank()) {
+                                        Text(
+                                            text = "Ghi chú: ${it.note}",
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                            fontSize = 12.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
                             }
                         }
