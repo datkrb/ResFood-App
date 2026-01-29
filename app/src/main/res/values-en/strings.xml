@@ -245,6 +245,11 @@
     <string name="admin_order_status_short_cancelled">Cancel</string>
     <string name="admin_order_status_short_rejected">Rejected</string>
 
+    <string name="order_rejected_card_title">Order Rejected</string>
+    <string name="order_rejection_reason_label">Reason:</string>
+    <string name="order_rejection_time_label">Time: %1$s</string>
+    <string name="order_distance_label">Distance: %1$s</string>
+
     <!-- Auth Forgot Password -->
     <string name="auth_forgot_password_title">Forgot Password?</string>
     <string name="auth_forgot_password_subtitle">Don\'t worry! Enter your registered email and we will send you a verification code.</string>

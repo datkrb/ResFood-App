@@ -354,7 +354,7 @@ fun DeliveryInfoCard(order: Order) {
                     if (order.distanceText != null) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Khoảng cách: ${order.distanceText}",
+                            text = stringResource(R.string.order_distance_label, order.distanceText),
                             fontSize = 13.sp,
                             color = PrimaryColor,
                             fontWeight = FontWeight.Medium
@@ -718,7 +718,7 @@ fun RejectionReasonCard(order: Order) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Đơn hàng bị từ chối",
+                    text = stringResource(R.string.order_rejected_card_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFDC2626)
@@ -728,7 +728,7 @@ fun RejectionReasonCard(order: Order) {
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "Lý do:",
+                text = stringResource(R.string.order_rejection_reason_label),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -747,7 +747,7 @@ fun RejectionReasonCard(order: Order) {
                 Spacer(modifier = Modifier.height(8.dp))
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
                 Text(
-                    text = "Thời gian: ${dateFormat.format(order.rejectedAt.toDate())}",
+                    text = stringResource(R.string.order_rejection_time_label, dateFormat.format(order.rejectedAt.toDate())),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic

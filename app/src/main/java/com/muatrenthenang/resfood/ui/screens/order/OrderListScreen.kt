@@ -58,7 +58,7 @@ fun OrderListScreen(
         stringResource(R.string.food_review),
         stringResource(R.string.status_display_completed),
         stringResource(R.string.status_display_cancelled),
-        stringResource(R.string.status_display_rejected),
+        stringResource(R.string.admin_order_tab_rejected),
         stringResource(R.string.common_all)
     )
     

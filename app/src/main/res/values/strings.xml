@@ -243,6 +243,11 @@
     <string name="admin_order_status_short_completed">Xong</string>
     <string name="admin_order_status_short_cancelled">Hủy</string>
     <string name="admin_order_status_short_rejected">Từ chối</string>
+
+    <string name="order_rejected_card_title">Đơn hàng bị từ chối</string>
+    <string name="order_rejection_reason_label">Lý do:</string>
+    <string name="order_rejection_time_label">Thời gian: %1$s</string>
+    <string name="order_distance_label">Khoảng cách: %1$s</string>
     
     <!-- Auth Forgot Password -->
     <string name="auth_forgot_password_title">Quên mật khẩu?</string>
