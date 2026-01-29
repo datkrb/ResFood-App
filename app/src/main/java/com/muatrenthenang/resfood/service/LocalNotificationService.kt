@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.data.repository.AuthRepository
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.muatrenthenang.resfood.util.NotificationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,7 @@ class LocalNotificationService(private val context: Context) {
                             val notif = com.muatrenthenang.resfood.data.model.Notification(
                                 userId = auth.currentUser?.uid ?: "",
                                 title = "Đơn hàng mới!",
-                                body = "Đơn #${order.id.takeLast(6).uppercase()} - Total: ${order.total}đ",
+                                body = "Đơn #${order.id.takeLast(6).uppercase()} - Total: ${CurrencyHelper.format(order.total)}",
                                 type = "new_order",
                                 referenceId = order.id,
                                 isRead = false

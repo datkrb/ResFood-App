@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -618,7 +619,7 @@ fun CustomerDetailDialog(
                      InfoRow(
                         icon = Icons.Default.AttachMoney, 
                         label = stringResource(R.string.stats_revenue), 
-                        value = "${String.format("%,.0f", customer.totalSpending ?: 0.0)} đ"
+                        value = CurrencyHelper.format(customer.totalSpending ?: 0.0)
                     )
                 }
             }

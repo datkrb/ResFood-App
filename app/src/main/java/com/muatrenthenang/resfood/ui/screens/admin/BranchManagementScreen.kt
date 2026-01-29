@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.google.android.gms.location.LocationServices
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
@@ -220,7 +221,7 @@ fun BranchManagementScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    suffix = { Text(com.muatrenthenang.resfood.util.CurrencyHelper.currencySymbol) }
+                    suffix = { Text(CurrencyHelper.currencySymbol) }
                 )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

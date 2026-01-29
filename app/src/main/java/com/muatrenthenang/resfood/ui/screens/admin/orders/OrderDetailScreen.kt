@@ -28,9 +28,9 @@ import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.data.model.OrderItem
 import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import java.util.Locale
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
@@ -631,5 +631,5 @@ fun AdminRejectionReasonCard(order: Order) {
 }
 
 fun formatCurrency(amount: Int): String {
-    return com.muatrenthenang.resfood.util.CurrencyHelper.format(amount)
+    return CurrencyHelper.format(amount)
 }

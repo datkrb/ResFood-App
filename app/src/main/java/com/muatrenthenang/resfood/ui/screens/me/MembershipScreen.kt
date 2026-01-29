@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -40,7 +41,6 @@ import com.muatrenthenang.resfood.ui.viewmodel.MembershipUiState
 import com.muatrenthenang.resfood.ui.viewmodel.MembershipViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.RankRewardItem
 import com.muatrenthenang.resfood.ui.viewmodel.RewardStatus
-import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
@@ -155,13 +155,13 @@ fun MembershipScreen(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(
-                                        com.muatrenthenang.resfood.util.CurrencyHelper.format(totalSpending),
+                                        CurrencyHelper.format(totalSpending),
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = contentColor
                                     )
                                     Text(
-                                        " / ${com.muatrenthenang.resfood.util.CurrencyHelper.format(nextRankTarget)}",
+                                        " / ${CurrencyHelper.format(nextRankTarget)}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = secondaryContentColor,
                                         modifier = Modifier.padding(bottom = 2.dp, start = 4.dp)
@@ -218,7 +218,7 @@ fun MembershipScreen(
                                 val remaining = nextRankTarget - totalSpending
                                 val nextRank = Rank.getNextRank(currentRank)
                                 Text(
-                                    stringResource(R.string.membership_spend_more, com.muatrenthenang.resfood.util.CurrencyHelper.format(remaining), if (nextRank != null) stringResource(nextRank.nameResId) else ""),
+                                    stringResource(R.string.membership_spend_more, CurrencyHelper.format(remaining), if (nextRank != null) stringResource(nextRank.nameResId) else ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = PrimaryColor.copy(alpha = 0.9f)
                                 )
@@ -460,7 +460,7 @@ fun RankTimelineItem(
                         color = contentColor
                     )
                     Text(
-                        if (rank.threshold == 0.0) stringResource(R.string.membership_start_milestone) else stringResource(R.string.membership_spend_greater, com.muatrenthenang.resfood.util.CurrencyHelper.format(rank.threshold)),
+                        if (rank.threshold == 0.0) stringResource(R.string.membership_start_milestone) else stringResource(R.string.membership_spend_greater, CurrencyHelper.format(rank.threshold)),
                         style = MaterialTheme.typography.bodySmall,
                         color = secondaryContentColor
                     )

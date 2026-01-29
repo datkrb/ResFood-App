@@ -26,6 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Topping
 import com.muatrenthenang.resfood.ui.viewmodel.admin.ToppingManagementViewModel
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,7 +148,7 @@ fun ToppingItemCard(
                     fontSize = 16.sp
                 )
                 Text(
-                    text = "${topping.price}đ",
+                    text = CurrencyHelper.format(topping.price),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium
                 )
