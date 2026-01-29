@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 
@@ -41,12 +43,12 @@ fun ReferralHistoryScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Lịch sử nhận quà", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.ref_hist_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.common_back)
                         )
                     }
                 },
@@ -77,12 +79,12 @@ fun ReferralHistoryScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Tổng bạn đã mời",
+                            text = stringResource(R.string.ref_hist_summary_invites),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
                         Text(
-                            text = "$totalInvites người",
+                            text = stringResource(R.string.ref_hist_summary_invites_suffix, totalInvites),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
@@ -91,7 +93,7 @@ fun ReferralHistoryScreen(
                     Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color.White.copy(alpha=0.3f)))
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Tổng tiền thưởng",
+                            text = stringResource(R.string.ref_hist_summary_reward),
                             color = Color.White.copy(alpha = 0.8f),
                             fontSize = 14.sp
                         )
@@ -106,7 +108,7 @@ fun ReferralHistoryScreen(
             }
 
             Text(
-                text = "Danh sách mời (${historyList.size})",
+                text = stringResource(R.string.ref_hist_list_title, historyList.size),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 color = MaterialTheme.colorScheme.onBackground
@@ -171,7 +173,7 @@ fun ReferralHistoryItemRow(item: ReferralHistoryItem) {
                 Text(
                     text = item.status,
                     fontSize = 11.sp,
-                    color = if (item.status == "Hoàn thành") SuccessGreen else Color.Gray
+                    color = if (item.status == stringResource(R.string.me_status_completed)) SuccessGreen else Color.Gray // Using me_status_completed for "Hoàn thành"
                 )
             }
         }

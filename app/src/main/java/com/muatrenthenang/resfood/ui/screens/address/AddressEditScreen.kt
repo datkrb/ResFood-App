@@ -22,6 +22,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.border
@@ -45,6 +47,7 @@ import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import com.muatrenthenang.resfood.R
 import org.osmdroid.views.MapView
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +75,19 @@ fun AddressEditScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var isGettingLocation by remember { mutableStateOf(false) }
     
+    // Resource strings for Toast and Validation
+    val gpsSuccessMsg = stringResource(R.string.address_gps_success)
+    val gpsFailMsg = stringResource(R.string.address_gps_fail)
+    val gpsErrorFormat = stringResource(R.string.address_gps_error)
+    val permissionDeniedMsg = stringResource(R.string.address_permission_denied)
+    val permissionRequiredMsg = stringResource(R.string.address_permission_required)
+    
+    val errEmptyLine = stringResource(R.string.address_err_empty_line)
+    val errEmptyName = stringResource(R.string.address_err_empty_name)
+    val errEmptyPhone = stringResource(R.string.address_err_empty_phone)
+    val errInvalidPhone = stringResource(R.string.address_err_invalid_phone)
+    val errEmptyCity = stringResource(R.string.address_err_empty_city)
+
     // Permission launcher for GPS
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -85,20 +101,20 @@ fun AddressEditScreen(
                     isGettingLocation = false
                     location?.let {
                         vm.updateLocation(it.latitude, it.longitude)
-                        Toast.makeText(context, "Đã lấy vị trí GPS", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, gpsSuccessMsg, Toast.LENGTH_SHORT).show()
                     } ?: run {
-                        Toast.makeText(context, "Không thể lấy vị trí. Vui lòng bật GPS.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, gpsFailMsg, Toast.LENGTH_SHORT).show()
                     }
                 }.addOnFailureListener {
                     isGettingLocation = false
-                    Toast.makeText(context, "Lỗi lấy vị trí: ${it.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, gpsErrorFormat.format(it.message), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: SecurityException) {
                 isGettingLocation = false
-                Toast.makeText(context, "Không có quyền truy cập vị trí", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, permissionDeniedMsg, Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(context, "Cần quyền truy cập vị trí", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, permissionRequiredMsg, Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -166,22 +182,22 @@ fun AddressEditScreen(
         var hasError = false
 
         if (formState.addressLine.isBlank()) {
-            addressLineError = "Vui lòng nhập địa chỉ"
+            addressLineError = errEmptyLine
             hasError = true
         }
         if (formState.contactName.isBlank()) {
-            contactNameError = "Vui lòng nhập tên người nhận"
+            contactNameError = errEmptyName
             hasError = true
         }
         if (formState.phone.isBlank()) {
-            phoneError = "Vui lòng nhập số điện thoại"
+            phoneError = errEmptyPhone
             hasError = true
         } else if (!formState.phone.matches(Regex("^[0-9+\\s]{10,15}$"))) {
-            phoneError = "Số điện thoại không hợp lệ"
+            phoneError = errInvalidPhone
             hasError = true
         }
         if (formState.city.isBlank()) {
-            cityError = "Vui lòng nhập thành phố"
+            cityError = errEmptyCity
             hasError = true
         }
 
@@ -211,13 +227,13 @@ fun AddressEditScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Quay lại",
+                            contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(28.dp)
                         )
                     }
 
                     Text(
-                        text = if (isEditing) "Sửa địa chỉ" else "Thêm địa chỉ",
+                        text = if (isEditing) stringResource(R.string.address_edit_title) else stringResource(R.string.address_add_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Center)
@@ -271,7 +287,7 @@ fun AddressEditScreen(
             ) {
                 // Label dropdown
                 Text(
-                    text = "Loại địa chỉ",
+                    text = stringResource(R.string.address_label_type),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onBackground
@@ -282,14 +298,18 @@ fun AddressEditScreen(
                     onExpandedChange = { showLabelDropdown = it }
                 ) {
                     OutlinedTextField(
-                        value = formState.label,
+                        value = when(formState.label) {
+                            "Nhà riêng" -> stringResource(R.string.address_label_home)
+                            "Công ty" -> stringResource(R.string.address_label_work)
+                            else -> formState.label
+                        },
                         onValueChange = {},
                         readOnly = true,
                         leadingIcon = {
                             Icon(
                                 imageVector = when (formState.label) {
-                                    "Nhà riêng" -> Icons.Default.Home
-                                    "Công ty" -> Icons.Default.Work
+                                    "Nhà riêng", stringResource(R.string.address_label_home) -> Icons.Default.Home
+                                    "Công ty", stringResource(R.string.address_label_work) -> Icons.Default.Work
                                     else -> Icons.Default.LocationOn
                                 },
                                 contentDescription = null,
@@ -316,8 +336,14 @@ fun AddressEditScreen(
                         onDismissRequest = { showLabelDropdown = false }
                     ) {
                         AddressLabels.labels.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
+                                DropdownMenuItem(
+                                text = { 
+                                    Text(when(option) {
+                                        "Nhà riêng" -> stringResource(R.string.address_label_home)
+                                        "Công ty" -> stringResource(R.string.address_label_work)
+                                        else -> option
+                                    })
+                                },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = when (option) {
@@ -342,7 +368,7 @@ fun AddressEditScreen(
 
                 // Contact section (Moved up)
                 Text(
-                    text = "Thông tin người nhận",
+                    text = stringResource(R.string.address_label_receiver),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onBackground
@@ -354,8 +380,8 @@ fun AddressEditScreen(
                         vm.updateFormField(contactName = it)
                         contactNameError = null
                     },
-                    label = "Họ và tên *",
-                    placeholder = "Nhập họ và tên",
+                    label = stringResource(R.string.auth_full_name),
+                    placeholder = stringResource(R.string.auth_full_name_placeholder),
                     icon = Icons.Default.Person,
                     error = contactNameError,
                     imeAction = ImeAction.Next
@@ -367,8 +393,8 @@ fun AddressEditScreen(
                         vm.updateFormField(phone = it)
                         phoneError = null
                     },
-                    label = "Số điện thoại *",
-                    placeholder = "Nhập số điện thoại",
+                    label = stringResource(R.string.profile_phone),
+                    placeholder = stringResource(R.string.profile_phone_placeholder),
                     icon = Icons.Default.Phone,
                     error = phoneError,
                     keyboardType = KeyboardType.Phone,
@@ -379,7 +405,7 @@ fun AddressEditScreen(
 
                 // Address section
                 Text(
-                    text = "Thông tin địa chỉ",
+                    text = stringResource(R.string.address_label_info),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onBackground
@@ -391,8 +417,8 @@ fun AddressEditScreen(
                         vm.updateFormField(addressLine = it)
                         addressLineError = null
                     },
-                    label = "Địa chỉ chi tiết *",
-                    placeholder = "Số nhà, tên đường...",
+                    label = stringResource(R.string.address_detail),
+                    placeholder = stringResource(R.string.address_placeholder_street),
                     icon = Icons.Default.Home,
                     error = addressLineError,
                     imeAction = ImeAction.Next
@@ -405,8 +431,8 @@ fun AddressEditScreen(
                     FormTextField(
                         value = formState.ward,
                         onValueChange = { vm.updateFormField(ward = it) },
-                        label = "Phường/Xã",
-                        placeholder = "Nhập phường/xã",
+                        label = stringResource(R.string.address_ward),
+                        placeholder = stringResource(R.string.address_placeholder_ward),
                         icon = Icons.Default.Place,
                         modifier = Modifier.weight(1f),
                         imeAction = ImeAction.Next
@@ -415,8 +441,8 @@ fun AddressEditScreen(
                     FormTextField(
                         value = formState.district,
                         onValueChange = { vm.updateFormField(district = it) },
-                        label = "Quận/Huyện",
-                        placeholder = "Nhập quận/huyện",
+                        label = stringResource(R.string.address_district),
+                        placeholder = stringResource(R.string.address_placeholder_district),
                         icon = Icons.Default.Place,
                         modifier = Modifier.weight(1f),
                         imeAction = ImeAction.Next
@@ -429,8 +455,8 @@ fun AddressEditScreen(
                         vm.updateFormField(city = it)
                         cityError = null
                     },
-                    label = "Thành phố/Tỉnh *",
-                    placeholder = "Nhập thành phố/tỉnh",
+                    label = stringResource(R.string.address_city),
+                    placeholder = stringResource(R.string.address_placeholder_city),
                     icon = Icons.Default.LocationCity,
                     error = cityError,
                     imeAction = ImeAction.Next
@@ -512,7 +538,7 @@ fun AddressEditScreen(
                                             color = SuccessGreen
                                         )
                                     } else {
-                                        Icon(Icons.Default.MyLocation, contentDescription = "Lấy vị trí GPS", tint = SuccessGreen)
+                                        Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.common_gps_action), tint = SuccessGreen)
                                     }
                                 }
                             }
@@ -524,7 +550,7 @@ fun AddressEditScreen(
                                 shadowElevation = 4.dp
                             ) {
                                 IconButton(onClick = { onNavigateToMap(formState.latitude, formState.longitude) }) {
-                                    Icon(Icons.Default.Fullscreen, contentDescription = "Full map", tint = PrimaryColor)
+                                    Icon(Icons.Default.Fullscreen, contentDescription = stringResource(R.string.common_fullscreen), tint = PrimaryColor)
                                 }
                             }
                         }
@@ -547,7 +573,7 @@ fun AddressEditScreen(
                             Icon(Icons.Outlined.LocationOn, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Chọn vị trí trên bản đồ",
+                                text = stringResource(R.string.address_map_pick),
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1
                             )
@@ -615,12 +641,12 @@ fun AddressEditScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Đặt làm địa chỉ mặc định",
+                                    text = stringResource(R.string.address_default_set),
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 15.sp
                                 )
                                 Text(
-                                    text = "Tự động chọn khi đặt hàng",
+                                    text = stringResource(R.string.address_default_desc),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                     fontSize = 12.sp
                                 )
@@ -667,7 +693,7 @@ fun AddressEditScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isEditing) "Cập nhật địa chỉ" else "Lưu địa chỉ",
+                            text = if (isEditing) stringResource(R.string.address_update_btn) else stringResource(R.string.address_save_btn),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

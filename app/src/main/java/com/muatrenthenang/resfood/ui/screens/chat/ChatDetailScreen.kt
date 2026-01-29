@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,9 +52,9 @@ fun ChatDetailScreen(
             TopAppBar(
                 title = { 
                     val titleText = if (isAdmin) {
-                        currentChat?.customerName ?: "Khách hàng"
+                        currentChat?.customerName ?: stringResource(R.string.chat_customer_default)
                     } else {
-                        "Admin Support"
+                        stringResource(R.string.chat_admin_support)
                     }
                     Text(titleText, fontWeight = FontWeight.Bold) 
                 },
@@ -118,7 +120,7 @@ fun ChatDetailScreen(
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Nhập tin nhắn...") },
+                    placeholder = { Text(stringResource(R.string.chat_input_hint)) },
                     shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,

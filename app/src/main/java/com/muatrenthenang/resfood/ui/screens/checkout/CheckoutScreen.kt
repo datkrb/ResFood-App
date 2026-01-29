@@ -15,6 +15,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -122,7 +123,7 @@ fun CheckoutScreen(
                 }
 
                 Text(
-                    text = "Thanh toán",
+                    text = stringResource(R.string.checkout_title),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
@@ -138,7 +139,7 @@ fun CheckoutScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            Text(text = "Tổng thanh toán", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
+                            Text(text = stringResource(R.string.checkout_total_label), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
                             Text(text = vm.formatCurrency(total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
                         Button(
@@ -148,7 +149,7 @@ fun CheckoutScreen(
                             enabled = !isLoading,
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
                         ) {
-                            Text(text = "Xác nhận", color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.checkout_confirm_btn), color = Color.White, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(6.dp))
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White)
                         }
@@ -179,8 +180,8 @@ fun CheckoutScreen(
             // Address
             Column {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Địa chỉ nhận hàng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(text = "Thay đổi", color = PrimaryColor, modifier = Modifier.clickable { onNavigateToAddresses() }, fontWeight = FontWeight.SemiBold)
+                    Text(text = stringResource(R.string.checkout_address_title), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = stringResource(R.string.checkout_change_address), color = PrimaryColor, modifier = Modifier.clickable { onNavigateToAddresses() }, fontWeight = FontWeight.SemiBold)
                 }
 
                 Surface(
@@ -219,7 +220,7 @@ fun CheckoutScreen(
                                             color = PrimaryColor.copy(alpha = 0.1f)
                                         ) {
                                             Text(
-                                                text = "Mặc định",
+                                                text = stringResource(R.string.checkout_address_default),
                                                 color = PrimaryColor,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
@@ -281,7 +282,7 @@ fun CheckoutScreen(
 
             // Order summary
             Column {
-                Text(text = "Tóm tắt đơn hàng", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(text = stringResource(R.string.checkout_order_summary), fontWeight = FontWeight.Bold, fontSize = 18.sp)
 
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -341,18 +342,18 @@ fun CheckoutScreen(
                         // Costs
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = stringResource(R.string.cart_subtotal), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = vm.formatCurrency(subTotal), fontWeight = FontWeight.Medium)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = stringResource(R.string.cart_shipping_fee), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = vm.formatCurrency(currentShippingFee), fontWeight = FontWeight.Medium)
                             }
                             
                             if (productDiscount > 0) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = "Giảm giá món", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                        Text(text = stringResource(R.string.checkout_discount_product), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
                                     }
@@ -363,7 +364,7 @@ fun CheckoutScreen(
                             if (shippingDiscount > 0) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = "Giảm phí ship", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                        Text(text = stringResource(R.string.checkout_discount_shipping), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Icon(imageVector = Icons.Default.LocalShipping, contentDescription = null, tint = Color(0xFF0097A7), modifier = Modifier.size(14.dp))
                                     }
@@ -373,7 +374,7 @@ fun CheckoutScreen(
 
                             Divider()
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
+                                Text(text = stringResource(R.string.cart_total), fontWeight = FontWeight.Bold)
                                 Text(text = vm.formatCurrency(total), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
                             }
                         }
@@ -400,15 +401,15 @@ fun CheckoutScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(imageVector = Icons.Default.ConfirmationNumber, contentDescription = null, tint = PrimaryColor)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("ResFood Voucher", fontWeight = FontWeight.Medium)
+                            Text(stringResource(R.string.checkout_voucher_title), fontWeight = FontWeight.Medium)
                         }
                         
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             val count = (if (productVoucher != null) 1 else 0) + (if (shippingVoucher != null) 1 else 0)
                             if (count > 0) {
-                                Text("Đã chọn $count", color = PrimaryColor, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.checkout_voucher_selected, count), color = PrimaryColor, fontWeight = FontWeight.Bold)
                             } else {
-                                Text("Chọn hoặc nhập mã", color = Color.Gray, fontSize = 12.sp)
+                                Text(stringResource(R.string.checkout_voucher_hint), color = Color.Gray, fontSize = 12.sp)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
@@ -419,11 +420,11 @@ fun CheckoutScreen(
 
             // Payment methods
             Column {
-                Text(text = "Phương thức thanh toán", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(text = stringResource(R.string.checkout_payment_method), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                    PaymentOption(label = "Ví ZaloPay", subtitle = null, drawableRes = R.drawable.ic_zalopay_logo, selected = paymentMethod == PaymentMethod.ZALOPAY, onSelect = { vm.setPaymentMethod(PaymentMethod.ZALOPAY) })
-                    PaymentOption(label = "Ví MoMo", subtitle = null, drawableRes = R.drawable.ic_momo_logo, selected = paymentMethod == PaymentMethod.MOMO, onSelect = { vm.setPaymentMethod(PaymentMethod.MOMO) })
-                    PaymentOption(label = "Tiền mặt khi nhận hàng", subtitle = null, drawableRes = R.drawable.ic_cash, selected = paymentMethod == PaymentMethod.COD, onSelect = { vm.setPaymentMethod(PaymentMethod.COD) })
+                    PaymentOption(label = stringResource(R.string.checkout_method_zalopay), subtitle = null, drawableRes = R.drawable.ic_zalopay_logo, selected = paymentMethod == PaymentMethod.ZALOPAY, onSelect = { vm.setPaymentMethod(PaymentMethod.ZALOPAY) })
+                    PaymentOption(label = stringResource(R.string.checkout_method_momo), subtitle = null, drawableRes = R.drawable.ic_momo_logo, selected = paymentMethod == PaymentMethod.MOMO, onSelect = { vm.setPaymentMethod(PaymentMethod.MOMO) })
+                    PaymentOption(label = stringResource(R.string.checkout_method_cod), subtitle = null, drawableRes = R.drawable.ic_cash, selected = paymentMethod == PaymentMethod.COD, onSelect = { vm.setPaymentMethod(PaymentMethod.COD) })
                 }
             }
 
@@ -431,7 +432,7 @@ fun CheckoutScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Icon(imageVector = Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Thanh toán an toàn & bảo mật 100%", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
+                Text(text = stringResource(R.string.checkout_security_note), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(120.dp))

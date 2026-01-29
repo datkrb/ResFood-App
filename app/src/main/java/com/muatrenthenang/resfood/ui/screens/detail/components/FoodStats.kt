@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.muatrenthenang.resfood.data.model.Food
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun FoodStats(food: Food?){
@@ -23,13 +25,13 @@ fun FoodStats(food: Food?){
         InfoChip(
             Icons.Default.LocalFireDepartment,
             Color(0xfff97315),
-            "${food?.calories ?: 0} kcal",
+            "${food?.calories ?: 0} ${stringResource(R.string.food_stats_kcal)}",
             modifier = Modifier
         )
         InfoChip(
             Icons.Default.WatchLater,
             Color(0xff3c82f6),
-            "36 phút",
+            stringResource(R.string.food_stats_time),
             modifier = Modifier
         )
         InfoChip(

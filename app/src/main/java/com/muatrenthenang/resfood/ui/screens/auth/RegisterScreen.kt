@@ -61,7 +61,7 @@ fun RegisterScreen(
     LaunchedEffect(result) {
         when (result) {
             "Success" -> {
-                Toast.makeText(context, "Đăng ký thành công!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.auth_register_success), Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
                 onRegisterSuccess()
             }
@@ -96,7 +96,7 @@ fun RegisterScreen(
                 viewModel.registerWithGoogle(idToken) // Not implemented yet
             }
         } catch (e: ApiException) {
-            Toast.makeText(context, "Google Sign-In thất bại: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.auth_google_fail, e.statusCode), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -126,7 +126,7 @@ fun RegisterScreen(
                 }
 
                 Text(
-                    text = "Đăng ký",
+                    text = stringResource(R.string.auth_register_now),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     // Dùng màu onBackground (TextDark) từ Theme
@@ -148,7 +148,7 @@ fun RegisterScreen(
             // --- Header Text ---
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Tạo tài khoản mới",
+                text = stringResource(R.string.auth_create_account),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -156,7 +156,7 @@ fun RegisterScreen(
                 textAlign = TextAlign.Start
             )
             Text(
-                text = "Chào mừng bạn đến với ResFood",
+                text = stringResource(R.string.auth_register_subtitle),
                 fontSize = 16.sp,
                 color = Color.Gray,
                 modifier = Modifier.fillMaxWidth(),
@@ -169,24 +169,24 @@ fun RegisterScreen(
             ResFoodTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                label = "Họ và tên",
+                label = stringResource(R.string.auth_full_name),
                 icon = Icons.Outlined.Person,
-                placeholder = "Nguyễn Văn A"
+                placeholder = stringResource(R.string.auth_full_name_placeholder)
             )
 
             ResFoodTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                label = stringResource(R.string.auth_email),
                 icon = Icons.Outlined.Mail,
-                placeholder = "email@example.com",
+                placeholder = stringResource(R.string.auth_email_placeholder),
                 keyboardType = KeyboardType.Email
             )
 
             ResFoodPasswordField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Mật khẩu",
+                label = stringResource(R.string.auth_password),
                 isVisible = isPasswordVisible,
                 onToggleVisibility = { isPasswordVisible = !isPasswordVisible }
             )
@@ -194,7 +194,7 @@ fun RegisterScreen(
             ResFoodPasswordField(
                 value = rePassword,
                 onValueChange = { rePassword = it },
-                label = "Nhập lại mật khẩu",
+                label = stringResource(R.string.auth_re_password),
                 isVisible = isRePasswordVisible,
                 onToggleVisibility = { isRePasswordVisible = !isRePasswordVisible }
             )
@@ -203,7 +203,7 @@ fun RegisterScreen(
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 TextButton(onClick = { /* TODO: Navigate to ForgotPass */ }) {
                     // Dùng màu Primary từ Theme
-                    Text("Quên mật khẩu?", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -211,7 +211,7 @@ fun RegisterScreen(
 
             // --- Submit Button (Dùng Component chung) ---
             ResFoodButton(
-                text = "Đăng ký ngay",
+                text = stringResource(R.string.auth_register_now),
                 onClick = { viewModel.register(email, password, rePassword, fullName) },
                 isLoading = isLoading
             )
@@ -224,7 +224,7 @@ fun RegisterScreen(
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
                 Text(
-                    text = "Hoặc tiếp tục với",
+                    text = stringResource(R.string.auth_or_continue_with),
                     modifier = Modifier.padding(horizontal = 16.dp),
                     color = Color.Gray,
                     fontSize = 14.sp
@@ -251,9 +251,9 @@ fun RegisterScreen(
             // --- Footer ---
             Spacer(modifier = Modifier.height(40.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Bạn đã có tài khoản? ", color = Color.Gray)
+                Text(stringResource(R.string.auth_have_account), color = Color.Gray)
                 Text(
-                    text = "Đăng nhập",
+                    text = stringResource(R.string.auth_login_button),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateBack() }

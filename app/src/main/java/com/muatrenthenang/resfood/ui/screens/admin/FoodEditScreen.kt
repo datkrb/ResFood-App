@@ -39,6 +39,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 
 data class CategoryItem(val icon: ImageVector, val name: String)
 
@@ -71,6 +73,12 @@ fun FoodEditScreen(
     var isLoading by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    
+    // Resource Strings
+    val errEmptyFields = stringResource(R.string.food_err_empty_fields)
+    val errUploadFormat = stringResource(R.string.food_err_upload)
+    val saveSuccessMsg = stringResource(R.string.food_msg_save_success)
+    val commonBackMsg = stringResource(R.string.common_back)
     
     // Dropdown State
     var categoriesExpanded by remember { mutableStateOf(false) }
@@ -114,10 +122,10 @@ fun FoodEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (foodId != null) "Cập nhật món ăn" else "Thêm món ăn mới") },
+                title = { Text(if (foodId != null) stringResource(R.string.food_edit_title_edit) else stringResource(R.string.food_edit_title_add)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = commonBackMsg)
                     }
                 }
             )
@@ -161,7 +169,7 @@ fun FoodEditScreen(
                         } else {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(48.dp))
-                                Text("Chọn ảnh từ thư viện")
+                                Text(stringResource(R.string.food_label_select_image))
                             }
                         }
                     }
@@ -171,7 +179,7 @@ fun FoodEditScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Tên món ăn") },
+                    label = { Text(stringResource(R.string.food_label_name)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -179,14 +187,14 @@ fun FoodEditScreen(
                     OutlinedTextField(
                         value = price,
                         onValueChange = { price = it },
-                        label = { Text("Giá (VNĐ)") },
+                        label = { Text(stringResource(R.string.food_label_price)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
                     )
                     OutlinedTextField(
                         value = discountPercent,
                         onValueChange = { discountPercent = it },
-                        label = { Text("Giảm giá (%)") },
+                        label = { Text(stringResource(R.string.food_label_discount)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f)
                     )
@@ -200,7 +208,7 @@ fun FoodEditScreen(
                     OutlinedTextField(
                         value = category,
                         onValueChange = { category = it },
-                        label = { Text("Danh mục") },
+                        label = { Text(stringResource(R.string.food_label_category)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoriesExpanded) },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                         modifier = Modifier.fillMaxWidth().menuAnchor()
@@ -230,7 +238,7 @@ fun FoodEditScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Mô tả") },
+                    label = { Text(stringResource(R.string.food_label_description)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -238,13 +246,13 @@ fun FoodEditScreen(
                 OutlinedTextField(
                     value = calories,
                     onValueChange = { calories = it },
-                    label = { Text("Năng lượng (Kcal)") },
+                    label = { Text(stringResource(R.string.food_label_calories)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Đang mở bán", modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.food_label_available), modifier = Modifier.weight(1f))
                     Switch(checked = isAvailable, onCheckedChange = { isAvailable = it })
                 }
 
@@ -260,7 +268,7 @@ fun FoodEditScreen(
 
                             // Validate
                             if (name.isBlank() || price.isBlank()) {
-                                error = "Vui lòng nhập tên và giá"
+                                error = errEmptyFields
                                 isSaving = false
                                 return@launch
                             }
@@ -273,12 +281,12 @@ fun FoodEditScreen(
                                     if (url != null) {
                                         finalImageUrl = url
                                     } else {
-                                        error = "Lỗi upload ảnh"
+                                        error = errUploadFormat.format("Unknown")
                                         isSaving = false
                                         return@launch
                                     }
                                 } catch (e: Exception) {
-                                    error = "Lỗi upload: ${e.message}"
+                                    error = errUploadFormat.format(e.message ?: "Unknown Error")
                                     isSaving = false
                                     return@launch
                                 }
@@ -307,7 +315,7 @@ fun FoodEditScreen(
                             }
                             
                             saveResult.onSuccess {
-                                Toast.makeText(context, "Lưu thành công", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, saveSuccessMsg, Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }.onFailure {
                                 error = "Lỗi khi lưu data: ${it.message}"
@@ -322,7 +330,7 @@ fun FoodEditScreen(
                     if (isSaving) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                        Text("Lưu món ăn")
+                        Text(stringResource(R.string.food_btn_save))
                     }
                 }
                 

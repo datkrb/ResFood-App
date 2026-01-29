@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +60,8 @@ fun PromotionManagementScreen(
                 showDeleteDialog = false 
                 promotionToDelete = null
             },
-            title = { Text("Xác nhận xóa") },
-            text = { Text("Bạn có chắc chắn muốn xóa khuyến mãi '${promotionToDelete?.name}'? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.admin_confirm_delete)) },
+            text = { Text(stringResource(R.string.admin_promo_delete_confirm_msg, promotionToDelete?.name ?: "")) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -69,7 +71,7 @@ fun PromotionManagementScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Xóa", color = MaterialTheme.colorScheme.onError)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissButton = {
@@ -77,7 +79,7 @@ fun PromotionManagementScreen(
                     showDeleteDialog = false 
                     promotionToDelete = null
                 }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -89,7 +91,7 @@ fun PromotionManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý khuyến mãi", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_promo_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -121,7 +123,7 @@ fun PromotionManagementScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.LocalActivity, contentDescription = null, tint = MaterialTheme.colorScheme.outline, modifier = Modifier.size(64.dp))
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Chưa có chương trình khuyến mãi nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.admin_promo_empty_list), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -158,16 +160,19 @@ fun PromotionItem(
     val isShip = promo.applyFor == "SHIP"
 
     // Quantity Logic
-    val quantityText = remember(promo) {
+    val unitText = stringResource(R.string.admin_promo_unit)
+    val unlimitedText = stringResource(R.string.admin_promo_unlimited)
+    
+    val quantityText = remember(promo, unitText, unlimitedText) {
         if (!promo.isPublic()) {
             val remaining = promo.userQuantities.values.sum()
-            "$remaining/${promo.totalQuantity} mã"
+            "$remaining/${promo.totalQuantity} $unitText"
         } else if (promo.totalQuantity > 0) {
             val used = promo.usedByUserIds.size
             val remaining = (promo.totalQuantity - used).coerceAtLeast(0)
-            "$remaining/${promo.totalQuantity} mã"
+            "$remaining/${promo.totalQuantity} $unitText"
         } else {
-            "Không giới hạn"
+            unlimitedText
         }
     }
     
@@ -228,9 +233,9 @@ fun PromotionItem(
                             }
                             
                             val statusText = when {
-                                !promo.isActive -> "Đã tắt"
-                                isExpired -> "Hết hạn"
-                                else -> "Đang chạy"
+                                !promo.isActive -> stringResource(R.string.status_disabled)
+                                isExpired -> stringResource(R.string.status_expired)
+                                else -> stringResource(R.string.status_active)
                             }
                             
                             val statusColor = when {
@@ -267,7 +272,7 @@ fun PromotionItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                  Column {
-                     Text("Giảm giá", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                     Text(stringResource(R.string.label_discount), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                      Text(
                          text = if(promo.discountType == 0) "${promo.discountValue}%" else "${promo.discountValue}đ",
                          style = MaterialTheme.typography.bodyMedium,
@@ -277,7 +282,7 @@ fun PromotionItem(
                  }
 
                  Column {
-                     Text("Số lượng", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                     Text(stringResource(R.string.label_quantity), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                      Text(
                          text = quantityText,
                          style = MaterialTheme.typography.bodyMedium,
@@ -287,7 +292,7 @@ fun PromotionItem(
                  }
                  
                  Column {
-                     Text("Thời hạn", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                     Text(stringResource(R.string.label_expiry), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                      val endStr = try { dateFormat.format(promo.endDate.toDate()) } catch (e:Exception) {"N/A"}
                      Text(
                          text = endStr,

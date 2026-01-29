@@ -58,7 +58,7 @@
         LaunchedEffect(loginResult) {
             when (val result = loginResult) {
                 is LoginViewModel.LoginState.Success -> {
-                    Toast.makeText(context, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.auth_login_success), Toast.LENGTH_SHORT).show()
                     viewModel.resetLoginState()
                     onLoginSuccess(result.isAdmin)
                 }
@@ -95,7 +95,7 @@
                     viewModel.loginWithGoogle(idToken)
                 }
             } catch (e: ApiException) {
-                Toast.makeText(context, "Google Sign-In thất bại: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.auth_google_fail, e.statusCode), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -152,14 +152,14 @@
 
                 // --- Header Text ---
                 Text(
-                    text = "Chào mừng trở lại!",
+                    text = stringResource(R.string.auth_welcome_back),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground, // Màu chữ chuẩn
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = "Đăng nhập để tiếp tục khám phá món ngon",
+                    text = stringResource(R.string.auth_login_subtitle),
                     fontSize = 16.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
@@ -170,19 +170,19 @@
                 ResFoodTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = "Email",
+                    label = stringResource(R.string.auth_email),
                     icon = Icons.Outlined.Mail,
-                    placeholder = "example@email.com",
+                    placeholder = stringResource(R.string.auth_email_placeholder),
                     keyboardType = KeyboardType.Email
                 )
 
                 ResFoodPasswordField(
                     value = password,
                     onValueChange = { password = it },
-                    label = "Mật khẩu",
+                    label = stringResource(R.string.auth_password),
                     isVisible = isPasswordVisible,
                     onToggleVisibility = { isPasswordVisible = !isPasswordVisible },
-                    placeholder = "Nhập mật khẩu của bạn"
+                    placeholder = stringResource(R.string.auth_password_placeholder)
                 )
 
                 // Forgot Password Link
@@ -191,7 +191,7 @@
                         onClick = onNavigateToForgotPassword,
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Quên mật khẩu?", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
                     }
                 }
 
@@ -199,7 +199,7 @@
 
                 // --- Login Button ---
                 ResFoodButton(
-                    text = "Đăng nhập",
+                    text = stringResource(R.string.auth_login_button),
                     onClick = { viewModel.login(email, password) },
                     isLoading = isLoading
                 )
@@ -212,7 +212,7 @@
                 ) {
                     HorizontalDivider(modifier = Modifier.weight(1f), color = Color.LightGray)
                     Text(
-                        text = "HOẶC ĐĂNG NHẬP BẰNG",
+                        text = stringResource(R.string.auth_or_login_with),
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = Color.Gray,
                         fontSize = 12.sp,
@@ -245,9 +245,9 @@
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 24.dp)
                 ) {
-                    Text("Bạn chưa có tài khoản? ", color = Color.Gray)
+                    Text(stringResource(R.string.auth_no_account), color = Color.Gray)
                     Text(
-                        text = "Đăng ký ngay",
+                        text = stringResource(R.string.auth_register_now),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { onNavigateToRegister() }

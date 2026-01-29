@@ -23,7 +23,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 @Composable
 fun ShareAndReview(
     onShareClick: () -> Unit,
@@ -43,7 +44,7 @@ fun ShareAndReview(
             ReviewActionChip(
                 icon = Icons.Default.RateReview,
                 color = Color(0xff339cff),
-                text = "Đánh giá ($reviewCount)",
+                text = stringResource(R.string.food_review),
                 paddingValues = PaddingValues(
                     horizontal = 36.dp,
                     vertical = 10.dp
@@ -57,7 +58,7 @@ fun ShareAndReview(
             ReviewActionChip(
                 icon = Icons.Default.Share,
                 color = Color(0xff3c82f6),
-                text = "Chia sẻ",
+                text = stringResource(R.string.food_share),
                 paddingValues = PaddingValues(
                     horizontal = 36.dp,
                     vertical = 10.dp

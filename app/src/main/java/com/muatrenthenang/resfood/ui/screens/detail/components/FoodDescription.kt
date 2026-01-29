@@ -11,17 +11,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.data.model.Food
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun FoodDescription(food: Food?){
     Text(
-        text = "Mô tả",
+        text = stringResource(R.string.food_description_title),
         color = MaterialTheme.colorScheme.onBackground,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp
     )
     Text(
-        text = food?.description ?: "Đang tải...",
+        text = food?.description ?: stringResource(R.string.food_detail_loading),
         color = MaterialTheme.colorScheme.onBackground,
         fontSize = 16.sp
     )

@@ -1,5 +1,8 @@
 package com.muatrenthenang.resfood.ui.screens.settings
 
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +35,8 @@ fun SettingScreen(
     val user = userState ?: User(fullName = "Đang tải...", rank = "...") // Placeholder khi loading
     val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
     val isPushNotificationEnabled by userViewModel.isPushNotificationEnabled.collectAsState()
+    val currentLanguage by userViewModel.currentLanguage.collectAsState()
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -48,11 +53,11 @@ fun SettingScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Hiển thị
-            SectionHeader(title = "HIỂN THỊ")
+            // HIỂN THỊ
+            SectionHeader(title = stringResource(id = R.string.settings_display))
             SettingToggleRow(
-                title = "Chế độ tối",
-                subtitle = "Giảm mỏi mắt vào ban đêm",
+                title = stringResource(id = R.string.settings_dark_mode),
+                subtitle = stringResource(id = R.string.settings_dark_mode_subtitle),
                 checked = isDarkTheme, // Hiển thị theo state
                 onCheckedChange = { isChecked: Boolean ->
                     userViewModel.toggleTheme(isChecked)
@@ -60,14 +65,23 @@ fun SettingScreen(
             )
 
             // 3. Thông báo
-            SectionHeader(title = "THÔNG BÁO")
+            SectionHeader(title = stringResource(id = R.string.settings_notifications))
             SettingToggleRow(
-                title = "Thông báo đẩy",
-                subtitle = "Nhận thông báo về đơn hàng và ưu đãi",
+                title = stringResource(id = R.string.settings_push_notifications),
+                subtitle = stringResource(id = R.string.settings_push_notifications_subtitle),
                 checked = isPushNotificationEnabled,
                 onCheckedChange = { isEnabled: Boolean ->
                     userViewModel.togglePushNotification(isEnabled)
                 }
+            )
+
+            // Language
+            SectionHeader(title = stringResource(id = R.string.settings_language)) // Or just re-use Display/General
+            SettingItemRow(
+                title = stringResource(id = R.string.settings_language),
+                subtitle = if (currentLanguage == "vi") "Tiếng Việt" else "English",
+                showArrow = true,
+                modifier = Modifier.clickable { showLanguageDialog = true }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -81,6 +95,60 @@ fun SettingScreen(
                 Text("Phiên bản 0.0.0 (Build 2025)", color = TextColorSecondary, fontSize = 12.sp)
             }
         }
+    }
+
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.settings_language)) },
+            text = {
+                Column {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                userViewModel.setLanguage("vi")
+                                showLanguageDialog = false
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentLanguage == "vi",
+                            onClick = {
+                                userViewModel.setLanguage("vi")
+                                showLanguageDialog = false
+                            }
+                        )
+                        Text("Tiếng Việt", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                userViewModel.setLanguage("en")
+                                showLanguageDialog = false
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentLanguage == "en",
+                            onClick = {
+                                userViewModel.setLanguage("en")
+                                showLanguageDialog = false
+                            }
+                        )
+                        Text("English", modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -101,7 +169,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Cài đặt & Tùy chỉnh",
+            text = stringResource(id = R.string.settings_title),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
@@ -134,11 +202,11 @@ fun SectionHeader(title: String, badge: String? = null) {
 }
 
 @Composable
-fun SettingItemRow(title: String, subtitle: String? = null, showArrow: Boolean = false) {
+fun SettingItemRow(title: String, subtitle: String? = null, showArrow: Boolean = false, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
+        modifier = modifier.fillMaxWidth().padding(bottom = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),

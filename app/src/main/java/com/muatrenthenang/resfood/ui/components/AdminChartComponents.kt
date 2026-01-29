@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AnalyticsFilterType
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -49,9 +51,9 @@ fun DateRangeSelector(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            FilterTab("Hôm nay", selectedType == AnalyticsFilterType.TODAY, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.TODAY) }
-            FilterTab("Tháng này", selectedType == AnalyticsFilterType.MONTH, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.MONTH) }
-            FilterTab("Tùy chọn", selectedType == AnalyticsFilterType.CUSTOM, Modifier.weight(1f)) { 
+            FilterTab(stringResource(R.string.admin_order_filter_date_today), selectedType == AnalyticsFilterType.TODAY, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.TODAY) }
+            FilterTab(stringResource(R.string.label_this_month), selectedType == AnalyticsFilterType.MONTH, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.MONTH) }
+            FilterTab(stringResource(R.string.label_custom), selectedType == AnalyticsFilterType.CUSTOM, Modifier.weight(1f)) { 
                 onTypeSelected(AnalyticsFilterType.CUSTOM)
                 showDatePicker = true
             }
@@ -92,10 +94,10 @@ fun DateRangeSelector(
                          onDateRangeSelected(selectedDate, selectedDate + 86400000)
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.common_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -132,7 +134,7 @@ fun RevenueLineChart(
 ) {
     if (data.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Text("Không có dữ liệu", color = Color.Gray)
+            Text(stringResource(R.string.admin_analytics_no_data), color = Color.Gray)
         }
         return
     }
@@ -216,7 +218,7 @@ fun OrderStatusPieChart(
 ) {
     if (data.values.sum() == 0) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
-             Text("Không có dữ liệu", color = Color.Gray)
+             Text(stringResource(R.string.admin_analytics_no_data), color = Color.Gray)
         }
         return
     }

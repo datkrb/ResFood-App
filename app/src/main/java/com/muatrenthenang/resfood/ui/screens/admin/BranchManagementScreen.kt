@@ -38,6 +38,8 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,7 +130,7 @@ fun BranchManagementScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Store, contentDescription = null, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Quản lý chi nhánh", fontWeight = FontWeight.Bold) 
+                        Text(stringResource(R.string.branch_title), fontWeight = FontWeight.Bold) 
                     }
                 },
                 navigationIcon = {
@@ -154,7 +156,7 @@ fun BranchManagementScreen(
             ) {
                 // Basic Info Section
                 Text(
-                    "THÔNG TIN CƠ BẢN",
+                    stringResource(R.string.branch_info_basic),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -163,7 +165,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.name,
                     onValueChange = { viewModel.updateFormField(name = it) },
-                    label = { Text("Tên nhà hàng") },
+                    label = { Text(stringResource(R.string.branch_label_name)) },
                     leadingIcon = { Icon(Icons.Default.Store, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -172,7 +174,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.phone,
                     onValueChange = { viewModel.updateFormField(phone = it) },
-                    label = { Text("Số điện thoại") },
+                    label = { Text(stringResource(R.string.branch_label_phone)) },
                     leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
@@ -182,7 +184,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.openingHours,
                     onValueChange = { viewModel.updateFormField(openingHours = it) },
-                    label = { Text("Giờ mở cửa (VD: 10:00 - 22:00)") },
+                    label = { Text(stringResource(R.string.branch_label_hours)) },
                     leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -192,7 +194,7 @@ fun BranchManagementScreen(
                     OutlinedTextField(
                         value = formState.maxCapacity,
                         onValueChange = { viewModel.updateFormField(maxCapacity = it) },
-                        label = { Text("Sức chứa tối đa") },
+                        label = { Text(stringResource(R.string.branch_label_capacity)) },
                         leadingIcon = { Icon(Icons.Default.People, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
@@ -201,7 +203,7 @@ fun BranchManagementScreen(
                     OutlinedTextField(
                         value = formState.tableCount,
                         onValueChange = { viewModel.updateFormField(tableCount = it) },
-                        label = { Text("Số bàn") },
+                        label = { Text(stringResource(R.string.branch_label_tables)) },
                         leadingIcon = { Icon(Icons.Default.TableRestaurant, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
@@ -213,7 +215,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.shippingFee,
                     onValueChange = { viewModel.updateFormField(shippingFee = it) },
-                    label = { Text("Phí vận chuyển (VNĐ)") },
+                    label = { Text(stringResource(R.string.branch_label_shipping)) },
                     leadingIcon = { Icon(Icons.Default.LocalShipping, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
@@ -225,7 +227,7 @@ fun BranchManagementScreen(
                 
                 // Address Section
                 Text(
-                    "ĐỊA CHỈ",
+                    stringResource(R.string.branch_info_address),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -234,7 +236,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.addressLine,
                     onValueChange = { viewModel.updateFormField(addressLine = it) },
-                    label = { Text("Địa chỉ (số nhà, đường)") },
+                    label = { Text(stringResource(R.string.branch_label_address_line)) },
                     leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -243,7 +245,7 @@ fun BranchManagementScreen(
                 OutlinedTextField(
                     value = formState.ward,
                     onValueChange = { viewModel.updateFormField(ward = it) },
-                    label = { Text("Phường/Xã") },
+                    label = { Text(stringResource(R.string.branch_label_ward)) },
                     leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -253,7 +255,7 @@ fun BranchManagementScreen(
                     OutlinedTextField(
                         value = formState.district,
                         onValueChange = { viewModel.updateFormField(district = it) },
-                        label = { Text("Quận/Huyện") },
+                        label = { Text(stringResource(R.string.branch_label_district)) },
                         leadingIcon = { Icon(Icons.Default.Place, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
@@ -261,7 +263,7 @@ fun BranchManagementScreen(
                     OutlinedTextField(
                         value = formState.city,
                         onValueChange = { viewModel.updateFormField(city = it) },
-                        label = { Text("Thành phố") },
+                        label = { Text(stringResource(R.string.branch_label_city)) },
                         leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = PrimaryColor.copy(alpha = 0.7f)) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
@@ -272,7 +274,7 @@ fun BranchManagementScreen(
 
                 // Location Section with Mini Map
                 Text(
-                    "VỊ TRÍ TRÊN BẢN ĐỒ",
+                    stringResource(R.string.branch_info_location),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -381,7 +383,7 @@ fun BranchManagementScreen(
                         ) {
                             Icon(Icons.Outlined.LocationOn, contentDescription = null, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Chọn vị trí trên bản đồ", fontWeight = FontWeight.Bold, maxLines = 1)
+                            Text(stringResource(R.string.branch_map_pick), fontWeight = FontWeight.Bold, maxLines = 1)
                         }
                         
                         // GPS Button
@@ -400,7 +402,7 @@ fun BranchManagementScreen(
                                     color = SuccessGreen
                                 )
                             } else {
-                                Icon(Icons.Default.MyLocation, contentDescription = "Lấy vị trí GPS", modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.branch_gps_get), modifier = Modifier.size(20.dp))
                             }
                         }
                     }
@@ -421,7 +423,7 @@ fun BranchManagementScreen(
                     } else {
                         Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Lưu thông tin", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.branch_btn_save), fontWeight = FontWeight.Bold)
                     }
                 }
                 

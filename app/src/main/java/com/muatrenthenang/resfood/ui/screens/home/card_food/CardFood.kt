@@ -35,7 +35,8 @@ import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 @Composable
 fun CardFood(
     food: Food,
@@ -111,7 +112,7 @@ fun CardFood(
                 ) {
 
                     Text(
-                        text = "%,dđ".format(food.price),
+                        text = stringResource(R.string.price_format_vnd, food.price),
                         color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

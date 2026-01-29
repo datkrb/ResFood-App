@@ -36,6 +36,8 @@ import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.OrderListViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun UserOrderDetailScreen(
@@ -67,8 +69,8 @@ fun UserOrderDetailScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Xác nhận hủy đơn") },
-            text = { Text("Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.order_cancel_confirm_title)) },
+            text = { Text(stringResource(R.string.order_cancel_confirm_msg)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -76,12 +78,12 @@ fun UserOrderDetailScreen(
                         showCancelDialog = false
                     }
                 ) {
-                    Text("Đồng ý", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.common_confirm), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Hủy bỏ", color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -145,7 +147,7 @@ fun UserOrderDetailScreen(
                     ),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Hủy đơn hàng", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.order_btn_cancel), fontWeight = FontWeight.Bold)
                 }
             }
             
@@ -171,7 +173,7 @@ fun OrderDetailTopBar(onBack: () -> Unit) {
             )
         }
         Text(
-            text = "Chi tiết đơn hàng",
+            text = stringResource(R.string.order_detail_header),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -245,7 +247,12 @@ fun OrderStatusCard(order: Order) {
             
             // Progress Indicator (Mock)
             if (order.status == "DELIVERING" || order.status == "PROCESSING" || order.status == "PENDING") {
-                val steps = listOf("Chờ xác nhận", "Đang chế biến", "Đang giao", "Hoàn tất")
+                val steps = listOf(
+                    stringResource(R.string.status_display_pending),
+                    stringResource(R.string.status_display_processing),
+                    stringResource(R.string.status_display_delivering),
+                    stringResource(R.string.status_display_completed)
+                )
                 val currentStep = when(order.status) {
                     "PENDING" -> 0
                     "PROCESSING" -> 1
@@ -298,7 +305,7 @@ fun DeliveryInfoCard(order: Order) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Địa chỉ nhận hàng",
+                stringResource(R.string.order_address_label),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -322,7 +329,7 @@ fun DeliveryInfoCard(order: Order) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (order.address.label.isNotEmpty()) order.address.label else "Nhà riêng",
+                        text = if (order.address.label.isNotEmpty()) order.address.label else stringResource(R.string.address_label_home),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -478,8 +485,8 @@ fun PaymentDetailsCard(order: Order) {
             Text("Chi tiết thanh toán", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
             
-            PaymentRow("Tổng tiền món (${order.items.size} món)", order.subtotal)
-            PaymentRow("Phí giao hàng", order.deliveryFee)
+            PaymentRow(stringResource(R.string.order_items_total, order.items.size), order.subtotal)
+            PaymentRow(stringResource(R.string.order_shipping), order.deliveryFee)
             
             if (order.productDiscount > 0) {
                 Row(
@@ -488,7 +495,7 @@ fun PaymentDetailsCard(order: Order) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm giá món", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.checkout_discount_product), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
                      }
@@ -503,7 +510,7 @@ fun PaymentDetailsCard(order: Order) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm phí ship", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.checkout_discount_shipping), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(imageVector = Icons.Default.LocalShipping, contentDescription = null, tint = Color(0xFF0097A7), modifier = Modifier.size(14.dp))
                      }
@@ -518,10 +525,10 @@ fun PaymentDetailsCard(order: Order) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm giá", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.order_discount), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(color = PrimaryColor.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
-                            Text("VOUCHER", fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                            Text(stringResource(R.string.voucher_resfood), fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
                         }
                      }
                      Text("-${String.format("%,dđ", order.discount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = PrimaryColor)
@@ -535,7 +542,7 @@ fun PaymentDetailsCard(order: Order) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Thành tiền", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.order_total), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         String.format("%,dđ", order.total).replace(',', '.'),
@@ -543,7 +550,7 @@ fun PaymentDetailsCard(order: Order) {
                         fontWeight = FontWeight.ExtraBold,
                         color = PrimaryColor
                     )
-                    Text("Đã bao gồm VAT", fontSize = 10.sp, color = Color.Gray)
+                    Text(stringResource(R.string.order_vat_included), fontSize = 10.sp, color = Color.Gray)
                 }
             }
         }
@@ -615,11 +622,11 @@ fun PaymentMethodCard(order: Order) {
                 Spacer(modifier = Modifier.width(12.dp))
                 
                 Column {
-                    Text("Phương thức thanh toán", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.checkout_payment_method), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     val methodName = when(order.paymentMethod) {
-                        "ZALOPAY" -> "Ví ZaloPay"
-                        "MOMO" -> "Ví MoMo"
-                        else -> "Tiền mặt khi nhận hàng"
+                        "ZALOPAY" -> stringResource(R.string.checkout_method_zalopay)
+                        "MOMO" -> stringResource(R.string.checkout_method_momo)
+                        else -> stringResource(R.string.checkout_method_cod)
                     }
                     Text(methodName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -644,14 +651,14 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewCl
                         onClick = onReviewClick,
                         modifier = Modifier.weight(1f).height(48.dp),
                     ) {
-                        Text("Đánh giá")
+                        Text(stringResource(R.string.food_review))
                     }
                     Button(
                         onClick = { viewModel.reOrder(order.id) },
                         modifier = Modifier.weight(1f).height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
                     ) {
-                        Text("Mua lại lần nữa", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.order_btn_reorder), fontWeight = FontWeight.Bold)
                     }
                 }
                  Spacer(modifier = Modifier.height(12.dp))
@@ -666,7 +673,7 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewCl
                 ) {
                     Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Chat")
+                    Text(stringResource(R.string.action_chat))
                 }
                 
                 Button(
@@ -677,7 +684,7 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewCl
                 ) {
                     Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Gọi nhà hàng", color = Color.White)
+                    Text(stringResource(R.string.action_call), color = Color.White)
                 }
             }
         }
@@ -692,13 +699,13 @@ fun ReviewSelectionDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Đánh giá sản phẩm") },
+        title = { Text(stringResource(R.string.review_dialog_title)) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Chọn sản phẩm bạn muốn đánh giá:")
+                Text(stringResource(R.string.review_select_product))
                 order.items.forEach { item ->
                     Surface(
                         onClick = { onItemSelect(item.foodId) },
@@ -726,7 +733,7 @@ fun ReviewSelectionDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Đóng") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
         }
     )
 }

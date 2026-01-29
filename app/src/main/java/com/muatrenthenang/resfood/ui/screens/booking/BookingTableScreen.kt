@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,7 +68,7 @@ fun BookingTableScreen(
     LaunchedEffect(bookingState) {
         when (val state = bookingState) {
             is com.muatrenthenang.resfood.ui.viewmodel.BookingState.Success -> {
-                android.widget.Toast.makeText(context, "Đặt bàn thành công! Mã: ${state.reservationId}", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, context.getString(R.string.booking_success_msg, state.reservationId), android.widget.Toast.LENGTH_LONG).show()
                 viewModel.resetBookingState()
                 onNavigateBack()
             }
@@ -106,7 +108,7 @@ fun BookingTableScreen(
                     )
                 }
                 Text(
-                    "Đặt bàn",
+                    stringResource(R.string.booking_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
@@ -125,7 +127,7 @@ fun BookingTableScreen(
                 // 2. Restaurant Info (from Firestore)
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text(
-                        "Nhà hàng",
+                        stringResource(R.string.booking_restaurant_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -212,7 +214,7 @@ fun BookingTableScreen(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
-                        "Ngày & Giờ",
+                        stringResource(R.string.booking_date_time),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
@@ -268,7 +270,7 @@ fun BookingTableScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Giờ",
+                        stringResource(R.string.booking_hour),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
@@ -304,7 +306,7 @@ fun BookingTableScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Phút",
+                        stringResource(R.string.booking_minute),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
@@ -341,7 +343,7 @@ fun BookingTableScreen(
             // 4. Guest Counter
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    "Số lượng khách",
+                    stringResource(R.string.booking_guest_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -350,8 +352,8 @@ fun BookingTableScreen(
                 
                 // Adult
                 GuestCounterInfo(
-                    title = "Người lớn",
-                    subtitle = "Từ 12 tuổi trở lên",
+                    title = stringResource(R.string.booking_guest_adult),
+                    subtitle = stringResource(R.string.booking_guest_adult_desc),
                     count = guestCountAdult,
                     onDecrease = { viewModel.updateGuestAdult(-1) },
                     onIncrease = { viewModel.updateGuestAdult(1) }
@@ -361,8 +363,8 @@ fun BookingTableScreen(
                 
                 // Child
                 GuestCounterInfo(
-                    title = "Trẻ em",
-                    subtitle = "Dưới 12 tuổi",
+                    title = stringResource(R.string.booking_guest_child),
+                    subtitle = stringResource(R.string.booking_guest_child_desc),
                     count = guestCountChild,
                     onDecrease = { viewModel.updateGuestChild(-1) },
                     onIncrease = { viewModel.updateGuestChild(1) },
@@ -375,7 +377,7 @@ fun BookingTableScreen(
             // 5. Note Field
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    "Ghi chú",
+                    stringResource(R.string.booking_note),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -392,7 +394,7 @@ fun BookingTableScreen(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface
                     ),
-                    placeholder = { Text("Ví dụ: Cần ghế trẻ em, dị ứng hải sản...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
+                    placeholder = { Text(stringResource(R.string.booking_note_hint), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
                     minLines = 3
                 )
             }
@@ -415,7 +417,7 @@ fun BookingTableScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("THỜI GIAN", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.booking_bottom_time), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
                         Text(
                             "$formattedTime - ${selectedDate.format(DateTimeFormatter.ofPattern("dd/MM"))}", 
@@ -427,7 +429,7 @@ fun BookingTableScreen(
                     ContainerDivider()
                     
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("KHÁCH", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.booking_bottom_guest), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                         Text(
                             "$guestCountAdult Lớn${if(guestCountChild > 0) ", $guestCountChild Trẻ" else ""}", 
                             fontWeight = FontWeight.Bold,
@@ -447,7 +449,7 @@ fun BookingTableScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text(
-                            "XÁC NHẬN ĐẶT BÀN",
+                            stringResource(R.string.booking_btn_confirm),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )

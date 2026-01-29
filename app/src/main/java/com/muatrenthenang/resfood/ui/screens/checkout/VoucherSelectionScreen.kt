@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -49,7 +51,7 @@ fun VoucherSelectionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chọn ResFood Voucher", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text(stringResource(R.string.voucher_title), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -72,7 +74,7 @@ fun VoucherSelectionScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Áp dụng", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
+                Text(stringResource(R.string.voucher_apply), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -93,7 +95,7 @@ fun VoucherSelectionScreen(
                 OutlinedTextField(
                     value = inputCode,
                     onValueChange = { inputCode = it },
-                    placeholder = { Text("Nhập mã Voucher") },
+                    placeholder = { Text(stringResource(R.string.voucher_input_hint)) },
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp),
@@ -114,7 +116,7 @@ fun VoucherSelectionScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.height(50.dp)
                 ) {
-                    Text("Áp dụng")
+                    Text(stringResource(R.string.voucher_apply))
                 }
             }
 
@@ -137,14 +139,14 @@ fun VoucherSelectionScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Mã giảm giá", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
+                    text = { Text(stringResource(R.string.voucher_tab_discount), fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Mã vận chuyển", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
+                    text = { Text(stringResource(R.string.voucher_tab_shipping), fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
                     selectedContentColor = MaterialTheme.colorScheme.primary,
                     unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -161,7 +163,7 @@ fun VoucherSelectionScreen(
                 if (currentList.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillParentMaxSize().height(200.dp), contentAlignment = Alignment.Center) {
-                            Text("Chưa có mã giảm giá nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.voucher_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else {
@@ -249,7 +251,7 @@ fun VoucherSelectionCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (isShip) "FREESHIP" else "RESFOOD",
+                        text = if (isShip) stringResource(R.string.voucher_freeship) else stringResource(R.string.voucher_resfood),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = iconColor
@@ -273,7 +275,7 @@ fun VoucherSelectionCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 if (promotion.minOrderValue > 0) {
                     Text(
-                        text = "Đơn tối thiểu ${formatK(promotion.minOrderValue)}",
+                        text = stringResource(R.string.voucher_min_order, formatK(promotion.minOrderValue)),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -282,7 +284,7 @@ fun VoucherSelectionCard(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 Text(
-                    text = "HSD: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(promotion.endDate.toDate())}",
+                    text = stringResource(R.string.voucher_expiry, SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(promotion.endDate.toDate())),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

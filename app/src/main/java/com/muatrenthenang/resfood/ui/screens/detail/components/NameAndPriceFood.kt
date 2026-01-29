@@ -18,6 +18,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.data.model.Food
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun NameAndPriceFood(food: Food?){
@@ -27,7 +29,7 @@ fun NameAndPriceFood(food: Food?){
         verticalArrangement = Arrangement.Center 
     ) {
         Text(
-            text = food?.name ?: "Đang tải...",
+            text = food?.name ?: stringResource(R.string.food_detail_loading),
             color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 25.sp

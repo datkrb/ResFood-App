@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.data.model.Notification
 import com.muatrenthenang.resfood.ui.viewmodel.NotificationViewModel
 import java.text.SimpleDateFormat // Consider using a better date formatter if available
@@ -39,15 +41,15 @@ fun NotificationListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thông báo", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.noti_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     TextButton(onClick = { viewModel.markAllAsRead() }) {
-                        Text("Đã đọc tất cả")
+                        Text(stringResource(R.string.noti_mark_all_read))
                     }
                 }
             )
@@ -68,7 +70,7 @@ fun NotificationListScreen(
                         tint = MaterialTheme.colorScheme.surfaceVariant
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Chưa có thông báo nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.noti_empty_list), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {

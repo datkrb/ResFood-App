@@ -54,6 +54,8 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodStatus
 import com.muatrenthenang.resfood.ui.viewmodel.admin.FoodManagementUiState
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.data.model.Food
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -100,7 +102,7 @@ fun FoodManagementScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Quản lý món ăn",
+                        stringResource(R.string.food_mgmt_title),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -164,7 +166,7 @@ fun FoodManagementScreen(
             OutlinedTextField(
                 value = "",
                 onValueChange = {},
-                placeholder = { Text("Tìm kiếm món ăn...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                placeholder = { Text(stringResource(R.string.table_search_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) }, // Reusing generic search hint or create new
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -194,10 +196,10 @@ fun FoodManagementScreen(
                          onExpandedChange = { expanded = !expanded }
                      ) {
                          OutlinedTextField(
-                             value = if(state.selectedCategory == "All") "Tất cả" else state.selectedCategory,
+                             value = if(state.selectedCategory == "All") stringResource(R.string.filter_all) else state.selectedCategory,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Danh mục", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                             label = { Text(stringResource(R.string.food_label_category), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -217,7 +219,7 @@ fun FoodManagementScreen(
                          ) {
                              state.categories.forEach { category ->
                                  DropdownMenuItem(
-                                     text = { Text(if(category == "All") "Tất cả" else category, color = MaterialTheme.colorScheme.onSurface) },
+                                     text = { Text(if(category == "All") stringResource(R.string.filter_all) else category, color = MaterialTheme.colorScheme.onSurface) },
                                      onClick = {
                                          viewModel.setCategoryFilter(category)
                                          expanded = false
@@ -240,7 +242,7 @@ fun FoodManagementScreen(
                              value = state.selectedStatus.displayName,
                              onValueChange = {},
                              readOnly = true,
-                             label = { Text("Trạng thái", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                             label = { Text(stringResource(R.string.admin_analytics_order_status), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                              modifier = Modifier.menuAnchor().fillMaxWidth(),
                              colors = OutlinedTextFieldDefaults.colors(
@@ -279,7 +281,7 @@ fun FoodManagementScreen(
             ) {
                 item {
                     Text(
-                        "DANH SÁCH MÓN ĂN",
+                        stringResource(R.string.food_list_title),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
@@ -323,8 +325,8 @@ fun FoodManagementScreen(
                 showDeleteDialog = false
                 foodToDelete = null
             },
-            title = { Text(text = "Xác nhận xóa") },
-            text = { Text(text = "Bạn có chắc chắn muốn xóa món '${foodToDelete?.name}' không?") },
+            title = { Text(text = stringResource(R.string.food_confirm_delete)) },
+            text = { Text(text = stringResource(R.string.food_delete_msg, foodToDelete?.name ?: "")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -335,7 +337,7 @@ fun FoodManagementScreen(
                         foodToDelete = null
                     }
                 ) {
-                    Text("Xóa", color = Color.Red)
+                    Text(stringResource(R.string.action_delete), color = Color.Red)
                 }
             },
             dismissButton = {
@@ -345,7 +347,7 @@ fun FoodManagementScreen(
                         foodToDelete = null
                     }
                 ) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -409,7 +411,7 @@ fun FoodItemCard(
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = if (food.isAvailable) "Còn hàng" else "Hết hàng",
+                    text = if (food.isAvailable) stringResource(R.string.food_stock_in) else stringResource(R.string.food_stock_out),
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold

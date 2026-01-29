@@ -36,6 +36,8 @@ import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.OrderListViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun OrderListScreen(
@@ -47,7 +49,15 @@ fun OrderListScreen(
 ) {
     // Tabs matching ReservationListScreen style
     val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "REVIEW", "COMPLETED", "CANCELLED", "ALL")
-    val tabTitles = listOf("Chờ xác nhận", "Đang chế biến", "Đang giao", "Đánh giá", "Hoàn thành", "Đã hủy", "Tất cả")
+    val tabTitles = listOf(
+        stringResource(R.string.status_display_pending),
+        stringResource(R.string.status_display_processing),
+        stringResource(R.string.status_display_delivering),
+        stringResource(R.string.food_review),
+        stringResource(R.string.status_display_completed),
+        stringResource(R.string.status_display_cancelled),
+        stringResource(R.string.common_all)
+    )
     
     // Determine initial index based on passed status
     val initialIndex = when(status.uppercase()) {
@@ -77,7 +87,7 @@ fun OrderListScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-                OrderListTopBar(title = "Đơn hàng của tôi", onBack = onNavigateBack)
+                OrderListTopBar(title = stringResource(R.string.order_history_title), onBack = onNavigateBack)
                 
                 // Tabs with Badge
                 ScrollableTabRow(
@@ -174,7 +184,7 @@ fun OrderListScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Bạn chưa có đơn hàng nào",
+                        text = stringResource(R.string.order_list_empty),
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         fontWeight = FontWeight.Medium
@@ -280,7 +290,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                 }
 
                 // Price
-                val formattedPrice = String.format("%,dđ", order.total).replace(',', '.')
+                val formattedPrice = stringResource(R.string.price_format_vnd, order.total)
                 Text(
                     text = formattedPrice,
                     fontWeight = FontWeight.Bold,
@@ -334,7 +344,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "x${item.quantity}       ${String.format("%,dđ", item.price).replace(',', '.')}",
+                                text = "x${item.quantity}       ${stringResource(R.string.price_format_vnd, item.price)}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -350,7 +360,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                         contentPadding = PaddingValues(vertical = 0.dp)
                     ) {
                         Text(
-                            text = if (isExpanded) "Thu gọn" else "Xem thêm ${order.items.size - 1} món khác",
+                            text = if (isExpanded) stringResource(R.string.order_collapse) else stringResource(R.string.order_expand, order.items.size - 1),
                             fontSize = 13.sp,
                             color = PrimaryColor
                         )
@@ -367,7 +377,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Ngày đặt: " + dateFormat.format(order.createdAt.toDate()),
+                        text = stringResource(R.string.order_date_label) + dateFormat.format(order.createdAt.toDate()),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )
@@ -382,7 +392,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                             ),
                             shape = RoundedCornerShape(50) // Pill shape
                         ) {
-                            Text("Đánh giá", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.food_review), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -394,11 +404,11 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
 @Composable
 fun getStatusDisplay(status: String): Pair<String, Color> {
     return when(status) {
-        "PENDING" -> "Chờ xác nhận" to PrimaryColor
-        "PROCESSING" -> "Đang chế biến" to Color(0xFFF97316) // Orange
-        "DELIVERING" -> "Đang giao" to Color(0xFF3B82F6) // Blue
-        "COMPLETED" -> "Đã hoàn thành" to SuccessGreen
-        "CANCELLED" -> "Đã hủy" to Color.Red
+        "PENDING" -> stringResource(R.string.status_display_pending) to PrimaryColor
+        "PROCESSING" -> stringResource(R.string.status_display_processing) to Color(0xFFF97316) // Orange
+        "DELIVERING" -> stringResource(R.string.status_display_delivering) to Color(0xFF3B82F6) // Blue
+        "COMPLETED" -> stringResource(R.string.status_display_completed) to SuccessGreen
+        "CANCELLED" -> stringResource(R.string.status_display_cancelled) to Color.Red
         else -> status to Color.Gray
     }
 }
