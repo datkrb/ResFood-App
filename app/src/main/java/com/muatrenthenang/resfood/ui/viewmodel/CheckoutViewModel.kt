@@ -51,7 +51,7 @@ class CheckoutViewModel(
     ))
     val address = _address.asStateFlow()
 
-    private val _paymentMethod = MutableStateFlow(PaymentMethod.COD)
+    private val _paymentMethod = MutableStateFlow(PaymentMethod.SEPAY)
     val paymentMethod = _paymentMethod.asStateFlow()
 
     // --- VOUCHER STATES ---

@@ -396,7 +396,7 @@
     <string name="checkout_method_cod">Cash on Delivery</string>
     <string name="checkout_method_zalopay">ZaloPay Wallet</string>
     <string name="checkout_method_momo">MoMo Wallet</string>
-    <string name="checkout_security_note">100%% Safe &amp; Secure Payment</string>
+    <string name="checkout_security_note">100% Safe &amp; Secure Payment</string>
     <string name="checkout_item_note">No onions, extra fat water</string>
 
     <!-- Voucher -->

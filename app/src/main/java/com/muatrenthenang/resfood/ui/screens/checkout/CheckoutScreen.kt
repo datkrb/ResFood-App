@@ -198,6 +198,7 @@ fun CheckoutScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 IconButton(
@@ -229,7 +230,7 @@ fun CheckoutScreen(
                 shadowElevation = 6.dp,
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.navigationBarsPadding().padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text(text = stringResource(R.string.checkout_total_label), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
