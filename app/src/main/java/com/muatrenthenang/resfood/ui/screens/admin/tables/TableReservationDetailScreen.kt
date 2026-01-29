@@ -57,22 +57,57 @@ fun TableReservationDetailScreen(
     
     // State for Reject Dialog
     var showRejectDialog by remember { mutableStateOf(false) }
+    var rejectionReason by remember { mutableStateOf("") }
+    var rejectionError by remember { mutableStateOf<String?>(null) }
 
     if (showRejectDialog) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
-            title = { Text(stringResource(R.string.table_reject_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.table_confirm_reject_msg)) },
+            onDismissRequest = { 
+                showRejectDialog = false 
+                rejectionReason = ""
+                rejectionError = null
+            },
+            title = { Text("Từ chối đặt bàn", fontWeight = FontWeight.Bold) },
+            text = { 
+                Column {
+                    Text("Vui lòng nhập lý do từ chối (tối thiểu 10 ký tự):")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = rejectionReason,
+                        onValueChange = { 
+                            rejectionReason = it
+                            if (it.length >= 10) rejectionError = null
+                        },
+                        label = { Text("Lý do") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = rejectionError != null
+                    )
+                    if (rejectionError != null) {
+                        Text(
+                            text = rejectionError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
+                }
+            },
             confirmButton = {
                 Button(
                     onClick = {
-                        if (reservation != null) {
-                            viewModel.rejectReservation(reservation.id) {
-                                Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
-                                onNavigateBack()
+                        if (rejectionReason.length < 10) {
+                            rejectionError = "Lý do phải có ít nhất 10 ký tự"
+                        } else {
+                            if (reservation != null) {
+                                viewModel.rejectReservation(reservation.id, rejectionReason) {
+                                    Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
+                                    onNavigateBack()
+                                }
                             }
+                            showRejectDialog = false
+                            rejectionReason = ""
+                            rejectionError = null
                         }
-                        showRejectDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
@@ -80,7 +115,11 @@ fun TableReservationDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { 
+                    showRejectDialog = false
+                    rejectionReason = ""
+                    rejectionError = null
+                }) {
                     Text(stringResource(R.string.table_reject_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
@@ -146,36 +185,10 @@ fun TableReservationDetailScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header Status
+                // Header Status is redundant if we use StatusTimelineCard, but let's keep it simple or replace it.
+                // Replaced custom header with StatusTimelineCard for better detail including rejection reason
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(), 
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(stringResource(R.string.table_reservation_label), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                            Text("#${reservation.id.takeLast(6).uppercase()}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                        }
-                        
-                        val (statusColor, statusText) = when(reservation.status) {
-                            "PENDING" -> Color(0xFFF59E0B) to stringResource(R.string.table_status_pending_long)
-                            "CONFIRMED" -> Color(0xFF3B82F6) to stringResource(R.string.table_status_confirmed_long)
-                            "COMPLETED" -> SuccessGreen to stringResource(R.string.table_status_completed)
-                            "CANCELLED" -> Color.Gray to stringResource(R.string.table_status_cancelled)
-                            "REJECTED" -> LightRed to stringResource(R.string.table_status_rejected)
-                            else -> Color.Gray to reservation.status
-                        }
-                        
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(statusColor.copy(alpha = 0.15f))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(statusText, color = statusColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
+                    StatusTimelineCard(reservation = reservation)
                 }
 
                 // Customer Information Card
