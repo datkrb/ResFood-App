@@ -67,6 +67,18 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // Navigation state for deep links/notifications
+    private val _pendingNavigationRoute = MutableStateFlow<String?>(null)
+    val pendingNavigationRoute: StateFlow<String?> = _pendingNavigationRoute.asStateFlow()
+
+    fun setPendingNavigation(route: String?) {
+        _pendingNavigationRoute.value = route
+    }
+
+    fun clearPendingNavigation() {
+        _pendingNavigationRoute.value = null
+    }
+
     init {
         fetchUserProfile()
         fetchUserProfile()

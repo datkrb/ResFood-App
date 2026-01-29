@@ -97,12 +97,32 @@ class MainActivity : AppCompatActivity() {
 
             // Khởi tạo ViewModel
             val userViewModel: UserViewModel = viewModel()
+            
+            // Handle Notification Intent
+            LaunchedEffect(Unit) {
+               val navigateTo = intent.getStringExtra("navigate_to")
+               if (navigateTo != null) {
+                   userViewModel.setPendingNavigation(navigateTo)
+                   intent.removeExtra("navigate_to") // Consume extra
+               }
+            }
+
             // Lấy trạng thái theme từ ViewModel
             val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
             // Áp dụng Theme
             ResFoodTheme(darkTheme = isDarkTheme) {
                 // Tạo bộ điều hướng
                 val navController = rememberNavController()
+                
+                // Observe pending navigation
+                val pendingRoute by userViewModel.pendingNavigationRoute.collectAsState()
+                LaunchedEffect(pendingRoute) {
+                    pendingRoute?.let { route ->
+                        // Ensure we are logged in or safe to navigate (optional check)
+                        navController.navigate(route)
+                        userViewModel.clearPendingNavigation()
+                    }
+                }
 
                 // AppLayout bao bọc toàn bộ NavHost
                 AppLayout(navController = navController) { innerPadding ->
@@ -882,6 +902,8 @@ class MainActivity : AppCompatActivity() {
                                         } else {
                                             navController.navigate("reservation_detail/${notification.referenceId}")
                                         }
+                                    } else if (notification.type == "promo" || notification.type == "promotion") {
+                                        navController.navigate("vouchers")
                                     }
                                 }
                             )

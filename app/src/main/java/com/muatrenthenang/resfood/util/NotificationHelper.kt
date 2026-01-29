@@ -177,6 +177,37 @@ object NotificationHelper {
             e.printStackTrace()
         }
     }
+
+    fun showPromotionNotification(context: Context, title: String, body: String) {
+        if (!hasPermission(context)) return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("navigate_to", "vouchers")
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = NotificationCompat.Builder(context, CUSTOMER_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVibrate(longArrayOf(0, 500))
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        try {
+            // Using a unique ID based on time to allow multiple promo notifications
+            val notificationId = System.currentTimeMillis().toInt()
+            NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
     
     private fun hasPermission(context: Context): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

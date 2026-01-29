@@ -86,9 +86,7 @@ fun NotificationListScreen(
                         notification = notification,
                         onClick = {
                             viewModel.markAsRead(notification.id)
-                            if (notification.referenceId.isNotEmpty()) {
-                                onNavigateToDetail(notification)
-                            }
+                            onNavigateToDetail(notification)
                         }
                     )
                 }

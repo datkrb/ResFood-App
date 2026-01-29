@@ -66,6 +66,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         } else if (type == "new_order" && orderId != null) {
              val total = data["total"]?.toIntOrNull() ?: 0
              NotificationHelper.showNewOrderNotification(this, orderId, total)
+        } else if (type == "promo" || type == "promotion") {
+            val title = data["title"] ?: "Khuyến mãi mới!"
+            val body = data["body"] ?: "Xem ngay các ưu đãi hấp dẫn dành cho bạn."
+            NotificationHelper.showPromotionNotification(this, title, body)
         }
     }
 }
