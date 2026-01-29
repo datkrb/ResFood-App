@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
@@ -594,28 +595,6 @@ fun PaymentMethodCard(order: Order) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Determine icon based on payment method
                 when (order.paymentMethod) {
-                    "ZALOPAY" -> {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF0068FF),
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("Zalo\nPay", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                            }
-                        }
-                    }
-                    "MOMO" -> {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFFA50064),
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("Mo\nMo", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                            }
-                        }
-                    }
                     "SEPAY" -> {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
@@ -624,8 +603,12 @@ fun PaymentMethodCard(order: Order) {
                             shadowElevation = 1.dp
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                // Using helper text until R.drawable is confirmed available and compiled
-                                Text("SE\nPay", fontSize = 10.sp, color = Color(0xFF0068FF), fontWeight = FontWeight.Bold, lineHeight = 10.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                Image(
+                                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.sepay),
+                                    contentDescription = "SEPay",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                         }
                     }
