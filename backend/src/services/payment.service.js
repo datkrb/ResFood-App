@@ -35,21 +35,23 @@ const createSepayPayment = async (orderId) => {
 const handleSepayWebhook = async (webhookData) => {
     try {
         const { content, transferAmount, id } = webhookData;
-        console.log(">> Webhook Data:", content, transferAmount);
+        console.log(">> Webhook Data:", content);
 
         let extractedOrderId = null;
-        const match = content.match(/#([a-zA-Z0-9-_]+)/);
-
-        if (match) {
-            extractedOrderId = match[1];
-        } else {
-            // Fallback: Thử lấy chuỗi cuối cùng trong nội dung (vì ngân hàng có thể bỏ qua ký tự đặc biệt #)
-            // Ví dụ: "SEVQR Thanh toan don hang xW53JgFMNB5fRlkE1vEu" -> "xW53JgFMNB5fRlkE1vEu"
-            const parts = content.trim().split(/\s+/);
-            if (parts.length > 0) {
-                extractedOrderId = parts[parts.length - 1];
+        const sevqrIndex = content.indexOf('SEVQR');
+        if (sevqrIndex !== -1) {
+            const afterSevqr = content.substring(sevqrIndex + 'SEVQR'.length).trim();
+            const parts = afterSevqr.split(/\s+/);
+            const hangIndex = parts.findIndex(p => p.toLowerCase() === 'hang'); // tìm cái từ "hang" trong ["thanh", "toan", "don", "hang", "order_id"]
+            if (hangIndex !== -1 && parts.length > hangIndex + 1) {
+                extractedOrderId = parts[hangIndex + 1];
+                if (extractedOrderId.endsWith('.CT')) {
+                    extractedOrderId = extractedOrderId.slice(0, -3);
+                }
             }
         }
+        console.log(">> Extracted Order ID:", extractedOrderId);
+
 
         if (!extractedOrderId) {
             // Trường hợp không lấy được ID
