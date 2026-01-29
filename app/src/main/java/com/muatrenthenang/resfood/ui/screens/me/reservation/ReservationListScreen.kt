@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.TableReservation
+import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.ReservationManagementViewModel
@@ -212,6 +213,7 @@ fun ReservationItem(
         "CONFIRMED" -> Color(0xFF3B82F6) // Blue
         "COMPLETED" -> SuccessGreen
         "CANCELLED" -> Color.Gray
+        "REJECTED" -> LightRed
         else -> Color.Gray
     }
     
@@ -220,6 +222,7 @@ fun ReservationItem(
         "CONFIRMED" -> stringResource(R.string.me_status_confirmed)
         "COMPLETED" -> stringResource(R.string.me_status_completed)
         "CANCELLED" -> stringResource(R.string.order_status_cancelled)
+        "REJECTED" -> stringResource(R.string.table_status_rejected)
         else -> reservation.status
     }
 

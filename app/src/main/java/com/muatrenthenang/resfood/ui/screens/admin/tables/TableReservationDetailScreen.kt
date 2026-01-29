@@ -394,6 +394,22 @@ fun StatusTimelineCard(reservation: com.muatrenthenang.resfood.data.model.TableR
                      Text(statusText, color = statusColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
             }
+
+            if (reservation.status == "REJECTED" && !reservation.rejectionReason.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Lý do từ chối:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = LightRed
+                )
+                Text(
+                    text = reservation.rejectionReason!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 }

@@ -105,22 +105,39 @@ fun TableManagementScreen(
     // State for Reject Dialog
     var showRejectDialog by remember { mutableStateOf(false) }
     var reservationToReject by remember { mutableStateOf<TableReservation?>(null) }
+    var rejectReason by remember { mutableStateOf("") }
 
     if (showRejectDialog && reservationToReject != null) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
+            onDismissRequest = { 
+                showRejectDialog = false 
+                rejectReason = ""
+            },
             title = { Text(stringResource(R.string.table_reject_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.table_reject_confirm_msg, reservationToReject?.id?.takeLast(5)?.uppercase() ?: "")) },
+            text = { 
+                Column {
+                    Text(stringResource(R.string.table_reject_confirm_msg, reservationToReject?.id?.takeLast(5)?.uppercase() ?: ""))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = rejectReason,
+                        onValueChange = { rejectReason = it },
+                        label = { Text("Lý do từ chối") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
+            },
             confirmButton = {
                 Button(
                     onClick = {
                         reservationToReject?.let { reservation ->
-                            viewModel.rejectReservation(reservation.id) {
+                            viewModel.rejectReservation(reservation.id, rejectReason) {
                                 Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
                             }
                         }
                         showRejectDialog = false
                         reservationToReject = null
+                        rejectReason = ""
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
@@ -128,7 +145,10 @@ fun TableManagementScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { 
+                    showRejectDialog = false 
+                    rejectReason = ""
+                }) {
                     Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

@@ -13,6 +13,8 @@ data class TableReservation(
     @get:PropertyName("guest_count_child") @set:PropertyName("guest_count_child") var guestCountChild: Int = 0,
     var note: String = "",
     var status: String = "PENDING", // PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED
+    @get:PropertyName("rejection_reason") @set:PropertyName("rejection_reason") var rejectionReason: String? = null,
+    @get:PropertyName("rejected_at") @set:PropertyName("rejected_at") var rejectedAt: Timestamp? = null,
     @get:PropertyName("created_at") @set:PropertyName("created_at") var createdAt: Timestamp = Timestamp.now()
 ) {
     fun getTotalGuests(): Int {

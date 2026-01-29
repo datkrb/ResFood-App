@@ -122,7 +122,6 @@ class AdminViewModel(
         // Load UI data immediately
         viewModelScope.launch {
             loadOrders()
-            // Initialize analytics with TODAY filter
             setAnalyticsFilter(AnalyticsFilterType.MONTH)
             loadData()
         }
@@ -555,9 +554,13 @@ class AdminViewModel(
         }
     }
 
-    fun rejectReservation(reservationId: String, onSuccess: () -> Unit = {}) {
+    fun rejectReservation(reservationId: String, reason: String? = null, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            reservationRepository.updateReservationStatus(reservationId, "REJECTED")
+            if (reason != null) {
+                reservationRepository.rejectReservation(reservationId, reason)
+            } else {
+                reservationRepository.updateReservationStatus(reservationId, "REJECTED")
+            }
             loadReservations()
             onSuccess()
         }
