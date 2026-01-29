@@ -81,12 +81,23 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         fetchUserProfile()
-        fetchUserProfile()
         updateUtilityMenu(voucherCount = 0)
-        // Initialize language state
-        val currentLocales = AppCompatDelegate.getApplicationLocales()
-        val tag = if (!currentLocales.isEmpty) currentLocales.get(0)?.language ?: "vi" else "vi"
-        _currentLanguage.value = tag
+        
+        // Initialize language state from saved settings
+        val savedLanguage = settingsRepository.getLanguage()
+        if (!savedLanguage.isNullOrEmpty()) {
+             val appLocale = LocaleListCompat.forLanguageTags(savedLanguage)
+             // Only apply if different to avoid loops or unnecessary calls? 
+             // Actually setApplicationLocales is safe to call
+             if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != savedLanguage) {
+                 AppCompatDelegate.setApplicationLocales(appLocale)
+             }
+             _currentLanguage.value = savedLanguage
+        } else {
+            val currentLocales = AppCompatDelegate.getApplicationLocales()
+            val tag = if (!currentLocales.isEmpty) currentLocales.get(0)?.language ?: "vi" else "vi"
+            _currentLanguage.value = tag
+        }
     }
 
     fun fetchUserProfile() {
@@ -241,9 +252,10 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setLanguage(code: String) {
-        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(code)
+        val appLocale = LocaleListCompat.forLanguageTags(code)
         AppCompatDelegate.setApplicationLocales(appLocale)
         _currentLanguage.value = code
+        settingsRepository.setLanguage(code)
     }
 
     fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit) {
