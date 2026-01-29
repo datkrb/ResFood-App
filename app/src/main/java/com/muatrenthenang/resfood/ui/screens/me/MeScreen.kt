@@ -65,7 +65,8 @@ fun MeScreen(
     onLogout: () -> Unit = {},
     paddingValuesFromParent: PaddingValues = PaddingValues(),
     vm: UserViewModel = viewModel(),
-    reservationVm: com.muatrenthenang.resfood.ui.viewmodel.ReservationManagementViewModel = viewModel()
+    reservationVm: com.muatrenthenang.resfood.ui.viewmodel.ReservationManagementViewModel = viewModel(),
+    notificationViewModel: com.muatrenthenang.resfood.ui.viewmodel.NotificationViewModel = viewModel()
 ) {
     val userState by vm.userState.collectAsState()
     val orderCounts by vm.orderCounts.collectAsState()
@@ -74,6 +75,7 @@ fun MeScreen(
     val isLoading by vm.isLoading.collectAsState()
     
     val reservationState by reservationVm.uiState.collectAsState()
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
 
     LaunchedEffect(Unit) {
         reservationVm.loadReservations()
@@ -85,7 +87,8 @@ fun MeScreen(
             topBar = {
                 MeTopBar(
                     onSettingsClick = onNavigateToSettings,
-                    onNotificationsClick = onNavigateToNotifications
+                    onNotificationsClick = onNavigateToNotifications,
+                    unreadCount = unreadCount
                 )
             }
         ) { paddingValues ->
@@ -148,7 +151,11 @@ fun MeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                LogoutSection(onLogout = onLogout)
+                LogoutSection(onLogout = {
+                    vm.logout {
+                        onLogout()
+                    }
+                })
 
 
                 Spacer(modifier = Modifier.height(100.dp))
@@ -175,11 +182,13 @@ private fun MeTopBarHidden( // Dummy function to avoid compilation error if I de
 @Composable
 private fun MeTopBar(
     onSettingsClick: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onNotificationsClick: () -> Unit,
+    unreadCount: Int
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -206,11 +215,11 @@ private fun MeTopBar(
                 contentDescription = stringResource(R.string.noti_title)
             )
             // Notification badge
-            BadgeDot(
+            BadgeCount(
+                count = unreadCount,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = (-8).dp, y = 8.dp),
-                color = PrimaryColor
+                    .offset(x = 4.dp, y = (-4).dp)
             )
         }
     }

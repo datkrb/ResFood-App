@@ -47,7 +47,7 @@ fun DateRangeSelector(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(com.muatrenthenang.resfood.ui.theme.SurfaceCard, RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha=0.9f), RoundedCornerShape(8.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -117,7 +117,7 @@ fun FilterTab(text: String, isSelected: Boolean, modifier: Modifier = Modifier, 
     ) {
         Text(
             text = text,
-            color = if (isSelected) Color.White else Color.Gray,
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,

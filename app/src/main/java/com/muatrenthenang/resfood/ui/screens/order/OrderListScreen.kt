@@ -34,6 +34,7 @@ import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.OrderListViewModel
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.ui.res.stringResource
@@ -278,7 +279,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                 }
 
                 // Price
-                val formattedPrice = stringResource(R.string.price_format_vnd, order.total)
+                val formattedPrice = stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(order.total))
                 Text(
                     text = formattedPrice,
                     fontWeight = FontWeight.Bold,
@@ -332,7 +333,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "x${item.quantity}       ${stringResource(R.string.price_format_vnd, item.price)}",
+                                text = "x${item.quantity}       ${stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(item.price))}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

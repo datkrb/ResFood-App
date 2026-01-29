@@ -68,7 +68,10 @@ fun ReservationListScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+            Column(modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+            ) {
                 // Custom Top Bar with Back Button
                 Row(
                     modifier = Modifier

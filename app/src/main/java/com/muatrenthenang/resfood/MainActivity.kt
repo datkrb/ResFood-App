@@ -379,7 +379,7 @@ class MainActivity : AppCompatActivity() {
                         composable("me") {
                             MeScreen(
                                 onNavigateToSettings = { navController.navigate("settings") },
-                                onNavigateToNotifications = { /* TODO: Notification Screen */ },
+                                onNavigateToNotifications = { navController.navigate("notification_list") },
                                 onNavigateToEditProfile = { navController.navigate("profile_details") },
                                 onNavigateToOrders = { status ->
                                     navController.navigate("orders/$status")
@@ -703,10 +703,18 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         // New Admin Screens
-                        composable("admin_orders") {
+                        composable(
+                            route = "admin_orders?userId={userId}",
+                            arguments = listOf(navArgument("userId") { 
+                                type = NavType.StringType 
+                                nullable = true
+                            })
+                        ) { backStackEntry ->
+                            val userId = backStackEntry.arguments?.getString("userId")
                             val adminViewModel: AdminViewModel = viewModel()
                             OrderManagementScreen(
                                 viewModel = adminViewModel,
+                                userId = userId,
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToDetail = { orderId -> navController.navigate("admin_order_detail/$orderId") }
                             )
@@ -725,7 +733,8 @@ class MainActivity : AppCompatActivity() {
                             CustomerManagementScreen(
                                 viewModel = adminViewModel,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") }
+                                onNavigateToChat = { userId -> navController.navigate("chat_detail/$userId") },
+                                onNavigateToOrders = { userId -> navController.navigate("admin_orders?userId=$userId") }
                             )
                         }
 

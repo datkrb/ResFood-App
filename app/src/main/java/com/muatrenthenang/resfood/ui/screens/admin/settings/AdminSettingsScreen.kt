@@ -250,7 +250,7 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Cập nhật thông tin")
+                Text(stringResource(R.string.profile_edit_title))
             }
         },
         text = {
@@ -274,7 +274,7 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Họ tên") },
+                    label = { Text(stringResource(R.string.auth_full_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -288,7 +288,7 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.auth_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = false,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -302,7 +302,7 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Số điện thoại") },
+                    label = { Text(stringResource(R.string.branch_label_phone)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onSurface,
@@ -316,12 +316,12 @@ fun ProfileEditDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                Text("Lưu", color = MaterialTheme.colorScheme.onPrimary)
+                Text(stringResource(R.string.common_save), color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -343,7 +343,7 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Đổi mật khẩu")
+                Text(stringResource(R.string.settings_change_password))
             }
         },
         text = {
@@ -351,7 +351,7 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = currentPassword,
                     onValueChange = { currentPassword = it },
-                    label = { Text("Mật khẩu hiện tại") },
+                    label = { Text(stringResource(R.string.profile_current_password)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -366,7 +366,7 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("Mật khẩu mới") },
+                    label = { Text(stringResource(R.string.profile_new_password)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -381,7 +381,7 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Xác nhận mật khẩu mới") },
+                    label = { Text(stringResource(R.string.profile_confirm_new_password)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = if (showPassword) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -400,12 +400,12 @@ fun ChangePasswordDialog(onDismiss: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 enabled = currentPassword.isNotEmpty() && newPassword.isNotEmpty() && newPassword == confirmPassword
             ) {
-                Text("Đổi mật khẩu", color = MaterialTheme.colorScheme.onPrimary)
+                Text(stringResource(R.string.settings_change_password), color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
