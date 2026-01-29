@@ -91,7 +91,9 @@ class AdminViewModel(
     private val orderRepository: OrderRepository = OrderRepository(),
     private val userRepository: UserRepository = UserRepository(),
     private val promotionRepository: PromotionRepository = PromotionRepository(),
-    private val tableRepository: TableRepository = TableRepository()
+    private val tableRepository: TableRepository = TableRepository(),
+    private val reservationRepository: ReservationRepository = ReservationRepository(),
+    private val notificationRepository: NotificationRepository = NotificationRepository()
 ) : ViewModel() {
 
     private val _dashboardUiState = MutableStateFlow(DashboardUiState())
@@ -114,6 +116,9 @@ class AdminViewModel(
     
     private val _tables = MutableStateFlow<List<Table>>(emptyList())
     val tables: StateFlow<List<Table>> = _tables.asStateFlow()
+    
+    // Using existing _reservations defined below
+    // private val _reservationsList = MutableStateFlow<List<TableReservation>>(emptyList())
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -142,12 +147,14 @@ class AdminViewModel(
         val jobCustomers = viewModelScope.async { loadCustomers() }
         val jobPromotions = viewModelScope.async { loadPromotions() }
         val jobTables = viewModelScope.async { loadTables() }
+        val jobReservations = viewModelScope.async { loadReservations() }
         
         // Wait for all to complete
         jobFoods.await()
         jobCustomers.await()
         jobPromotions.await()
         jobTables.await()
+        jobReservations.await()
         
         _isLoading.value = false
     }
@@ -228,6 +235,16 @@ class AdminViewModel(
             _tables.value = emptyList()
         }
     }
+    
+    // Using default loadReservations defined below but ensuring it updates stats
+    /*private suspend fun loadReservations() {
+        reservationRepository.getAllReservations().onSuccess {
+            _reservationsList.value = it
+            updateDashboardStats()
+        }.onFailure {
+            _reservationsList.value = emptyList()
+        }
+    }*/
 
     fun setAnalyticsFilter(type: AnalyticsFilterType, start: Long? = null, end: Long? = null) {
         val now = System.currentTimeMillis()
@@ -361,6 +378,7 @@ class AdminViewModel(
         val pendingOrders = filteredOrders.count { it.status == "PENDING" }
         val processingOrders = filteredOrders.count { it.status == "PROCESSING" }
         val outOfStockItems = foodList.count { !it.isAvailable }
+        val reservations = _reservations.value.count { it.status == "PENDING" }
         
         // Simple mock revenue growth
         val previousSemRevenue = 1000.0 
@@ -374,6 +392,7 @@ class AdminViewModel(
             pendingOrders = pendingOrders,
             processingOrders = processingOrders,
             outOfStockItems = outOfStockItems,
+            reservations = reservations,
             recentActivities = filteredOrders.sortedByDescending { it.createdAt }.take(5).map { order ->
                 ActivityItem(
                     title = "Order #${order.id.takeLast(5)}",
@@ -526,14 +545,16 @@ class AdminViewModel(
     // Reservations
     private val _reservations = MutableStateFlow<List<TableReservation>>(emptyList())
     val reservations: StateFlow<List<TableReservation>> = _reservations.asStateFlow()
-    private val reservationRepository = ReservationRepository()
-    private val notificationRepository = NotificationRepository()
+    // Repositories are already injected in constructor
+    // private val reservationRepository = ReservationRepository()
+    // private val notificationRepository = NotificationRepository()
 
     fun loadReservations() {
         viewModelScope.launch {
             // Load all reservations for admin
             reservationRepository.getAllReservations().onSuccess { list ->
                 _reservations.value = list
+                updateDashboardStats() // Update stats when reservations loaded
             }
         }
     }
