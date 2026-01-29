@@ -434,7 +434,7 @@
     <string name="table_time_label">Thời gian đặt</string>
     
     <!-- Booking -->
-    <string name="booking_success_msg">Đặt bàn thành công! Mã: %1$s</string>
+    <string name="booking_success_msg">Đặt bàn thành công!</string>
     <string name="booking_title">Đặt bàn</string>
     <string name="booking_restaurant_title">Nhà hàng</string>
     <string name="booking_date_time">Ngày &amp; Giờ</string>

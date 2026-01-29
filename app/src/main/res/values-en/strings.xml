@@ -345,7 +345,7 @@
     <string name="table_guests_format">%1$d Adults, %2$d Children</string>
 
     <!-- Booking -->
-    <string name="booking_success_msg">Booking successful! Code: %1$s</string>
+    <string name="booking_success_msg">Booking successful!</string>
     <string name="booking_title">Booking</string>
     <string name="booking_restaurant_title">Restaurant</string>
     <string name="booking_date_time">Date &amp; Time</string>
