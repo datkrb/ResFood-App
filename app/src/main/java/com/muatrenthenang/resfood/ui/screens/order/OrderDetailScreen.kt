@@ -220,7 +220,7 @@ fun OrderStatusCard(order: Order) {
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "#${order.id}",
+                        text = "#${order.id.take(6).uppercase()}",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

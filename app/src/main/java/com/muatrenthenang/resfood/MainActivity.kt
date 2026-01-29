@@ -284,7 +284,8 @@ class MainActivity : AppCompatActivity() {
                                     )
                                     navController.popBackStack()
                                 },
-                                vm = addressViewModel
+                                vm = addressViewModel,
+                                isSelectionMode = true
                             )
                         }
 

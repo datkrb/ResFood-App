@@ -43,7 +43,8 @@ fun AddressListScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (addressId: String?) -> Unit,
     onAddressSelected: (Address) -> Unit,
-    vm: AddressViewModel = viewModel()
+    vm: AddressViewModel = viewModel(),
+    isSelectionMode: Boolean = false
 ) {
     val context = LocalContext.current
     val addresses by vm.addresses.collectAsState()
@@ -180,10 +181,12 @@ fun AddressListScreen(
                         AddressCard(
                             address = address,
                             isSelected = selectedAddress?.id == address.id,
-                            onSelect = {
-                                vm.selectAddress(address)
-                                onAddressSelected(address)
-                            },
+                            onSelect = if (isSelectionMode) {
+                                {
+                                    vm.selectAddress(address)
+                                    onAddressSelected(address)
+                                }
+                            } else null,
                             onEdit = { onNavigateToEdit(address.id) },
                             onDelete = {
                                 addressToDelete = address
@@ -276,7 +279,7 @@ fun AddressListScreen(
 fun AddressCard(
     address: Address,
     isSelected: Boolean,
-    onSelect: () -> Unit,
+    onSelect: (() -> Unit)?,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -288,7 +291,10 @@ fun AddressCard(
         shadowElevation = 2.dp,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onEdit() }
+            .then(
+                if (onSelect != null) Modifier.clickable { onSelect() }
+                else Modifier
+            )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -359,6 +365,18 @@ fun AddressCard(
                 // Action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.action_edit),
+                            tint = PrimaryColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    IconButton(
                         onClick = onDelete,
                         modifier = Modifier.size(36.dp)
                     ) {
@@ -422,6 +440,6 @@ fun AddressCard(
                 )
             }
 
-            }
+        }
     }
 }
