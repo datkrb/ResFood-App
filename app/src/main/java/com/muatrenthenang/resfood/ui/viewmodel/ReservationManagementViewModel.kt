@@ -56,7 +56,8 @@ class ReservationManagementViewModel : ViewModel() {
             "PENDING" to allReservations.count { it.status == "PENDING" },
             "CONFIRMED" to allReservations.count { it.status == "CONFIRMED" },
             "COMPLETED" to allReservations.count { it.status == "COMPLETED" },
-            "CANCELLED" to allReservations.count { it.status == "CANCELLED" }
+            "CANCELLED" to allReservations.count { it.status == "CANCELLED" },
+            "REJECTED" to allReservations.count { it.status == "REJECTED" }
         )
         
         _uiState.value = ReservationUiState.Success(

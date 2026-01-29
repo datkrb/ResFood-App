@@ -106,12 +106,14 @@ fun TableManagementScreen(
     var showRejectDialog by remember { mutableStateOf(false) }
     var reservationToReject by remember { mutableStateOf<TableReservation?>(null) }
     var rejectReason by remember { mutableStateOf("") }
+    var rejectError by remember { mutableStateOf<String?>(null) }
 
     if (showRejectDialog && reservationToReject != null) {
         AlertDialog(
             onDismissRequest = { 
                 showRejectDialog = false 
                 rejectReason = ""
+                rejectError = null
             },
             title = { Text(stringResource(R.string.table_reject_title), fontWeight = FontWeight.Bold) },
             text = { 
@@ -120,8 +122,19 @@ fun TableManagementScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = rejectReason,
-                        onValueChange = { rejectReason = it },
+                        onValueChange = { 
+                            rejectReason = it
+                            rejectError = null
+                        },
                         label = { Text("Lý do từ chối") },
+                        isError = rejectError != null,
+                        supportingText = {
+                            if (rejectError != null) {
+                                Text(rejectError!!, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Text("Tối thiểu 10 ký tự", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 3
                     )
@@ -130,14 +143,25 @@ fun TableManagementScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        reservationToReject?.let { reservation ->
-                            viewModel.rejectReservation(reservation.id, rejectReason) {
-                                Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
+                        when {
+                            rejectReason.isBlank() -> {
+                                rejectError = "Vui lòng nhập lý do"
+                            }
+                            rejectReason.length < 10 -> {
+                                rejectError = "Lý do phải có ít nhất 10 ký tự"
+                            }
+                            else -> {
+                                reservationToReject?.let { reservation ->
+                                    viewModel.rejectReservation(reservation.id, rejectReason) {
+                                        Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                showRejectDialog = false
+                                reservationToReject = null
+                                rejectReason = ""
+                                rejectError = null
                             }
                         }
-                        showRejectDialog = false
-                        reservationToReject = null
-                        rejectReason = ""
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
@@ -148,6 +172,7 @@ fun TableManagementScreen(
                 TextButton(onClick = { 
                     showRejectDialog = false 
                     rejectReason = ""
+                    rejectError = null
                 }) {
                     Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -459,6 +484,16 @@ fun ReservationItem(
             if (reservation.note.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(stringResource(R.string.table_label_note, reservation.note), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+            }
+
+            if (reservation.status == "REJECTED" && !reservation.rejectionReason.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Lý do hủy: ${reservation.rejectionReason}",
+                    color = LightRed,
+                    fontSize = 12.sp,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

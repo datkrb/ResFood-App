@@ -68,7 +68,8 @@ class OrderListViewModel(
             "processing" -> all.filter { it.status == "PROCESSING" }
             "delivering" -> all.filter { it.status == "DELIVERING" }
             "completed" -> all.filter { it.status == "COMPLETED" }
-            "cancelled" -> all.filter { it.status == "CANCELLED" || it.status == "REJECTED" }
+            "cancelled" -> all.filter { it.status == "CANCELLED" }
+            "rejected" -> all.filter { it.status == "REJECTED" }
             "review" -> all.filter { it.status == "COMPLETED" && !it.isReviewed } 
             "history" -> all.filter { it.status == "COMPLETED" || it.status == "CANCELLED" || it.status == "REJECTED" }
             else -> all

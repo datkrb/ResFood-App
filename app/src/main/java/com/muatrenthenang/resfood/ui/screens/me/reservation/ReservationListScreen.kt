@@ -43,13 +43,14 @@ fun ReservationListScreen(
         viewModel.loadReservations()
     }
     
-    // Tabs: PENDING, CONFIRMED, COMPLETED, CANCELLED, ALL
-    val tabs = listOf("PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "ALL")
+    // Tabs: PENDING, CONFIRMED, COMPLETED, CANCELLED, REJECTED, ALL
+    val tabs = listOf("PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "REJECTED", "ALL")
     val tabTitles = listOf(
         stringResource(R.string.me_status_pending),
         stringResource(R.string.me_status_confirmed),
         stringResource(R.string.me_status_completed),
-        stringResource(R.string.order_status_cancelled), // Assuming this exists or using common_cancel if not, but checkout uses it.
+        stringResource(R.string.order_status_cancelled),
+        stringResource(R.string.table_status_rejected),
         stringResource(R.string.common_all)
     )
     
@@ -61,8 +62,9 @@ fun ReservationListScreen(
                 "CONFIRMED" -> 1
                 "COMPLETED" -> 2
                 "CANCELLED" -> 3
-                "ALL" -> 4
-                else -> 4
+                "REJECTED" -> 4
+                "ALL" -> 5
+                else -> 5
             }
         )
     }
@@ -139,6 +141,7 @@ fun ReservationListScreen(
                                             "CONFIRMED" -> Color(0xFF3B82F6) // Blue
                                             "COMPLETED" -> SuccessGreen
                                             "CANCELLED" -> Color.Gray
+                                            "REJECTED" -> LightRed
                                             else -> PrimaryColor
                                         }
                                         Box(
