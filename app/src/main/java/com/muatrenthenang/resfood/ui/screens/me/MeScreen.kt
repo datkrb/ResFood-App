@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
@@ -143,6 +145,10 @@ fun MeScreen(
                     }
                 )
 
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                LogoutSection(onLogout = onLogout)
+
 
                 Spacer(modifier = Modifier.height(100.dp))
             }
@@ -181,11 +187,11 @@ private fun MeTopBar(
         IconCircleButton(
             icon = Icons.Default.Settings,
             onClick = onSettingsClick,
-            contentDescription = "Cài đặt"
+            contentDescription = stringResource(R.string.footer_settings)
         )
 
         Text(
-            text = "Cá nhân",
+            text = stringResource(R.string.me_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -196,7 +202,7 @@ private fun MeTopBar(
             IconCircleButton(
                 icon = Icons.Default.Notifications,
                 onClick = onNotificationsClick,
-                contentDescription = "Thông báo"
+                contentDescription = stringResource(R.string.noti_title)
             )
             // Notification badge
             BadgeDot(
@@ -235,7 +241,7 @@ private fun ProfileHeaderCard(
             ) {
                 AsyncImage(
                     model = user?.avatarUrl ?: "https://i.pravatar.cc/150?img=3", // Default avatar if null
-                    contentDescription = "Avatar",
+                    contentDescription = stringResource(R.string.common_avatar),
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape),
@@ -250,7 +256,7 @@ private fun ProfileHeaderCard(
                     .weight(1f)
             ) {
                 Text(
-                    text = user?.fullName ?: "Đang tải...",
+                    text = user?.fullName ?: stringResource(R.string.me_loading_user),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onEditProfileClick() }
@@ -268,7 +274,7 @@ private fun ProfileHeaderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Thành viên ${user?.rank}",
+                        text = stringResource(R.string.profile_member_rank, user?.rank ?: ""),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -291,14 +297,14 @@ private fun OrdersStatusSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Đơn hàng của tôi",
+                text = stringResource(R.string.me_my_orders),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
                 // color = MaterialTheme.colorScheme.onBackground // Removed to match Checkout
             )
             TextButton(onClick = onViewAll) {
                 Text(
-                    text = "Xem tất cả",
+                    text = stringResource(R.string.me_view_all),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -319,25 +325,25 @@ private fun OrdersStatusSection(
             ) {
                 OrderStatusItem(
                     icon = Icons.Default.Receipt,
-                    label = "Chờ xác nhận",
+                    label = stringResource(R.string.me_status_pending),
                     count = orderCounts.pending,
                     onClick = { onOrderStatusClick("pending") }
                 )
                 OrderStatusItem(
                     icon = Icons.Default.LocalDining,
-                    label = "Đang chế biến",
+                    label = stringResource(R.string.me_status_processing),
                     count = orderCounts.processing,
                     onClick = { onOrderStatusClick("processing") }
                 )
                 OrderStatusItem(
                     icon = Icons.Default.DeliveryDining,
-                    label = "Đang giao",
+                    label = stringResource(R.string.me_status_delivering),
                     count = orderCounts.delivering,
                     onClick = { onOrderStatusClick("delivering") }
                 )
                 OrderStatusItem(
                     icon = Icons.Default.RateReview,
-                    label = "Đánh giá",
+                    label = stringResource(R.string.me_status_review),
                     count = orderCounts.toReview,
                     onClick = { onOrderStatusClick("review") }
                 )
@@ -401,13 +407,13 @@ private fun ReservationStatusSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Đặt bàn của tôi",
+                text = stringResource(R.string.me_my_reservations),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
             TextButton(onClick = onViewAll) {
                 Text(
-                    text = "Lịch sử",
+                    text = stringResource(R.string.me_history),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -429,19 +435,19 @@ private fun ReservationStatusSection(
             ) {
                 OrderStatusItem(
                     icon = Icons.Default.Event,
-                    label = "Chờ xác nhận",
+                    label = stringResource(R.string.me_status_pending),
                     count = counts["PENDING"] ?: 0,
                     onClick = { onStatusClick("PENDING") }
                 )
                 OrderStatusItem(
                     icon = Icons.Default.EventAvailable,
-                    label = "Đã xác nhận",
+                    label = stringResource(R.string.me_status_confirmed),
                     count = counts["CONFIRMED"] ?: 0,
                     onClick = { onStatusClick("CONFIRMED") }
                 )
                 OrderStatusItem(
                     icon = Icons.Default.TaskAlt,
-                    label = "Hoàn thành",
+                    label = stringResource(R.string.me_status_completed),
                     count = counts["COMPLETED"] ?: 0,
                     onClick = { onStatusClick("COMPLETED") }
                 )
@@ -477,13 +483,13 @@ private fun ReferralPromoCard(
                 modifier = Modifier.padding(20.dp)
             ) {
                 Text(
-                    text = promoData.title,
+                    text = stringResource(promoData.titleResId),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Text(
-                    text = promoData.subtitle,
+                    text = stringResource(promoData.subtitleResId),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
@@ -498,7 +504,7 @@ private fun ReferralPromoCard(
                     modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text(
-                        text = promoData.buttonText,
+                        text = stringResource(promoData.buttonTextResId),
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -514,7 +520,7 @@ private fun UtilitiesSection(
 ) {
     Column {
         Text(
-            text = "Tiện ích",
+            text = stringResource(R.string.me_utilities),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 20.dp, bottom = 12.dp)
@@ -531,8 +537,11 @@ private fun UtilitiesSection(
                     UtilityMenuItem(
                         icon = getIconForType(option.iconType),
                         iconColor = getColorForType(option.iconType),
-                        title = option.title,
-                        subtitle = option.subtitle,
+                        title = stringResource(option.titleResId),
+                        subtitle = stringResource(
+                            option.subtitleResId,
+                            *(option.subtitleArgs?.toTypedArray() ?: emptyArray())
+                        ),
                         onClick = { onOptionClick(option.id) },
                         showDivider = index < utilityMenu.size - 1
                     )
@@ -640,13 +649,13 @@ private fun LogoutSection(onLogout: () -> Unit) {
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "Đăng xuất",
+                text = stringResource(R.string.settings_logout),
                 fontWeight = FontWeight.Bold
             )
         }
 
         Text(
-            text = "RESFOOD VERSION 2.4.0",
+            text = stringResource(R.string.me_version, "2.4.0"),
             fontSize = 10.sp,
             fontWeight = FontWeight.Medium,
             letterSpacing = 2.sp,

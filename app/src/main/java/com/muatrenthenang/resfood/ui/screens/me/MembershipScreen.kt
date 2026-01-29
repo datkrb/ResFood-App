@@ -28,6 +28,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Rank
@@ -111,13 +113,13 @@ fun MembershipScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = contentColor
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        "Hạng thành viên & Ưu đãi",
+                        stringResource(R.string.membership_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = contentColor
@@ -127,7 +129,7 @@ fun MembershipScreen(
                 }
                 
                 // Premium Card
-                PremiumRankCard(rank = currentRank, name = "Bạn") // You could pass actual name
+                PremiumRankCard(rank = currentRank, name = stringResource(R.string.membership_you)) // You could pass actual name
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
@@ -144,7 +146,7 @@ fun MembershipScreen(
                         ) {
                             Column {
                                 Text(
-                                    "TIẾN TRÌNH THĂNG HẠNG",
+                                    stringResource(R.string.membership_progress_label),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = secondaryContentColor,
                                     fontWeight = FontWeight.Bold,
@@ -214,8 +216,9 @@ fun MembershipScreen(
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 val remaining = nextRankTarget - totalSpending
+                                val nextRank = Rank.getNextRank(currentRank)
                                 Text(
-                                    "Chi tiêu thêm ${currencyFormatter.format(remaining)} để lên hạng ${Rank.getNextRank(currentRank)?.displayName}",
+                                    stringResource(R.string.membership_spend_more, currencyFormatter.format(remaining), if (nextRank != null) stringResource(nextRank.nameResId) else ""),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = PrimaryColor.copy(alpha = 0.9f)
                                 )
@@ -233,7 +236,7 @@ fun MembershipScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Các mốc hạng thành viên",
+                        stringResource(R.string.membership_milestones),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = contentColor
@@ -332,7 +335,7 @@ fun PremiumRankCard(rank: Rank, name: String) {
                 fontWeight = FontWeight.Medium
             )
             Text(
-                rank.displayName.uppercase(),
+                stringResource(rank.nameResId).uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
@@ -451,22 +454,22 @@ fun RankTimelineItem(
             ) {
                 Column {
                     Text(
-                        rank.displayName,
+                        stringResource(rank.nameResId),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = contentColor
                     )
                     Text(
-                        if (rank.threshold == 0.0) "Mốc khởi đầu" else "Chi tiêu > ${NumberFormat.getIntegerInstance().format(rank.threshold)}",
+                        if (rank.threshold == 0.0) stringResource(R.string.membership_start_milestone) else stringResource(R.string.membership_spend_greater, NumberFormat.getIntegerInstance().format(rank.threshold)),
                         style = MaterialTheme.typography.bodySmall,
                         color = secondaryContentColor
                     )
                 }
                 
                 val statusText = when {
-                    isCurrent -> "HIỆN TẠI"
-                    isPassed -> "ĐÃ QUA"
-                    else -> "LOCKED"
+                    isCurrent -> stringResource(R.string.membership_status_current)
+                    isPassed -> stringResource(R.string.membership_status_passed)
+                    else -> stringResource(R.string.membership_status_locked)
                 }
                 val statusColor = if (isCurrent) PrimaryColor else secondaryContentColor.copy(alpha = 0.5f)
                 val statusBg = statusColor.copy(alpha = 0.1f)
@@ -551,7 +554,11 @@ fun RankRewardCard(
                 color = contentColor
             )
             Text(
-                item.status.name, // Or description? Let's use status for now for UX feedback
+                text = when(item.status) {
+                    RewardStatus.LOCKED -> stringResource(R.string.reward_status_locked)
+                    RewardStatus.AVAILABLE -> stringResource(R.string.reward_status_available)
+                    RewardStatus.CLAIMED -> stringResource(R.string.reward_status_claimed)
+                },
                 style = MaterialTheme.typography.labelSmall,
                 color = when(item.status) {
                     RewardStatus.AVAILABLE -> PrimaryColor
@@ -572,12 +579,12 @@ fun RankRewardCard(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 modifier = Modifier.height(32.dp)
             ) {
-                Text("Nhận", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.membership_claim_btn), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         } else if (item.status == RewardStatus.CLAIMED) {
             Icon(
                 Icons.Default.CheckCircle,
-                contentDescription = "Claimed",
+                contentDescription = stringResource(R.string.membership_reward_claimed),
                 tint = Color.Green.copy(alpha = 0.7f),
                 modifier = Modifier.size(20.dp)
             )

@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,14 +61,14 @@ fun TableReservationDetailScreen(
     if (showRejectDialog) {
         AlertDialog(
             onDismissRequest = { showRejectDialog = false },
-            title = { Text("Từ chối đơn đặt bàn?", fontWeight = FontWeight.Bold) },
-            text = { Text("Bạn có chắc chắn muốn từ chối đơn đặt bàn này không? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.table_reject_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.table_confirm_reject_msg)) },
             confirmButton = {
                 Button(
                     onClick = {
                         if (reservation != null) {
                             viewModel.rejectReservation(reservation.id) {
-                                Toast.makeText(context, "Đã từ chối đơn đặt bàn", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.table_msg_rejected), Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -74,12 +76,12 @@ fun TableReservationDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
-                    Text("Từ chối xác nhận")
+                    Text(stringResource(R.string.table_reject_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRejectDialog = false }) {
-                    Text("Hủy bỏ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.table_reject_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -91,7 +93,7 @@ fun TableReservationDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chi tiết đặt bàn", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.table_detail_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -112,12 +114,12 @@ fun TableReservationDetailScreen(
                     onReject = { showRejectDialog = true },
                     onApprove = { 
                         viewModel.approveReservation(reservation.id) {
-                            Toast.makeText(context, "Đã duyệt đơn đặt bàn!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.table_msg_approve_success), Toast.LENGTH_SHORT).show()
                         }
                     },
                     onComplete = {
                         viewModel.completeReservation(reservation.id) {
-                            Toast.makeText(context, "Đơn đặt bàn đã hoàn thành!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.table_msg_complete_success), Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
@@ -131,7 +133,7 @@ fun TableReservationDetailScreen(
                 }
             } else {
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text("Không tìm thấy đơn đặt bàn", color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource(R.string.table_not_found), color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         } else {
@@ -152,16 +154,16 @@ fun TableReservationDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Đơn đặt bàn", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                            Text(stringResource(R.string.table_reservation_label), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             Text("#${reservation.id.takeLast(6).uppercase()}", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                         }
                         
                         val (statusColor, statusText) = when(reservation.status) {
-                            "PENDING" -> Color(0xFFF59E0B) to "Chờ xác nhận"
-                            "CONFIRMED" -> Color(0xFF3B82F6) to "Đã xác nhận"
-                            "COMPLETED" -> SuccessGreen to "Hoàn thành"
-                            "CANCELLED" -> Color.Gray to "Đã hủy"
-                            "REJECTED" -> LightRed to "Đã từ chối"
+                            "PENDING" -> Color(0xFFF59E0B) to stringResource(R.string.table_status_pending_long)
+                            "CONFIRMED" -> Color(0xFF3B82F6) to stringResource(R.string.table_status_confirmed_long)
+                            "COMPLETED" -> SuccessGreen to stringResource(R.string.table_status_completed)
+                            "CANCELLED" -> Color.Gray to stringResource(R.string.table_status_cancelled)
+                            "REJECTED" -> LightRed to stringResource(R.string.table_status_rejected)
                             else -> Color.Gray to reservation.status
                         }
                         
@@ -204,7 +206,7 @@ fun CustomerInfoCard(customer: com.muatrenthenang.resfood.data.model.User?, rese
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Thông tin khách hàng", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(R.string.table_customer_info_title), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(
@@ -233,7 +235,7 @@ fun CustomerInfoCard(customer: com.muatrenthenang.resfood.data.model.User?, rese
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(customer?.fullName ?: "Khách", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(customer?.fullName ?: stringResource(R.string.table_customer_guest), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                     if (customer?.phone != null) {
                         Text(customer.phone, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                     }
@@ -292,7 +294,7 @@ fun CustomerInfoCard(customer: com.muatrenthenang.resfood.data.model.User?, rese
                     Icon(Icons.Default.LocationOn, contentDescription = null, tint = PrimaryColor, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Địa chỉ", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        Text(stringResource(R.string.branch_info_address), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         val address = customer.addresses.firstOrNull { it.isDefault } ?: customer.addresses.first()
                         Text(address.getFullAddress(), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     }
@@ -310,17 +312,17 @@ fun ReservationDetailsCard(reservation: com.muatrenthenang.resfood.data.model.Ta
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Chi tiết đặt bàn", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(R.string.table_reservation_detail_title), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             
-            InfoRow(icon = Icons.Default.Store, label = "Chi nhánh", value = reservation.branchName.ifEmpty { "Chưa xác định" })
-            InfoRow(icon = Icons.Default.CalendarToday, label = "Ngày", value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(reservation.timeSlot.toDate()))
-            InfoRow(icon = Icons.Default.AccessTime, label = "Giờ", value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(reservation.timeSlot.toDate()))
-            InfoRow(icon = Icons.Default.People, label = "Số khách", value = "${reservation.guestCountAdult} Người lớn, ${reservation.guestCountChild} Trẻ em")
+            InfoRow(icon = Icons.Default.Store, label = stringResource(R.string.table_label_branch), value = reservation.branchName.ifEmpty { stringResource(R.string.admin_branch_unknown) })
+            InfoRow(icon = Icons.Default.CalendarToday, label = stringResource(R.string.table_label_time).substringBefore(" "), value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(reservation.timeSlot.toDate()))
+            InfoRow(icon = Icons.Default.AccessTime, label = stringResource(R.string.booking_hour), value = SimpleDateFormat("HH:mm", Locale.getDefault()).format(reservation.timeSlot.toDate()))
+            InfoRow(icon = Icons.Default.People, label = stringResource(R.string.table_label_guests), value = stringResource(R.string.table_guests_format, reservation.guestCountAdult, reservation.guestCountChild))
             
             if (reservation.note.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoRow(icon = Icons.Default.Note, label = "Ghi chú", value = reservation.note)
+                InfoRow(icon = Icons.Default.Note, label = stringResource(R.string.booking_note), value = reservation.note)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -328,14 +330,14 @@ fun ReservationDetailsCard(reservation: com.muatrenthenang.resfood.data.model.Ta
             Spacer(modifier = Modifier.height(16.dp))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Mã đặt bàn", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.table_code_label), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("#${reservation.id.takeLast(8).uppercase()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
             
             Spacer(modifier = Modifier.height(8.dp))
             
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Thời gian đặt", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.table_time_label), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 val createdTime = if (reservation.createdAt != null) {
                     SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.getDefault()).format(reservation.createdAt.toDate())
                 } else "N/A"
@@ -365,15 +367,15 @@ fun StatusTimelineCard(reservation: com.muatrenthenang.resfood.data.model.TableR
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Trạng thái", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(R.string.admin_analytics_order_status), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
             
             val (statusColor, statusText) = when(reservation.status) {
-                "PENDING" -> Color(0xFFF59E0B) to "Chờ xác nhận"
-                "CONFIRMED" -> Color(0xFF3B82F6) to "Đã xác nhận"
-                "COMPLETED" -> SuccessGreen to "Hoàn thành"
-                "CANCELLED" -> Color.Gray to "Đã hủy"
-                "REJECTED" -> LightRed to "Đã từ chối"
+                "PENDING" -> Color(0xFFF59E0B) to stringResource(R.string.table_status_pending_long)
+                "CONFIRMED" -> Color(0xFF3B82F6) to stringResource(R.string.table_status_confirmed_long)
+                "COMPLETED" -> SuccessGreen to stringResource(R.string.table_status_completed)
+                "CANCELLED" -> Color.Gray to stringResource(R.string.table_status_cancelled)
+                "REJECTED" -> LightRed to stringResource(R.string.table_status_rejected)
                 else -> Color.Gray to reservation.status
             }
             
@@ -423,7 +425,7 @@ fun BottomActionBar(
                     modifier = Modifier.weight(1f).height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Từ chối")
+                    Text(stringResource(R.string.admin_order_reject_btn))
                 }
                 
                 Button(
@@ -432,7 +434,7 @@ fun BottomActionBar(
                     modifier = Modifier.weight(1.5f).height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Duyệt đơn")
+                    Text(stringResource(R.string.admin_order_approve_btn))
                 }
             } else if (status == "CONFIRMED") {
                  Button(
@@ -443,7 +445,7 @@ fun BottomActionBar(
                 ) {
                     Icon(Icons.Default.CheckCircle, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Hoàn thành")
+                    Text(stringResource(R.string.table_status_completed))
                 }
             }
         }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.muatrenthenang.resfood.R
 
 /**
  * ViewModel quản lý thống kê chi tiêu của người dùng
@@ -178,7 +179,7 @@ class SpendingStatisticsViewModel(application: Application) : AndroidViewModel(a
 
         orders.forEach { order ->
             order.items.forEach { item ->
-                val category = foodCategoryMap[item.foodId] ?: "Khác"
+                val category = foodCategoryMap[item.foodId] ?: "other"
                 val itemTotal = (item.price * item.quantity).toLong()
 
                 categoryAmounts[category] = (categoryAmounts[category] ?: 0L) + itemTotal
@@ -205,7 +206,7 @@ class SpendingStatisticsViewModel(application: Application) : AndroidViewModel(a
     }
 
     private fun calculateWeeklyData(orders: List<Order>) {
-        val dayFormatter = SimpleDateFormat("EEE", Locale("vi", "VN"))
+        val dayFormatter = SimpleDateFormat("EEE", Locale.getDefault())
         val calendar = Calendar.getInstance()
 
         // Create last 7 days
@@ -268,7 +269,7 @@ class SpendingStatisticsViewModel(application: Application) : AndroidViewModel(a
                 orderDate.after(weekStart) && orderDate.before(weekEnd)
             }.sumOf { it.total.toLong() }
 
-            val weekLabel = "Tuần ${4 - i}"
+            val weekLabel = getApplication<Application>().getString(R.string.stats_week_label, 4 - i)
             weeks.add(Pair(weekLabel, weekTotal))
         }
 
@@ -276,11 +277,13 @@ class SpendingStatisticsViewModel(application: Application) : AndroidViewModel(a
     }
 
     private fun getCategoryDisplayName(category: String): String {
+        val app = getApplication<Application>()
         return when (category.lowercase()) {
-            "main", "main_course", "món chính" -> "Món chính"
-            "drink", "drinks", "beverage", "nước uống" -> "Nước uống"
-            "dessert", "desserts", "tráng miệng" -> "Tráng miệng"
-            "appetizer", "appetizers", "khai vị" -> "Khai vị"
+            "main", "main_course", "món chính" -> app.getString(R.string.cat_main)
+            "drink", "drinks", "beverage", "nước uống" -> app.getString(R.string.cat_drink)
+            "dessert", "desserts", "tráng miệng" -> app.getString(R.string.cat_dessert)
+            "appetizer", "appetizers", "khai vị" -> app.getString(R.string.cat_appetizer)
+            "other", "khác" -> app.getString(R.string.cat_other)
             else -> category.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         }
     }

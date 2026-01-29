@@ -29,6 +29,8 @@ import com.muatrenthenang.resfood.ui.components.DateRangeSelector
 import com.muatrenthenang.resfood.ui.components.RevenueLineChart
 import com.muatrenthenang.resfood.ui.components.OrderStatusPieChart
 
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
@@ -49,7 +51,7 @@ fun AnalyticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Thống kê & Báo cáo", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_analytics_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -105,16 +107,16 @@ fun AnalyticsScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         AnalyticSummaryCard(
-                            "Tổng Doanh thu",
-                            "${analyticsState.totalRevenue.toInt()}đ",
-                            "${analyticsState.totalOrders} Đơn",
+                            stringResource(R.string.admin_analytics_total_revenue),
+                            stringResource(R.string.price_format_vnd, analyticsState.totalRevenue.toInt()),
+                            "${analyticsState.totalOrders} ${stringResource(R.string.admin_analytics_orders_unit)}",
                             Color(0xFF4CAF50),
                             Modifier.weight(1f)
                         )
                         AnalyticSummaryCard(
-                            "Doanh thu trung bình",
-                            if (analyticsState.totalOrders > 0) "${(analyticsState.totalRevenue / analyticsState.totalOrders).toInt()}đ" else "0đ", 
-                            "Đơn",
+                            stringResource(R.string.admin_analytics_avg_revenue),
+                            stringResource(R.string.price_format_vnd, if (analyticsState.totalOrders > 0) (analyticsState.totalRevenue / analyticsState.totalOrders).toInt() else 0), 
+                            stringResource(R.string.admin_analytics_orders_unit),
                             Color(0xFF2196F3),
                             Modifier.weight(1f)
                         )
@@ -124,7 +126,7 @@ fun AnalyticsScreen(
                 // 3. Revenue Trend Chart
                 item {
                     Column(modifier = Modifier.padding(16.dp)) {
-                         Text("Biểu đồ doanh thu", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                         Text(stringResource(R.string.admin_analytics_revenue_chart), color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                          Card(
                             colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
                             shape = RoundedCornerShape(16.dp),
@@ -141,7 +143,7 @@ fun AnalyticsScreen(
                 // 4. Order Status Distribution (Pie Chart)
                 item {
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                         Text("Trạng thái đơn hàng", color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
+                         Text(stringResource(R.string.admin_analytics_order_status), color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
                          Card(
                             colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard),
                             shape = RoundedCornerShape(16.dp),
@@ -158,21 +160,21 @@ fun AnalyticsScreen(
                 // 5. Top Products
                 item {
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        Text("Món ăn bán chạy", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.admin_analytics_top_products), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         Card(colors = CardDefaults.cardColors(containerColor = com.muatrenthenang.resfood.ui.theme.SurfaceCard)) {
                             Column {
                                 if(analyticsState.topProducts.isEmpty()) {
-                                    Text("Chưa có dữ liệu", color = Color.Gray, modifier = Modifier.padding(16.dp))
+                                    Text(stringResource(R.string.admin_analytics_no_data), color = Color.Gray, modifier = Modifier.padding(16.dp))
                                 } else {
                                     analyticsState.topProducts.forEachIndexed { index, item ->
                                         TopProductRow(
                                             name = "${index+1}. ${item.name}", 
-                                            count = "${item.count} đơn", 
-                                            revenue = "${item.revenue.toInt()}đ"
+                                            count = "${item.count} ${stringResource(R.string.admin_analytics_orders_unit)}", 
+                                            revenue = stringResource(R.string.price_format_vnd, item.revenue.toInt())
                                         )
                                         if(index < analyticsState.topProducts.size - 1) {
-                                            Divider(color = Color.Gray.copy(alpha = 0.2f))
+                                            HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
                                         }
                                     }
                                 }

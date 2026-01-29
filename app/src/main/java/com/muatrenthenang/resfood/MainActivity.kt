@@ -1,7 +1,6 @@
 package com.muatrenthenang.resfood
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +66,9 @@ import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 import com.muatrenthenang.resfood.ui.screens.review.ReviewScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 
-class MainActivity : ComponentActivity() {
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Initialize Notification Channels

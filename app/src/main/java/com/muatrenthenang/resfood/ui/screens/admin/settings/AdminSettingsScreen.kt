@@ -1,5 +1,7 @@
 package com.muatrenthenang.resfood.ui.screens.admin.settings
 
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +16,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -50,15 +53,17 @@ fun AdminSettingsScreen(
     // State
     var showProfileDialog by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
     
     // Theme state from UserViewModel
     val isDarkTheme by userViewModel.isDarkTheme.collectAsState()
     val isPushNotificationEnabled by userViewModel.isPushNotificationEnabled.collectAsState()
+    val currentLanguage by userViewModel.currentLanguage.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Cài đặt", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -85,15 +90,15 @@ fun AdminSettingsScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             // Account Section
-            Text("Tài khoản", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            Text(stringResource(R.string.settings_account), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
             SettingsItem(
                 icon = Icons.Default.Person, 
-                title = "Thông tin cá nhân", 
+                title = stringResource(R.string.settings_profile), 
                 onClick = { showProfileDialog = true }
             )
             SettingsItem(
                 icon = Icons.Default.Security, 
-                title = "Đổi mật khẩu", 
+                title = stringResource(R.string.settings_change_password), 
                 onClick = { showChangePasswordDialog = true }
             )
             
@@ -110,10 +115,10 @@ fun AdminSettingsScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // App Settings
-            Text("Ứng dụng", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
+            Text(stringResource(R.string.settings_app), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
             SettingsItem(
                 icon = Icons.Default.Notifications, 
-                title = "Thông báo", 
+                title = stringResource(R.string.settings_push_notifications), 
                 onClick = { userViewModel.togglePushNotification(!isPushNotificationEnabled) },
                 trailing = {
                     Switch(
@@ -127,9 +132,22 @@ fun AdminSettingsScreen(
                 }
             )
             
+            SettingsItem(
+                icon = Icons.Default.Info, 
+                title = stringResource(R.string.settings_language), 
+                onClick = { showLanguageDialog = true },
+                trailing = {
+                    Text(
+                        text = if (currentLanguage == "vi") "Tiếng Việt" else "English",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+            
              SettingsItem(
                 icon = Icons.Default.DarkMode, 
-                title = "Giao diện tối", 
+                title = stringResource(R.string.settings_dark_mode), 
                 onClick = { userViewModel.toggleTheme(!isDarkTheme) },
                 trailing = {
                     Switch(
@@ -156,10 +174,64 @@ fun AdminSettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Đăng xuất", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.settings_logout), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             }
         }
+    }
+    
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.settings_language)) },
+            text = {
+                Column {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                userViewModel.setLanguage("vi")
+                                showLanguageDialog = false
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentLanguage == "vi",
+                            onClick = {
+                                userViewModel.setLanguage("vi")
+                                showLanguageDialog = false
+                            }
+                        )
+                        Text("Tiếng Việt", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                userViewModel.setLanguage("en")
+                                showLanguageDialog = false
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentLanguage == "en",
+                            onClick = {
+                                userViewModel.setLanguage("en")
+                                showLanguageDialog = false
+                            }
+                        )
+                        Text("English", modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
     
     if (showProfileDialog) {

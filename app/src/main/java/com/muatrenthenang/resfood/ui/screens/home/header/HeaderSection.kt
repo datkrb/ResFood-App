@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.screens.home.header.components.Avatar
 import com.muatrenthenang.resfood.ui.screens.home.header.components.LocationText
@@ -47,7 +49,7 @@ fun HeaderSection(
 
             // name user
             Text(
-                text = "Chào buổi sáng, ${user?.fullName ?: "Bạn"}!",
+                text = stringResource(R.string.home_greeting, user?.fullName ?: "Bạn"),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold

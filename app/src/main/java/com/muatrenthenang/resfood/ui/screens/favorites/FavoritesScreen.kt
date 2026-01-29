@@ -40,6 +40,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.tooling.preview.Preview
 import com.muatrenthenang.resfood.ui.theme.LightRed
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun FavoritesScreen(
@@ -87,7 +89,7 @@ fun FavoritesScreen(
                 }
 
                 Text(
-                    text = "Món ăn yêu thích",
+                    text = stringResource(R.string.favorites_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
@@ -105,10 +107,10 @@ fun FavoritesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Bạn cần đăng nhập để xem danh sách yêu thích.", fontSize = 16.sp, color = Color.Gray)
+                    Text(stringResource(R.string.favorites_login_msg), fontSize = 16.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = onLogin, shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)) {
-                        Text("Đăng nhập", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.auth_login_button), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -138,7 +140,7 @@ fun FavoritesScreen(
                         onValueChange = {newText ->
                             vm.onSearchTextChanged(newText)
                         },
-                        placeholder = { Text("Tìm kiếm món ăn...", color = Color.Gray) },
+                        placeholder = { Text(stringResource(R.string.home_search_hint), color = Color.Gray) },
                         leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -159,7 +161,7 @@ fun FavoritesScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Bạn chưa có món ăn yêu thích nào!", color = Color.Gray, fontSize = 16.sp)
+                        Text(stringResource(R.string.favorites_empty), color = Color.Gray, fontSize = 16.sp)
                     }
                 } else {
                     Column(modifier = Modifier
@@ -204,7 +206,7 @@ fun FavoritesScreen(
                                             }
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Surface(shape = RoundedCornerShape(6.dp), color = Color.Black.copy(alpha = 0.6f)) {
-                                                Text(text = "${food.reviews.size} đánh giá", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                                                Text(text = stringResource(R.string.favorites_review_count, food.reviews.size), color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                                             }
                                         }
 
@@ -232,13 +234,13 @@ fun FavoritesScreen(
                                             Button(onClick = { /* disabled */ }, enabled = false, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEDF2F7), disabledContainerColor = Color(0xFFEDF2F7)), shape = RoundedCornerShape(999.dp)) {
                                                 Icon(imageVector = Icons.Default.Block, contentDescription = null)
                                                 Spacer(modifier = Modifier.width(6.dp))
-                                                Text(text = "Tạm hết", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                                Text(text = stringResource(R.string.food_stock_out), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                             }
                                         } else {
                                             Button(onClick = { vm.addToCart(food.id); onAddToCart(food.id) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)) {
                                                 Icon(imageVector = Icons.Default.AddShoppingCart, contentDescription = null)
                                                 Spacer(modifier = Modifier.width(6.dp))
-                                                Text(text = "Thêm vào giỏ", color = Color.White)
+                                                Text(text = stringResource(R.string.food_button_add_to_cart), color = Color.White)
                                             }
                                         }
                                     }
@@ -257,20 +259,20 @@ fun FavoritesScreen(
                     val itemToRemove = items.firstOrNull { it.food.id == removingItemId.value }
                     AlertDialog(
                         onDismissRequest = { showRemoveDialog.value = false; removingItemId.value = null },
-                        title = { Text(text = "Xóa khỏi yêu thích") },
-                        text = { Text(text = "Bạn có chắc chắn muốn xóa \"${itemToRemove?.food?.name ?: ""}\" khỏi danh sách yêu thích?") },
+                        title = { Text(text = stringResource(R.string.favorites_remove_title)) },
+                        text = { Text(text = stringResource(R.string.favorites_remove_msg, itemToRemove?.food?.name ?: "")) },
                         confirmButton = {
                             TextButton(onClick = {
                                 removingItemId.value?.let { vm.removeFavorite(it) }
                                 showRemoveDialog.value = false
                                 removingItemId.value = null
                             }, colors = ButtonDefaults.textButtonColors(contentColor = LightRed)) {
-                                Text("Xóa")
+                                Text(stringResource(R.string.common_delete))
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showRemoveDialog.value = false; removingItemId.value = null }) {
-                                Text("Hủy")
+                                Text(stringResource(R.string.common_cancel))
                             }
                         }
                     )

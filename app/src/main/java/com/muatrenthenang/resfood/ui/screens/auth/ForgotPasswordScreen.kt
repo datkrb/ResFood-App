@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.components.ResFoodButton
 import com.muatrenthenang.resfood.ui.components.ResFoodTextField
 import com.muatrenthenang.resfood.ui.viewmodel.auth.ForgotPasswordViewModel
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun ForgotPasswordScreen(
@@ -44,7 +47,7 @@ fun ForgotPasswordScreen(
     LaunchedEffect(result) {
         when (result) {
             "Success" -> {
-                Toast.makeText(context, "Đã gửi email! Vui lòng kiểm tra hòm thư.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.auth_email_sent), Toast.LENGTH_LONG).show()
                 viewModel.resetState()
                 onNavigateBack() // Quay về đăng nhập sau khi gửi xong
             }
@@ -119,14 +122,14 @@ fun ForgotPasswordScreen(
 
             // --- Text Content ---
             Text(
-                text = "Quên mật khẩu?",
+                text = stringResource(R.string.auth_forgot_password_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Đừng lo lắng! Hãy nhập email đăng ký của bạn, chúng tôi sẽ gửi mã xác minh ngay.",
+                text = stringResource(R.string.auth_forgot_password_subtitle),
                 fontSize = 16.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center,
@@ -139,16 +142,16 @@ fun ForgotPasswordScreen(
             ResFoodTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                label = stringResource(R.string.auth_email),
                 icon = Icons.Outlined.Mail,
-                placeholder = "nguyenvan.a@gmail.com",
+                placeholder = stringResource(R.string.auth_email_placeholder),
                 keyboardType = KeyboardType.Email
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             ResFoodButton(
-                text = "Gửi mã",
+                text = stringResource(R.string.auth_send_code),
                 onClick = { viewModel.sendResetEmail(email) },
                 isLoading = isLoading
             )
@@ -159,9 +162,9 @@ fun ForgotPasswordScreen(
                 modifier = Modifier.padding(bottom = 32.dp, top = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Bạn đã nhớ mật khẩu? ", color = Color.Gray)
+                Text(stringResource(R.string.auth_remember_password), color = Color.Gray)
                 Text(
-                    text = "Đăng nhập",
+                    text = stringResource(R.string.auth_login_button),
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { onNavigateBack() }

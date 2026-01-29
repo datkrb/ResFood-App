@@ -33,6 +33,8 @@ import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,7 +104,7 @@ fun PromotionAddScreen(
 
     fun savePromotion() {
         if(promoName.isBlank() || promoCode.isBlank() || discountValue.isBlank()) {
-            Toast.makeText(context, "Vui lòng nhập tên, mã và giá trị giảm", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.err_empty_promo_fields), Toast.LENGTH_SHORT).show()
             return
         }
         
@@ -113,7 +115,7 @@ fun PromotionAddScreen(
         
         // Private check
         if (!isPublic && assignedUserIds.isEmpty()) {
-            Toast.makeText(context, "Vui lòng chọn khách hàng áp dụng (Private)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.err_empty_private_customers), Toast.LENGTH_SHORT).show()
             return
         }
         
@@ -145,24 +147,24 @@ fun PromotionAddScreen(
 
         if (promotionToEdit != null && promotionToEdit.id.isNotEmpty()) {
             viewModel.updatePromotion(newPromotion)
-            Toast.makeText(context, "Đã cập nhật khuyến mãi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.msg_promo_updated), Toast.LENGTH_SHORT).show()
         } else {
             viewModel.addPromotion(newPromotion)
-            Toast.makeText(context, "Đã tạo khuyến mãi mới", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.msg_promo_created), Toast.LENGTH_SHORT).show()
         }
         
         // Send Notification if requested
         if (sendNotification && notificationMessage.isNotBlank()) {
              if (isPublic) {
                  viewModel.sendBroadcastNotification(
-                     title = "🎁 Khuyến mãi mới: $promoName",
+                     title = context.getString(R.string.notification_promo_new, promoName),
                      message = notificationMessage
                  )
              } else {
                  if (assignedUserIds.isNotEmpty()) {
                      viewModel.sendPromotionNotification(
                          userIds = assignedUserIds,
-                         title = "🎁 Mã giảm giá riêng cho bạn: $promoName",
+                         title = context.getString(R.string.notification_promo_private, promoName),
                          message = notificationMessage
                      )
                  }
@@ -175,7 +177,7 @@ fun PromotionAddScreen(
     fun deletePromotion() {
         if (promotionToEdit != null) {
              viewModel.deletePromotion(promotionToEdit.id)
-             Toast.makeText(context, "Đã xóa khuyến mãi", Toast.LENGTH_SHORT).show()
+             Toast.makeText(context, context.getString(R.string.msg_promo_deleted), Toast.LENGTH_SHORT).show()
              onNavigateBack()
         }
     }
@@ -183,7 +185,7 @@ fun PromotionAddScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (promotionToEdit != null) "Chi tiết khuyến mãi" else "Thêm khuyến mãi", fontWeight = FontWeight.Bold) },
+                title = { Text(if (promotionToEdit != null) stringResource(R.string.admin_promo_detail_title) else stringResource(R.string.admin_promo_add_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
@@ -196,7 +198,7 @@ fun PromotionAddScreen(
                         }
                     }
                     TextButton(onClick = { savePromotion() }) {
-                        Text(if (promotionToEdit != null) "Cập nhật" else "Lưu", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text(if (promotionToEdit != null) stringResource(R.string.common_update) else stringResource(R.string.common_save), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -215,7 +217,7 @@ fun PromotionAddScreen(
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(25.dp)
                 ) {
-                    Text(if (promotionToEdit != null) "Cập nhật chương trình" else "Lưu chương trình", color = MaterialTheme.colorScheme.onPrimary)
+                    Text(if (promotionToEdit != null) stringResource(R.string.admin_promo_btn_update) else stringResource(R.string.admin_promo_btn_save), color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -230,20 +232,20 @@ fun PromotionAddScreen(
         ) {
             
             // Name
-            InputSection(title = "Tên chương trình khuyến mãi") {
+            InputSection(title = stringResource(R.string.admin_promo_label_name)) {
                 AdminTextField(
                     value = promoName,
                     onValueChange = { promoName = it },
-                    placeholder = "Ví dụ: Chào hè sôi động"
+                    placeholder = stringResource(R.string.admin_promo_placeholder_name)
                 )
             }
 
             // Code
-            InputSection(title = "Mã giảm giá") {
+            InputSection(title = stringResource(R.string.admin_promo_label_code)) {
                 AdminTextField(
                     value = promoCode,
                     onValueChange = { promoCode = it.uppercase() },
-                    placeholder = "Ví dụ: HE2024",
+                    placeholder = stringResource(R.string.admin_promo_placeholder_code),
                     trailingIcon = { 
                         IconButton(onClick = { generateCode() }) {
                            Icon(Icons.Default.Refresh, contentDescription = "Gen", tint = MaterialTheme.colorScheme.primary) 
@@ -253,7 +255,7 @@ fun PromotionAddScreen(
             }
             
             // Public / Private Toggle
-            InputSection(title = "Đối tượng áp dụng") {
+            InputSection(title = stringResource(R.string.admin_promo_label_target)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -262,16 +264,16 @@ fun PromotionAddScreen(
                         .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f), RoundedCornerShape(24.dp))
                         .padding(4.dp)
                 ) {
-                    TabButton(text = "Công khai (Public)", isSelected = isPublic, modifier = Modifier.weight(1f)) { isPublic = true }
-                    TabButton(text = "Riêng tư (Private)", isSelected = !isPublic, modifier = Modifier.weight(1f)) { isPublic = false }
+                    TabButton(text = stringResource(R.string.admin_promo_target_public), isSelected = isPublic, modifier = Modifier.weight(1f)) { isPublic = true }
+                    TabButton(text = stringResource(R.string.admin_promo_target_private), isSelected = !isPublic, modifier = Modifier.weight(1f)) { isPublic = false }
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 if (isPublic) {
-                    Text("Số lượng voucher (0 = không giới hạn)", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                    Text(stringResource(R.string.admin_promo_label_quantity), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Nhập số lượng tổng")
+                    AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = stringResource(R.string.admin_promo_placeholder_quantity))
                 } else {
                     Button(
                         onClick = { showUserSelectionDialog = true },
@@ -280,18 +282,18 @@ fun PromotionAddScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Chọn khách hàng (${assignedUserIds.size})", color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.admin_promo_btn_select_customers, assignedUserIds.size), color = MaterialTheme.colorScheme.primary)
                     }
                     if (assignedUserIds.isNotEmpty()) {
-                        Text("Số lượng mỗi khách hàng được dùng", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, modifier = Modifier.padding(top=12.dp))
+                        Text(stringResource(R.string.admin_promo_label_per_user), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, modifier = Modifier.padding(top=12.dp))
                         Spacer(modifier = Modifier.height(8.dp))
-                        AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = "Ví dụ: 1")
+                        AdminTextField(value = totalQuantity, onValueChange = { totalQuantity = it }, placeholder = stringResource(R.string.admin_promo_placeholder_per_user))
                     }
                 }
             }
 
             // Discount Value & Type
-            InputSection(title = "Loại giảm giá") {
+            InputSection(title = stringResource(R.string.admin_promo_label_type)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -300,34 +302,34 @@ fun PromotionAddScreen(
                         .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha=0.3f), RoundedCornerShape(24.dp))
                         .padding(4.dp)
                 ) {
-                    TabButton(text = "Theo phần trăm (%)", isSelected = discountType == 0, modifier = Modifier.weight(1f)) { discountType = 0 }
-                    TabButton(text = "Theo số tiền (VND)", isSelected = discountType == 1, modifier = Modifier.weight(1f)) { discountType = 1 }
+                    TabButton(text = stringResource(R.string.admin_promo_type_percent), isSelected = discountType == 0, modifier = Modifier.weight(1f)) { discountType = 0 }
+                    TabButton(text = stringResource(R.string.admin_promo_type_amount), isSelected = discountType == 1, modifier = Modifier.weight(1f)) { discountType = 1 }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                Text("Giá trị giảm", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.admin_promo_label_value), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(8.dp))
                 AdminTextField(
                     value = discountValue,
                     onValueChange = { discountValue = it },
-                    placeholder = "Nhập giá trị",
+                    placeholder = stringResource(R.string.admin_promo_placeholder_value),
                     trailingIcon = { Text(if(discountType == 0) "%" else "đ", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end=16.dp)) }
                 )
             }
 
             // Conditions
-            InputSection(title = "Điều kiện áp dụng") {
+            InputSection(title = stringResource(R.string.admin_promo_label_conditions)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Đơn tối thiểu", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                        Text(stringResource(R.string.admin_promo_label_min_order), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         AdminTextField(value = minOrderValue, onValueChange = { minOrderValue = it }, placeholder = "0đ")
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Giảm tối đa", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                        Text(stringResource(R.string.admin_promo_label_max_discount), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-                        AdminTextField(value = maxDiscountValue, onValueChange = { maxDiscountValue = it }, placeholder = "Không giới hạn")
+                        AdminTextField(value = maxDiscountValue, onValueChange = { maxDiscountValue = it }, placeholder = stringResource(R.string.admin_promo_unlimited))
                     }
                 }
                 
@@ -343,22 +345,22 @@ fun PromotionAddScreen(
                         .padding(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TabButton(text = "Đơn hàng", isSelected = applyFor == "ALL", modifier = Modifier.weight(1f)) { applyFor = "ALL" }
-                    TabButton(text = "Phí vận chuyển", isSelected = applyFor == "SHIP", modifier = Modifier.weight(1f)) { applyFor = "SHIP" }
+                    TabButton(text = stringResource(R.string.admin_promo_scope_order), isSelected = applyFor == "ALL", modifier = Modifier.weight(1f)) { applyFor = "ALL" }
+                    TabButton(text = stringResource(R.string.admin_promo_scope_shipping), isSelected = applyFor == "SHIP", modifier = Modifier.weight(1f)) { applyFor = "SHIP" }
                 }
             }
 
             // Time
-            InputSection(title = "Thời gian áp dụng") {
+            InputSection(title = stringResource(R.string.admin_promo_label_duration)) {
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 
-                TimeRow("BẮT ĐẦU", dateFormat.format(Date(startDate))) {
+                TimeRow(stringResource(R.string.label_start_date), dateFormat.format(Date(startDate))) {
                     showDatePicker(startDate) { startDate = it }
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                TimeRow("KẾT THÚC", dateFormat.format(Date(endDate)), isRed = false) {
+                TimeRow(stringResource(R.string.label_end_date), dateFormat.format(Date(endDate)), isRed = false) {
                     showDatePicker(endDate) { endDate = it }
                 }
             }
@@ -377,8 +379,8 @@ fun PromotionAddScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                          Column(modifier = Modifier.weight(1f)) {
-                                Text("Gửi thông báo", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                                Text("Gửi thông báo cho khách hàng", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
+                                Text(stringResource(R.string.admin_promo_label_notification), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.admin_promo_sub_notification), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
                          }
                          Switch(
                             checked = sendNotification, 
@@ -397,14 +399,14 @@ fun PromotionAddScreen(
                         AdminTextField(
                             value = notificationMessage,
                             onValueChange = { notificationMessage = it },
-                            placeholder = "Nhập nội dung thông báo...",
+                            placeholder = stringResource(R.string.admin_promo_placeholder_notification),
                             modifier = Modifier.height(120.dp),
                             singleLine = false,
                             minLines = 3
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if(isPublic) "Thông báo sẽ được gửi cho tất cả người dùng." else "Thông báo sẽ được gửi cho ${assignedUserIds.size} người được chọn.",
+                            text = if(isPublic) stringResource(R.string.admin_promo_hint_public_noti) else stringResource(R.string.admin_promo_hint_private_noti, assignedUserIds.size),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -425,8 +427,8 @@ fun PromotionAddScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Column {
-                            Text("Kích hoạt ngay", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                            Text("Hiển thị khuyến mãi", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
+                            Text(stringResource(R.string.admin_promo_label_activate), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.admin_promo_sub_activate), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.7f), fontSize = 12.sp)
                      }
                      Switch(
                         checked = isActive, 
@@ -449,8 +451,8 @@ fun PromotionAddScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Xác nhận xóa") },
-            text = { Text("Bạn có chắc chắn muốn xóa mã khuyến mãi này không? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.admin_confirm_delete)) },
+            text = { Text(stringResource(R.string.admin_promo_delete_confirm_single)) },
             confirmButton = {
                 Button(
                      onClick = { 
@@ -459,12 +461,12 @@ fun PromotionAddScreen(
                      },
                      colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Xóa", color = MaterialTheme.colorScheme.onError)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -516,7 +518,7 @@ fun UserSelectionDialog(
         ) {
             Column(Modifier.padding(16.dp)) {
                 Text(
-                    "Chọn khách hàng",
+                    stringResource(R.string.admin_select_customer_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -527,7 +529,7 @@ fun UserSelectionDialog(
                 AdminTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = "Tìm tên, SĐT, email...",
+                    placeholder = stringResource(R.string.admin_customer_search_hint),
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
@@ -560,7 +562,7 @@ fun UserSelectionDialog(
                                 onCheckedChange = null,
                                 colors = CheckboxDefaults.colors(checkmarkColor = MaterialTheme.colorScheme.onPrimary, checkedColor = MaterialTheme.colorScheme.primary)
                              )
-                             Text("Chọn tất cả (${filteredCustomers.size})", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = 8.dp))
+                             Text(stringResource(R.string.admin_select_all_customers, filteredCustomers.size), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = 8.dp))
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
@@ -586,11 +588,11 @@ fun UserSelectionDialog(
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                    TextButton(onClick = onDismiss) { Text("Hủy", color = MaterialTheme.colorScheme.primary) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.primary) }
                     Button(
                         onClick = { onConfirm(tempSelected.toList()) },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) { Text("Xác nhận", color = MaterialTheme.colorScheme.onPrimary) }
+                    ) { Text(stringResource(R.string.common_confirm), color = MaterialTheme.colorScheme.onPrimary) }
                 }
             }
         }

@@ -29,9 +29,11 @@ import com.muatrenthenang.resfood.data.model.OrderItem
 import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
+import java.util.Locale
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,14 +53,14 @@ fun OrderDetailScreen(
     if (showRejectDialog) {
         AlertDialog(
             onDismissRequest = { showRejectDialog = false },
-            title = { Text("Từ chối đơn hàng?", fontWeight = FontWeight.Bold) },
-            text = { Text("Bạn có chắc chắn muốn từ chối đơn hàng này không? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.admin_order_reject_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.admin_order_reject_confirm_msg)) },
             confirmButton = {
                 Button(
                     onClick = {
                         if (order != null) {
                             viewModel.rejectOrder(order.id) {
-                                Toast.makeText(context, "Đã từ chối đơn hàng", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.admin_order_msg_rejected), Toast.LENGTH_SHORT).show()
                                 onNavigateBack()
                             }
                         }
@@ -66,12 +68,12 @@ fun OrderDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
-                    Text("Từ chối xác nhận")
+                    Text(stringResource(R.string.admin_order_reject_confirm_btn))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRejectDialog = false }) {
-                    Text("Hủy bỏ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -83,7 +85,7 @@ fun OrderDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chi tiết đơn hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_order_detail_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -104,17 +106,17 @@ fun OrderDetailScreen(
                     onReject = { showRejectDialog = true },
                     onApprove = { 
                         viewModel.approveOrder(order.id) {
-                            Toast.makeText(context, "Đã duyệt đơn hàng! Chuyển sang chế biến.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.admin_order_msg_approved_long), Toast.LENGTH_SHORT).show()
                         }
                     },
                     onStartDelivery = {
                          viewModel.startDelivery(order.id) {
-                             Toast.makeText(context, "Bắt đầu giao hàng!", Toast.LENGTH_SHORT).show()
-                         } 
+                             Toast.makeText(context, context.getString(R.string.admin_order_msg_delivering), Toast.LENGTH_SHORT).show()
+                         }  
                     },
                     onComplete = {
                         viewModel.completeOrder(order.id)
-                        Toast.makeText(context, "Đơn hàng đã hoàn thành!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.admin_order_msg_completed), Toast.LENGTH_SHORT).show()
                     }
                 )
             }
@@ -123,7 +125,7 @@ fun OrderDetailScreen(
         if (order == null) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 if(orders.isEmpty()) CircularProgressIndicator(color = PrimaryColor)
-                else Text("Không tìm thấy đơn hàng", color = MaterialTheme.colorScheme.onBackground)
+                else Text(stringResource(R.string.admin_order_not_found), color = MaterialTheme.colorScheme.onBackground)
             }
         } else {
             val customer = customers.find { it.id == order.userId }
@@ -147,7 +149,7 @@ fun OrderDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Đơn hàng", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                            Text(stringResource(R.string.admin_order_label_order_id), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             Text("#${order.id.takeLast(6).uppercase()}", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                             Text(dateStr, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
@@ -158,7 +160,7 @@ fun OrderDetailScreen(
 
                 // Customer Info Card
                 item {
-                    SectionHeader("Thông tin khách hàng")
+                    SectionHeader(stringResource(R.string.admin_order_customer_info))
                     Card(
                          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                          shape = RoundedCornerShape(12.dp),
@@ -194,7 +196,7 @@ fun OrderDetailScreen(
                                 Spacer(modifier = Modifier.width(16.dp))
                                 
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(order.userName.ifEmpty { "Khách lẻ" }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Text(order.userName.ifEmpty { stringResource(R.string.admin_order_guest) }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                     if (order.userPhone.isNotEmpty()) {
                                         Text(order.userPhone, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                                     }
@@ -221,7 +223,7 @@ fun OrderDetailScreen(
                                 Icon(Icons.Default.LocationOn, contentDescription = null, tint = PrimaryColor, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
-                                    Text("Địa chỉ giao hàng", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                                    Text(stringResource(R.string.admin_order_delivery_address), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                                     Text(order.address.getFullAddress(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                                 }
                             }
@@ -254,7 +256,7 @@ fun OrderDetailScreen(
                                 ) {
                                     Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Vị trí", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Text(stringResource(R.string.admin_order_location), color = MaterialTheme.colorScheme.onSecondaryContainer)
                                 }
 
                                 // Navigation Button
@@ -279,7 +281,7 @@ fun OrderDetailScreen(
                                 ) {
                                     Icon(Icons.Default.Directions, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Chỉ đường", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Text(stringResource(R.string.admin_order_directions), color = MaterialTheme.colorScheme.onPrimaryContainer)
                                 }
                             }
                         }
@@ -288,7 +290,7 @@ fun OrderDetailScreen(
 
                 // Item List
                 item {
-                    SectionHeader("Danh sách món (${order.items.size})")
+                    SectionHeader("${stringResource(R.string.admin_order_item_list)} (${order.items.size})")
                     Card(
                          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                          shape = RoundedCornerShape(12.dp),
@@ -310,7 +312,7 @@ fun OrderDetailScreen(
                 
                 // Payment Info
                 item {
-                    SectionHeader("Thanh toán")
+                    SectionHeader(stringResource(R.string.admin_order_payment))
                     Card(
                          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                          shape = RoundedCornerShape(12.dp),
@@ -318,23 +320,23 @@ fun OrderDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             // Subtotal
-                            PaymentRow("Tổng tiền hàng", order.subtotal)
+                            PaymentRow(stringResource(R.string.admin_order_payment_subtotal), order.subtotal)
                             
                             // Discounts
                             if (order.productDiscount > 0) {
-                                PaymentRow("Voucher giảm giá", -order.productDiscount, isDiscount = true)
+                                PaymentRow(stringResource(R.string.admin_order_payment_voucher), -order.productDiscount, isDiscount = true)
                             }
                             
                             // Shipping
-                            PaymentRow("Phí giao hàng", order.deliveryFee)
+                            PaymentRow(stringResource(R.string.admin_order_payment_shipping), order.deliveryFee)
                             if (order.shippingDiscount > 0) {
-                                PaymentRow("Voucher vận chuyển", -order.shippingDiscount, isDiscount = true)
+                                PaymentRow(stringResource(R.string.admin_order_payment_ship_voucher), -order.shippingDiscount, isDiscount = true)
                             }
                             
                             HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant)
                             
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Tổng thanh toán", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(stringResource(R.string.admin_order_payment_total), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Text(
                                     formatCurrency(order.total), 
                                     color = PrimaryColor, 
@@ -344,7 +346,7 @@ fun OrderDetailScreen(
                             }
                             
                              Text(
-                                if(order.paymentMethod == "COD") "Thanh toán khi nhận hàng (COD)" else "Đã thanh toán Online", 
+                                if(order.paymentMethod == "COD") stringResource(R.string.admin_order_payment_cod) else stringResource(R.string.admin_order_payment_online), 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, 
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 8.dp)
@@ -389,7 +391,7 @@ fun BottomActionBar(
                     modifier = Modifier.weight(1f).height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Từ chối")
+                    Text(stringResource(R.string.admin_order_reject_btn))
                 }
                 
                 Button(
@@ -398,7 +400,7 @@ fun BottomActionBar(
                     modifier = Modifier.weight(1.5f).height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Duyệt đơn")
+                    Text(stringResource(R.string.admin_order_action_approve))
                 }
             } else if (status == "PROCESSING") {
                  Button(
@@ -409,7 +411,7 @@ fun BottomActionBar(
                 ) {
                     Icon(Icons.Default.LocalShipping, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Giao cho Shipper")
+                    Text(stringResource(R.string.admin_order_action_ship))
                 }
             } else if (status == "DELIVERING") {
                  Button(
@@ -420,7 +422,7 @@ fun BottomActionBar(
                 ) {
                     Icon(Icons.Default.CheckCircle, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Hoàn thành đơn hàng")
+                    Text(stringResource(R.string.admin_order_action_complete))
                 }
             }
         }
@@ -452,7 +454,7 @@ fun OrderItemRow(item: OrderItem) {
              Text(formatCurrency(item.price), color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
              if (item.note != null && item.note.isNotEmpty()) {
                  Spacer(modifier = Modifier.height(4.dp))
-                 Text("Ghi chú: ${item.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                  Text("${stringResource(R.string.admin_order_note_prefix)} ${item.note}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
              }
          }
          
@@ -489,12 +491,12 @@ fun SectionHeader(title: String) {
 @Composable
 fun StatusBadge(status: String) {
     val (color, text) = when (status) {
-         "PENDING" -> PrimaryColor to "Chờ xác nhận"
-         "PROCESSING" -> Color(0xFFFF9800) to "Đang chế biến"
-         "DELIVERING" -> Color(0xFF2196F3) to "Đang giao"
-         "COMPLETED" -> SuccessGreen to "Hoàn thành"
-         "CANCELLED" -> Color.Gray to "Đã hủy"
-         "REJECTED" -> LightRed to "Đã từ chối"
+         "PENDING" -> PrimaryColor to stringResource(R.string.admin_order_status_pending)
+         "PROCESSING" -> Color(0xFFFF9800) to stringResource(R.string.admin_order_status_processing)
+         "DELIVERING" -> Color(0xFF2196F3) to stringResource(R.string.admin_order_status_delivering)
+         "COMPLETED" -> SuccessGreen to stringResource(R.string.admin_order_status_completed)
+         "CANCELLED" -> Color.Gray to stringResource(R.string.admin_order_status_cancelled)
+         "REJECTED" -> LightRed to stringResource(R.string.admin_order_status_rejected)
          else -> Color.Gray to status
     }
     

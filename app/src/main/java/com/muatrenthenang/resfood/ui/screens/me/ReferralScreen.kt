@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.viewmodel.ReferralViewModel
@@ -92,14 +94,14 @@ fun ReferralScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryColor.copy(alpha = 0.5f))
                 ) {
                     Text(
-                        text = "Xem lịch sử nhận quà",
+                        text = stringResource(R.string.referral_history_btn),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Điều khoản và Điều kiện áp dụng",
+                    text = stringResource(R.string.referral_terms),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
@@ -123,7 +125,7 @@ fun ReferralScreen(
             ) {
                 AsyncImage(
                     model = "https://lh3.googleusercontent.com/aida-public/AB6AXuDNikiEAGBi5if4iJnKT-7rKRwf-WSkOGzhxmhVlR5FYkXvCmuK12J3kGhDMo19IMV_VFgKW90fZYgSDQmpqr7OJIwRe6FTiEKZ50pAzEUkKOWFHMTIXbjpcijwMiUiH4aerXLhA8ly4IpvNfJh_XoYcK6_wWlYGLvDB1mGlNoaXf3M6y6pxM38xBy8fivnRYtGrEedhbOkEjx6Dd_2ifkgBBZvuH7RD7jJrqbn2164q34ooq23CB8_XEelAz3HW7krwx6jDgdAb_c",
-                    contentDescription = "Header Image",
+                    contentDescription = stringResource(R.string.referral_topbar_title),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -149,11 +151,17 @@ fun ReferralScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Headline
+                val headlineText = stringResource(R.string.referral_headline)
+                val headlineParts = headlineText.split("\n")
                 Text(
                     text = buildAnnotatedString {
-                        append("Chia sẻ niềm vui,\n")
-                        withStyle(style = SpanStyle(color = PrimaryColor)) {
-                            append("Nhận quà hấp dẫn!")
+                        if (headlineParts.size >= 2) {
+                            append(headlineParts[0] + "\n")
+                            withStyle(style = SpanStyle(color = PrimaryColor)) {
+                                append(headlineParts[1])
+                            }
+                        } else {
+                            append(headlineText)
                         }
                     },
                     textAlign = TextAlign.Center,
@@ -166,7 +174,7 @@ fun ReferralScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Gửi mã giới thiệu cho bạn bè để cùng nhận voucher 50k từ ResFood ngay hôm nay.",
+                    text = stringResource(R.string.referral_subtitle),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     fontSize = 14.sp
@@ -198,7 +206,7 @@ fun ReferralScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "MÃ GIỚI THIỆU CỦA BẠN",
+                            text = stringResource(R.string.referral_your_code_label),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -242,7 +250,7 @@ fun ReferralScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Sao chép", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.referral_copy_btn), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         
@@ -250,7 +258,7 @@ fun ReferralScreen(
                         if (uiState.totalReferred > 0) {
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Bạn đã mời ${uiState.totalReferred} người thành công!",
+                                text = stringResource(R.string.referral_success_count, uiState.totalReferred),
                                 fontSize = 13.sp,
                                 color = PrimaryColor,
                                 fontWeight = FontWeight.Medium
@@ -262,11 +270,12 @@ fun ReferralScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Share Button (Native)
+                val shareMsg = stringResource(R.string.referral_share_msg, uiState.referralCode)
                 Button(
                     onClick = {
                         val sendIntent: Intent = Intent().apply {
                             action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, "Tải ngay ResFood và nhập mã ${uiState.referralCode} để nhận voucher 50k! Link: https://resfood.com")
+                            putExtra(Intent.EXTRA_TEXT, shareMsg)
                             type = "text/plain"
                         }
                         val shareIntent = Intent.createChooser(sendIntent, null)
@@ -280,7 +289,7 @@ fun ReferralScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Share, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Chia sẻ ngay", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = stringResource(R.string.referral_share_btn), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))
@@ -319,7 +328,7 @@ fun EnterReferralCodeCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Bạn có mã giới thiệu?",
+                    text = stringResource(R.string.referral_have_code_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -329,7 +338,7 @@ fun EnterReferralCodeCard(
             Spacer(modifier = Modifier.height(4.dp))
             
             Text(
-                text = "Còn $remainingHours giờ để nhập mã",
+                text = stringResource(R.string.referral_remaining_time, remainingHours),
                 fontSize = 12.sp,
                 color = PrimaryColor
             )
@@ -343,7 +352,7 @@ fun EnterReferralCodeCard(
                 OutlinedTextField(
                     value = inputCode,
                     onValueChange = onCodeChange,
-                    placeholder = { Text("Nhập mã 10 ký tự") },
+                    placeholder = { Text(stringResource(R.string.referral_input_placeholder)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
@@ -366,7 +375,7 @@ fun EnterReferralCodeCard(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Áp dụng", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.referral_apply_btn), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -392,13 +401,13 @@ fun ReferralTopBar(onBack: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.common_back),
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
         Text(
-            text = "Mời bạn bè nhận quà",
+            text = stringResource(R.string.referral_topbar_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
@@ -412,7 +421,7 @@ fun ReferralTopBar(onBack: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = "Info",
+                contentDescription = stringResource(R.string.me_utilities), // Using a generic localized description
                 tint = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -424,12 +433,12 @@ fun ReferralSteps(steps: List<ReferralStep>) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-        steps.forEachIndexed { index, step ->
+        for (step in steps) {
             ReferralStepItem(
                 step = step.step,
-                title = step.title,
-                description = step.description,
-                isLast = index == steps.size - 1
+                title = stringResource(step.titleResId),
+                description = stringResource(step.descriptionResId),
+                isLast = step == steps.last()
             )
         }
     }

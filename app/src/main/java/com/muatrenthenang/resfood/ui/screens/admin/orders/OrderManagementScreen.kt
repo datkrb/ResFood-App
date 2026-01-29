@@ -35,7 +35,10 @@ import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.theme.LightRed
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,10 +53,18 @@ fun OrderManagementScreen(
     val pullRefreshState = rememberPullToRefreshState()
     // Tabs matching User Order Screen style but for Admin
     val tabs = listOf("PENDING", "PROCESSING", "DELIVERING", "COMPLETED", "CANCELLED", "REJECTED", "ALL")
-    val tabTitles = listOf("Chờ duyệt", "Đang chế biến", "Đang giao", "Hoàn thành", "Đã hủy", "Đã từ chối", "Tất cả")
+    val tabTitles = listOf(
+        stringResource(R.string.admin_order_tab_pending),
+        stringResource(R.string.admin_order_tab_processing),
+        stringResource(R.string.admin_order_tab_delivering),
+        stringResource(R.string.admin_order_tab_completed),
+        stringResource(R.string.admin_order_tab_cancelled),
+        stringResource(R.string.admin_order_tab_rejected),
+        stringResource(R.string.admin_order_tab_all)
+    )
     
     var selectedTabIndex by remember { mutableStateOf(0) } // Default to PENDING
-    var selectedDateFilter by remember { mutableStateOf("Tất cả") }
+    var selectedDateFilter by remember { mutableStateOf("ALL") } // Using Internal Key for simplicity, mapped to display below
     var searchQuery by remember { mutableStateOf("") }
 
     // Filter Logic
@@ -65,11 +76,11 @@ fun OrderManagementScreen(
         }
         
         val matchesDate = when(selectedDateFilter) {
-            "Hôm nay" -> {
+            "TODAY" -> {
                 val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
                 diff < 24 * 60 * 60 * 1000
             }
-            "Tuần này" -> {
+            "WEEK" -> {
                 val diff = System.currentTimeMillis() - (order.createdAt?.toDate()?.time ?: 0)
                 diff < 7 * 24 * 60 * 60 * 1000
             }
@@ -92,14 +103,14 @@ fun OrderManagementScreen(
     if (showRejectDialog && orderToReject != null) {
         AlertDialog(
             onDismissRequest = { showRejectDialog = false },
-            title = { Text("Từ chối đơn hàng?", fontWeight = FontWeight.Bold) },
-            text = { Text("Bạn có chắc chắn muốn từ chối đơn hàng #${orderToReject?.id?.takeLast(5)?.uppercase()} không?") },
+            title = { Text(stringResource(R.string.admin_order_reject_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.admin_order_reject_msg, orderToReject?.id?.takeLast(5)?.uppercase() ?: "")) },
             confirmButton = {
                 Button(
                     onClick = {
                         orderToReject?.let { order ->
                             viewModel.rejectOrder(order.id) {
-                                Toast.makeText(context, "Đã từ chối đơn hàng thành công", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, R.string.admin_order_msg_rejected, Toast.LENGTH_SHORT).show()
                             }
                         }
                         showRejectDialog = false
@@ -107,12 +118,12 @@ fun OrderManagementScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
-                    Text("Từ chối", color = Color.White)
+                    Text(stringResource(R.string.admin_order_reject_btn), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRejectDialog = false }) {
-                    Text("Hủy", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -124,15 +135,15 @@ fun OrderManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý đơn hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_order_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = {}) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Alerts")
+                        Icon(Icons.Default.Notifications, contentDescription = stringResource(R.string.common_alerts))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -166,11 +177,16 @@ fun OrderManagementScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf("Tất cả", "Hôm nay", "Tuần này").forEach { filter ->
+                val filters = listOf(
+                    "ALL" to stringResource(R.string.admin_order_tab_all),
+                    "TODAY" to stringResource(R.string.admin_order_filter_date_today),
+                    "WEEK" to stringResource(R.string.admin_order_filter_date_week)
+                )
+                filters.forEach { (key, title) ->
                     FilterChip(
-                        selected = selectedDateFilter == filter,
-                        onClick = { selectedDateFilter = filter },
-                        label = { Text(filter) }
+                        selected = selectedDateFilter == key,
+                        onClick = { selectedDateFilter = key },
+                        label = { Text(title) }
                     )
                 }
             }
@@ -258,14 +274,14 @@ fun OrderManagementScreen(
                    ) {
                        val headerTitle = tabTitles[selectedTabIndex]
                        Text(headerTitle, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                       Text("${filteredOrders.size} Đơn", color = LightRed, fontWeight = FontWeight.Bold)
+                        Text("${filteredOrders.size} ${stringResource(R.string.admin_order_count_suffix)}", color = LightRed, fontWeight = FontWeight.Bold)
                    }
                 }
 
                 if (filteredOrders.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("Không có đơn hàng nào", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.admin_order_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -278,7 +294,7 @@ fun OrderManagementScreen(
                         onClick = { onNavigateToDetail(order.id) },
                         onAccept = { 
                             viewModel.approveOrder(order.id) {
-                                Toast.makeText(context, "Đã duyệt đơn hàng thành công", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, R.string.admin_order_msg_approved, Toast.LENGTH_SHORT).show()
                             } 
                         },
                         onReject = { 
@@ -316,7 +332,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
             modifier = Modifier.weight(1f),
             decorationBox = { innerTextField ->
                 if (query.isEmpty()) {
-                    Text("Tìm mã đơn, tên khách, SĐT...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.admin_order_search_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 innerTextField()
             }
@@ -348,7 +364,7 @@ fun OrderItem(
                     if (userAvatar != null) {
                          AsyncImage(
                             model = userAvatar,
-                            contentDescription = "Avatar",
+                            contentDescription = stringResource(R.string.common_avatar),
                             modifier = Modifier.size(40.dp).clip(CircleShape),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                         )
@@ -366,10 +382,10 @@ fun OrderItem(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text(order.userName.ifEmpty { "Khách lẻ" }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Text(order.userName.ifEmpty { stringResource(R.string.admin_order_guest) }, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         val date = if(order.createdAt != null) {
                              java.text.SimpleDateFormat("HH:mm").format(order.createdAt.toDate())
-                        } else "Vừa xong"
+                        } else stringResource(R.string.admin_order_just_now)
                         Text(date + " • #" + order.id.takeLast(6).uppercase(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
@@ -391,12 +407,12 @@ fun OrderItem(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     val statusLabel = when(order.status) {
-                        "PENDING" -> "Mới"
-                        "PROCESSING" -> "Đang làm"
-                        "DELIVERING" -> "Đang giao"
-                        "COMPLETED" -> "Xong"
-                        "CANCELLED" -> "Hủy"
-                        "REJECTED" -> "Từ chối"
+                        "PENDING" -> stringResource(R.string.admin_order_status_short_pending)
+                        "PROCESSING" -> stringResource(R.string.admin_order_status_short_processing)
+                        "DELIVERING" -> stringResource(R.string.admin_order_status_short_delivering)
+                        "COMPLETED" -> stringResource(R.string.admin_order_status_short_completed)
+                        "CANCELLED" -> stringResource(R.string.admin_order_status_short_cancelled)
+                        "REJECTED" -> stringResource(R.string.admin_order_status_short_rejected)
                         else -> order.status
                     }
                     Text(statusLabel, color = badgeText, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -412,7 +428,7 @@ fun OrderItem(
                 Text("${item.quantity}x ${item.foodName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
             }
             if(order.items.size > 2) {
-                Text("+ ${order.items.size - 2} món khác", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                Text(stringResource(R.string.admin_order_more_items, order.items.size - 2), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -424,7 +440,7 @@ fun OrderItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Tổng tiền", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(stringResource(R.string.admin_order_total), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     val formattedTotal = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN")).format(order.total)
                     Text(formattedTotal, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
@@ -443,7 +459,7 @@ fun OrderItem(
                                .clickable { onReject() },
                            contentAlignment = Alignment.Center
                        ) {
-                           Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.LightGray)
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.admin_order_reject_btn), tint = Color.LightGray)
                        }
                        
                        // Approve Button
@@ -452,9 +468,9 @@ fun OrderItem(
                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                            shape = RoundedCornerShape(20.dp)
                        ) {
-                           Text("Duyệt")
-                       }
-                   }
+                            Text(stringResource(R.string.admin_order_approve_btn))
+                        }
+                    }
                 }
             }
         }

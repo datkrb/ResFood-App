@@ -32,6 +32,8 @@ import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Food
 import com.muatrenthenang.resfood.data.model.Review
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +60,7 @@ fun ReviewManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý đánh giá", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.review_mgmt_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -89,7 +91,7 @@ fun ReviewManagementScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (selectedCategory == "All") "Tất cả danh mục" else selectedCategory,
+                                    text = if (selectedCategory == "All") stringResource(R.string.review_filter_all_cats) else selectedCategory,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -102,7 +104,7 @@ fun ReviewManagementScreen(
                         ) {
                             state.categories.forEach { category ->
                                 DropdownMenuItem(
-                                    text = { Text(if (category == "All") "Tất cả danh mục" else category) },
+                                    text = { Text(if (category == "All") stringResource(R.string.review_filter_all_cats) else category) },
                                     onClick = {
                                         selectedCategory = category
                                         expanded = false
@@ -169,7 +171,7 @@ fun ReviewManagementScreen(
                             Icon(Icons.Default.ArrowBack, contentDescription = "Back to list")
                         }
                         Text(
-                            text = "Đánh giá: ${selectedFood?.name}",
+                            text = stringResource(R.string.review_detail_header, selectedFood?.name ?: ""),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -187,7 +189,7 @@ fun ReviewManagementScreen(
                                 FilterChip(
                                     selected = selectedRatingFilter == null,
                                     onClick = { selectedRatingFilter = null },
-                                    label = { Text("Tất cả") }
+                                    label = { Text(stringResource(R.string.filter_all)) }
                                 )
                             }
                             items((5 downTo 1).toList()) { star ->
@@ -214,7 +216,7 @@ fun ReviewManagementScreen(
 
                 if (filteredReviews.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Không có đánh giá nào phù hợp", color = Color.Gray)
+                        Text(stringResource(R.string.review_empty_filtered), color = Color.Gray)
                     }
                 } else {
                     LazyColumn(
@@ -238,8 +240,8 @@ fun ReviewManagementScreen(
         if (showDeleteConfirm) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirm = false },
-                title = { Text("Xóa đánh giá?") },
-                text = { Text("Bạn có chắc muốn xóa đánh giá của ${reviewToDelete?.userName}?") },
+                title = { Text(stringResource(R.string.review_confirm_delete_title)) },
+                text = { Text(stringResource(R.string.review_confirm_delete_msg, reviewToDelete?.userName ?: "")) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -251,12 +253,12 @@ fun ReviewManagementScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                     ) {
-                        Text("Xóa")
+                        Text(stringResource(R.string.action_delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = false }) {
-                        Text("Hủy")
+                        Text(stringResource(R.string.common_cancel))
                     }
                 }
             )
@@ -305,7 +307,7 @@ fun FoodReviewCard(food: Food, onClick: () -> Unit) {
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp))
-                    Text(text = " ${food.rating} (${food.reviews.size} đánh giá)", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text(text = stringResource(R.string.review_food_stats, food.rating.toString(), food.reviews.size), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 }
             }
         }
@@ -327,7 +329,7 @@ fun AdminReviewItem(review: Review, onDelete: () -> Unit) {
             ) {
                 Column {
                     Text(
-                        text = review.userName.ifEmpty { "Người dùng ẩn danh" },
+                        text = review.userName.ifEmpty { stringResource(R.string.review_anonymous) },
                         fontWeight = FontWeight.Bold
                     )
                     Text(

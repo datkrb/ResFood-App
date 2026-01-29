@@ -19,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.components.AdminBottomNavigation
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +39,7 @@ fun ManagementHubScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Trung tâm quản lý", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.hub_title), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -64,7 +66,7 @@ fun ManagementHubScreen(
         ) {
             // Section 1: Data Management (Promo, Cust, Food, Cat)
             Text(
-                text = "Quản lý dữ liệu",
+                text = stringResource(R.string.hub_section_data),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
@@ -78,7 +80,7 @@ fun ManagementHubScreen(
             ) {
                 item {
                     ManagementHubItem(
-                        title = "Khuyến mãi",
+                        title = stringResource(R.string.hub_item_promo),
                         icon = Icons.Default.Campaign,
                         color = Color(0xFF9C27B0), // Purple
                         onClick = onNavigateToPromo
@@ -86,7 +88,7 @@ fun ManagementHubScreen(
                 }
                 item {
                     ManagementHubItem(
-                        title = "Khách hàng",
+                        title = stringResource(R.string.hub_item_customer),
                         icon = Icons.Default.People,
                         color = Color(0xFFFF9800), // Orange
                         onClick = onNavigateToCustomers
@@ -94,7 +96,7 @@ fun ManagementHubScreen(
                 }
                 item {
                     ManagementHubItem(
-                        title = "Món ăn",
+                        title = stringResource(R.string.hub_item_food),
                         icon = Icons.Default.Fastfood,
                         color = Color(0xFF4CAF50), // Green
                         onClick = onNavigateToFoodManagement
@@ -102,7 +104,7 @@ fun ManagementHubScreen(
                 }
                 item {
                     ManagementHubItem(
-                        title = "Danh mục",
+                        title = stringResource(R.string.hub_item_category),
                         icon = Icons.Default.Category,
                         color = Color(0xFF2196F3), // Blue
                         onClick = onNavigateToCategory
@@ -110,7 +112,7 @@ fun ManagementHubScreen(
                 }
                 item {
                     ManagementHubItem(
-                        title = "Đánh giá",
+                        title = stringResource(R.string.hub_item_review),
                         icon = Icons.Default.Star,
                         color = Color(0xFFFFC107), // Amber
                         onClick = onNavigateToReviews
@@ -120,7 +122,7 @@ fun ManagementHubScreen(
 
             // Section 2: Operations (Orders, Tables)
             Text(
-                text = "Vận hành",
+                text = stringResource(R.string.hub_section_ops),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold
@@ -132,14 +134,14 @@ fun ManagementHubScreen(
             ) {
                 ManagementHubLargeItem(
                     modifier = Modifier.weight(1f),
-                    title = "Đơn hàng",
+                    title = stringResource(R.string.hub_item_order),
                     icon = Icons.Default.ReceiptLong,
                     color = Color(0xFFFFC107), // Amber
                     onClick = onNavigateToOrders
                 )
                 ManagementHubLargeItem(
                     modifier = Modifier.weight(1f),
-                    title = "Đặt bàn",
+                    title = stringResource(R.string.hub_item_table),
                     icon = Icons.Default.TableRestaurant,
                     color = Color(0xFF009688), // Teal
                     onClick = onNavigateToTables
