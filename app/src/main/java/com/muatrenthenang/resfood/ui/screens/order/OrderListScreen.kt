@@ -409,6 +409,7 @@ fun getStatusDisplay(status: String): Pair<String, Color> {
         "DELIVERING" -> stringResource(R.string.status_display_delivering) to Color(0xFF3B82F6) // Blue
         "COMPLETED" -> stringResource(R.string.status_display_completed) to SuccessGreen
         "CANCELLED" -> stringResource(R.string.status_display_cancelled) to Color.Red
+        "REJECTED" -> stringResource(R.string.admin_order_status_rejected) to Color(0xFFDC2626) // Red
         else -> status to Color.Gray
     }
 }

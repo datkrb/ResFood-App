@@ -27,7 +27,11 @@ data class Order(
     val shippingDiscount: Int = 0,            // Tiền giảm từ voucher ship
     
     // === REVIEW ===
-    val isReviewed: Boolean = false
+    val isReviewed: Boolean = false,
+    
+    // === REJECTION ===
+    val rejectionReason: String? = null,      // Lý do từ chối từ admin
+    val rejectedAt: Timestamp? = null         // Thời gian từ chối
 )
 
 data class OrderItem(

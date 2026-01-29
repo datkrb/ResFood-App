@@ -98,23 +98,70 @@ fun OrderManagementScreen(
     // State for Reject Dialog
     var showRejectDialog by remember { mutableStateOf(false) }
     var orderToReject by remember { mutableStateOf<Order?>(null) }
+    var rejectionReason by remember { mutableStateOf("") }
+    var rejectionError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     if (showRejectDialog && orderToReject != null) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
+            onDismissRequest = { 
+                showRejectDialog = false
+                rejectionReason = ""
+                rejectionError = null
+            },
             title = { Text(stringResource(R.string.admin_order_reject_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.admin_order_reject_msg, orderToReject?.id?.takeLast(5)?.uppercase() ?: "")) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Vui lòng nhập lý do từ chối đơn hàng #${orderToReject?.id?.takeLast(6)?.uppercase() ?: ""}:")
+                    
+                    OutlinedTextField(
+                        value = rejectionReason,
+                        onValueChange = { 
+                            rejectionReason = it
+                            rejectionError = null
+                        },
+                        label = { Text("Lý do từ chối") },
+                        placeholder = { Text("Ví dụ: Sản phẩm tạm hết hàng, không thể giao đến địa chỉ này...") },
+                        isError = rejectionError != null,
+                        supportingText = {
+                            if (rejectionError != null) {
+                                Text(rejectionError!!, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Text("Tối thiểu 10 ký tự", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                }
+            },
             confirmButton = {
                 Button(
                     onClick = {
-                        orderToReject?.let { order ->
-                            viewModel.rejectOrder(order.id) {
-                                Toast.makeText(context, R.string.admin_order_msg_rejected, Toast.LENGTH_SHORT).show()
+                        when {
+                            rejectionReason.isBlank() -> {
+                                rejectionError = "Vui lòng nhập lý do từ chối"
+                            }
+                            rejectionReason.length < 10 -> {
+                                rejectionError = "Lý do phải có ít nhất 10 ký tự"
+                            }
+                            else -> {
+                                orderToReject?.let { order ->
+                                    viewModel.rejectOrder(order.id, rejectionReason) {
+                                        Toast.makeText(context, R.string.admin_order_msg_rejected, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                showRejectDialog = false
+                                orderToReject = null
+                                rejectionReason = ""
+                                rejectionError = null
                             }
                         }
-                        showRejectDialog = false
-                        orderToReject = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
@@ -122,7 +169,11 @@ fun OrderManagementScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { 
+                    showRejectDialog = false
+                    rejectionReason = ""
+                    rejectionError = null
+                }) {
                     Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },

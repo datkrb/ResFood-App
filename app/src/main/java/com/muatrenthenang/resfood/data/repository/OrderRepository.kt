@@ -52,6 +52,20 @@ class OrderRepository {
         }
     }
 
+    suspend fun rejectOrderWithReason(orderId: String, reason: String): Result<Boolean> {
+        return try {
+            val updates = mapOf(
+                "status" to "REJECTED",
+                "rejectionReason" to reason,
+                "rejectedAt" to com.google.firebase.Timestamp.now()
+            )
+            ordersRef.document(orderId).update(updates).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getOrderById(orderId: String): Result<Order> {
          return try {
             val doc = ordersRef.document(orderId).get().await()

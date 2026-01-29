@@ -126,6 +126,11 @@ fun UserOrderDetailScreen(
             // Status Card
             OrderStatusCard(order = order)
 
+            // Rejection Reason Card (if rejected)
+            if (order.status == "REJECTED" && !order.rejectionReason.isNullOrBlank()) {
+                RejectionReasonCard(order = order)
+            }
+
             // Delivery Info
             DeliveryInfoCard(order = order)
 
@@ -736,4 +741,64 @@ fun ReviewSelectionDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
         }
     )
+}
+
+@Composable
+fun RejectionReasonCard(order: Order) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFDC2626).copy(alpha = 0.1f), // Light red background
+        modifier = Modifier.fillMaxWidth(),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDC2626).copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = null,
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Đơn hàng bị từ chối",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFDC2626)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "Lý do:",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = order.rejectionReason ?: "",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
+            )
+            
+            if (order.rejectedAt != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
+                Text(
+                    text = "Thời gian: ${dateFormat.format(order.rejectedAt.toDate())}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
+        }
+    }
 }

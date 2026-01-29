@@ -49,22 +49,69 @@ fun OrderDetailScreen(
     
     // State for Reject Dialog
     var showRejectDialog by remember { mutableStateOf(false) }
+    var rejectionReason by remember { mutableStateOf("") }
+    var rejectionError by remember { mutableStateOf<String?>(null) }
 
     if (showRejectDialog) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
+            onDismissRequest = { 
+                showRejectDialog = false
+                rejectionReason = ""
+                rejectionError = null
+            },
             title = { Text(stringResource(R.string.admin_order_reject_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.admin_order_reject_confirm_msg)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Vui lòng nhập lý do từ chối đơn hàng này:")
+                    
+                    OutlinedTextField(
+                        value = rejectionReason,
+                        onValueChange = { 
+                            rejectionReason = it
+                            rejectionError = null
+                        },
+                        label = { Text("Lý do từ chối") },
+                        placeholder = { Text("Ví dụ: Sản phẩm tạm hết hàng, không thể giao đến địa chỉ này...") },
+                        isError = rejectionError != null,
+                        supportingText = {
+                            if (rejectionError != null) {
+                                Text(rejectionError!!, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                Text("Tối thiểu 10 ký tự", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                }
+            },
             confirmButton = {
                 Button(
                     onClick = {
-                        if (order != null) {
-                            viewModel.rejectOrder(order.id) {
-                                Toast.makeText(context, context.getString(R.string.admin_order_msg_rejected), Toast.LENGTH_SHORT).show()
-                                onNavigateBack()
+                        when {
+                            rejectionReason.isBlank() -> {
+                                rejectionError = "Vui lòng nhập lý do từ chối"
+                            }
+                            rejectionReason.length < 10 -> {
+                                rejectionError = "Lý do phải có ít nhất 10 ký tự"
+                            }
+                            else -> {
+                                if (order != null) {
+                                    viewModel.rejectOrder(order.id, rejectionReason) {
+                                        Toast.makeText(context, context.getString(R.string.admin_order_msg_rejected), Toast.LENGTH_SHORT).show()
+                                        onNavigateBack()
+                                    }
+                                }
+                                showRejectDialog = false
+                                rejectionReason = ""
+                                rejectionError = null
                             }
                         }
-                        showRejectDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = LightRed)
                 ) {
@@ -72,7 +119,11 @@ fun OrderDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showRejectDialog = false }) {
+                TextButton(onClick = { 
+                    showRejectDialog = false
+                    rejectionReason = ""
+                    rejectionError = null
+                }) {
                     Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
@@ -155,6 +206,13 @@ fun OrderDetailScreen(
                         }
                         
                         StatusBadge(order.status)
+                    }
+                }
+
+                // Rejection Reason Card (if rejected)
+                if (order.status == "REJECTED" && !order.rejectionReason.isNullOrBlank()) {
+                    item {
+                        AdminRejectionReasonCard(order = order)
                     }
                 }
 
@@ -516,6 +574,58 @@ fun StatusBadge(status: String) {
              Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
              Spacer(modifier = Modifier.width(6.dp))
              Text(text, color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun AdminRejectionReasonCard(order: Order) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = LightRed.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth(),
+        border = androidx.compose.foundation.BorderStroke(1.dp, LightRed.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = null,
+                    tint = LightRed,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Lý do từ chối",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LightRed
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = order.rejectionReason ?: "",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
+            )
+            
+            if (order.rejectedAt != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale("vi", "VN"))
+                Text(
+                    text = "Thời gian từ chối: ${dateFormat.format(order.rejectedAt.toDate())}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
         }
     }
 }
