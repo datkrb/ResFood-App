@@ -2,7 +2,10 @@ package com.muatrenthenang.resfood.ui.screens.home.card_food
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+
 import androidx.compose.foundation.clickable
+import java.text.NumberFormat
+import java.util.Locale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -112,7 +115,7 @@ fun CardFood(
                 ) {
 
                     Text(
-                        text = stringResource(R.string.price_format_vnd, food.price),
+                        text = stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(food.price)),
                         color = PrimaryColor.copy(alpha = 0.9f), // xanh dương
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

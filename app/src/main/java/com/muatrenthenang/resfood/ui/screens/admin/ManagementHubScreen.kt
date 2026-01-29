@@ -107,7 +107,7 @@ fun ManagementHubScreen(
                 }
                 item {
                      ManagementHubItem(
-                        title = "Topping",
+                        title = stringResource(R.string.hub_item_topping),
                         icon = Icons.Default.Icecream,
                         color = Color(0xFFE91E63), // Pink
                         onClick = onNavigateToTopping
@@ -115,7 +115,7 @@ fun ManagementHubScreen(
                 }
                 item {
                      ManagementHubItem(
-                        title = "Nhà hàng",
+                        title = stringResource(R.string.hub_item_branch),
                         icon = Icons.Default.Store,
                         color = Color(0xFF795548), // Brown
                         onClick = onNavigateToBranch
