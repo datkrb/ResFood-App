@@ -93,7 +93,7 @@ fun AppLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = 90.dp, end = 24.dp), 
+                        .padding(bottom = 120.dp, end = 24.dp), 
                     contentAlignment = androidx.compose.ui.Alignment.BottomEnd
                 ) {
                    DraggableChatBubble(
