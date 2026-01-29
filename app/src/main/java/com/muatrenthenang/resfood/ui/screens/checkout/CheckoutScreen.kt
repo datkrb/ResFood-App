@@ -234,7 +234,11 @@ fun CheckoutScreen(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Column {
                             Text(text = stringResource(R.string.checkout_total_label), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f), fontSize = 12.sp)
-                            Text(text = vm.formatCurrency(total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            if (isLoading) {
+                                Text(text = "...", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            } else {
+                                Text(text = vm.formatCurrency(total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                         Button(
                             onClick = { 
@@ -475,7 +479,11 @@ fun CheckoutScreen(
                             Divider()
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(text = stringResource(R.string.cart_total), fontWeight = FontWeight.Bold)
-                                Text(text = vm.formatCurrency(total), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
+                                if (isLoading) {
+                                     Box(modifier = Modifier.size(20.dp).background(Color.LightGray, RoundedCornerShape(4.dp)))
+                                } else {
+                                     Text(text = vm.formatCurrency(total), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PrimaryColor)
+                                }
                             }
                         }
                     }

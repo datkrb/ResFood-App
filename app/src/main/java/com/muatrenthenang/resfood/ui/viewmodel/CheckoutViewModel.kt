@@ -64,8 +64,22 @@ class CheckoutViewModel(
     private val _selectedShippingVoucher = MutableStateFlow<Promotion?>(null)
     val selectedShippingVoucher = _selectedShippingVoucher.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
+    // --- LOADING STATES ---
+    private val _cartLoading = MutableStateFlow(true)
+    private val _addressLoading = MutableStateFlow(true)
+    private val _shippingLoading = MutableStateFlow(true)
+    private val _promotionsLoading = MutableStateFlow(true)
+    private val _actionLoading = MutableStateFlow(false)
+
+    val isLoading: StateFlow<Boolean> = kotlinx.coroutines.flow.combine(
+        _cartLoading,
+        _addressLoading,
+        _shippingLoading,
+        _promotionsLoading,
+        _actionLoading
+    ) { cart, address, shipping, promo, action ->
+        cart || address || shipping || promo || action
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), true)
 
     private val _actionResult = MutableStateFlow<String?>(null)
     val actionResult = _actionResult.asStateFlow()
@@ -95,8 +109,13 @@ class CheckoutViewModel(
      */
     private fun loadShippingFee() {
         viewModelScope.launch {
-            _branchRepository.getPrimaryBranch().onSuccess { branch ->
-                _shippingFee.value = branch.shippingFee
+            _shippingLoading.value = true
+            try {
+                _branchRepository.getPrimaryBranch().onSuccess { branch ->
+                    _shippingFee.value = branch.shippingFee
+                }
+            } finally {
+                _shippingLoading.value = false
             }
         }
     }
@@ -109,6 +128,7 @@ class CheckoutViewModel(
             val userId = _authRepository.getCurrentUserId() ?: return@launch
             val result = _promotionRepository.getPromotionsForUser(userId)
             _availablePromotions.value = result.getOrNull() ?: emptyList()
+            _promotionsLoading.value = false
         }
     }
 
@@ -124,7 +144,14 @@ class CheckoutViewModel(
      * Load địa chỉ mặc định từ Firebase
      */
     fun loadDefaultAddress() {
+        loadDefaultAddressInternal()
+    }
+    
+
+    
+    private fun loadDefaultAddressInternal() {
         viewModelScope.launch {
+            _addressLoading.value = true
             try {
                 val result = _userRepository.getDefaultAddress()
                 if (result.isSuccess) {
@@ -158,13 +185,15 @@ class CheckoutViewModel(
                     contactName = "",
                     phone = ""
                 )
+            } finally {
+                _addressLoading.value = false
             }
         }
     }
 
     fun loadSelectedCartItems() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _cartLoading.value = true
             try {
                 val result = _repository.getSelectedCartItems()
                 if (result.isSuccess) {
@@ -177,7 +206,7 @@ class CheckoutViewModel(
                 _items.value = emptyList()
                 _actionResult.value = e.localizedMessage
             } finally {
-                _isLoading.value = false
+                _cartLoading.value = false
             }
         }
     }
@@ -240,8 +269,6 @@ class CheckoutViewModel(
         (sub + ship - disc).coerceAtLeast(0L)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), 0L)
 
-    // ... (rest of functions) ...
-
     /**
      * Xác nhận đơn hàng và tạo Order trong Firebase
      */
@@ -261,7 +288,7 @@ class CheckoutViewModel(
                 return@launch
             }
 
-            _isLoading.value = true
+            _actionLoading.value = true
 
             try {
                 // Get current user ID
@@ -329,7 +356,7 @@ class CheckoutViewModel(
             } catch (e: Exception) {
                 _actionResult.value = e.message ?: "Đã xảy ra lỗi"
             } finally {
-                _isLoading.value = false
+                _actionLoading.value = false
             }
         }
     }
@@ -352,7 +379,7 @@ class CheckoutViewModel(
                 return@launch
             }
 
-            _isLoading.value = true
+            _actionLoading.value = true
             try {
                 val userId = _authRepository.getCurrentUserId() ?: ""
                  // Convert items
@@ -434,7 +461,7 @@ class CheckoutViewModel(
             } catch (e: Exception) {
                 _actionResult.value = "Lỗi: ${e.message}"
             } finally {
-                _isLoading.value = false
+                _actionLoading.value = false
             }
         }
     }
