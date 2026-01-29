@@ -59,7 +59,8 @@ fun DraggableChatBubble(
                     text = if (unreadCount > 99) "99+" else unreadCount.toString(),
                     color = Color.White,
                     fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 11.sp
                 )
             }
         }

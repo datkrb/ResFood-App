@@ -181,12 +181,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 subtitleResId = R.string.me_util_help_sub,
                 iconType = UtilityIconType.HELP
             ),
-            UtilityMenuOption(
-                id = "payment",
-                titleResId = R.string.me_util_payment,
-                subtitleResId = R.string.me_util_payment_sub,
-                iconType = UtilityIconType.PAYMENT
-            )
+//            UtilityMenuOption(
+//                id = "payment",
+//                titleResId = R.string.me_util_payment,
+//                subtitleResId = R.string.me_util_payment_sub,
+//                iconType = UtilityIconType.PAYMENT
+//            )
         )
         _voucherCount.value = voucherCount
     }

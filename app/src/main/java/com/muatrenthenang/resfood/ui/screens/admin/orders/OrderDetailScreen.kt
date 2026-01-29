@@ -283,6 +283,15 @@ fun OrderDetailScreen(
                                 Column {
                                     Text(stringResource(R.string.admin_order_delivery_address), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                                     Text(order.address.getFullAddress(), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
+                                    if (order.distanceText != null) {
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "Khoảng cách: ${order.distanceText}",
+                                            color = PrimaryColor,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
                                 }
                             }
                             
@@ -386,7 +395,7 @@ fun OrderDetailScreen(
                             }
                             
                             // Shipping
-                            PaymentRow(stringResource(R.string.admin_order_payment_shipping), order.deliveryFee)
+                            PaymentRow(stringResource(R.string.admin_order_payment_shipping) + if (order.distanceText != null) " (${order.distanceText})" else "", order.deliveryFee)
                             if (order.shippingDiscount > 0) {
                                 PaymentRow(stringResource(R.string.admin_order_payment_ship_voucher), -order.shippingDiscount, isDiscount = true)
                             }

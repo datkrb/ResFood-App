@@ -34,6 +34,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.ui.viewmodel.UserViewModel
 import com.muatrenthenang.resfood.ui.components.FoodItemSkeleton
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.ui.graphics.Color
+import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 
 @Composable
 fun HomeScreen(
@@ -52,12 +64,28 @@ fun HomeScreen(
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
     val addToCartResult by homeViewModel.addToCartResult.collectAsState()
 
+    var showFilterDialog by remember { mutableStateOf(false) }
+
     // Show toast when add to cart result changes
     LaunchedEffect(addToCartResult) {
         addToCartResult?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             homeViewModel.clearAddToCartResult()
         }
+    }
+    
+    // Filter Dialog
+    if (showFilterDialog) {
+        HomeFilterDialog(
+            currentMinPrice = uiState.minPrice,
+            currentMaxPrice = uiState.maxPrice,
+            currentMinRating = uiState.minRating,
+            currentCategory = uiState.selectedCategory,
+            onApply = { minP, maxP, minR, cat ->
+                homeViewModel.setFilters(minP, maxP, minR, cat)
+            },
+            onDismiss = { showFilterDialog = false }
+        )
     }
 
     if (uiState.isLoading) {
@@ -91,10 +119,35 @@ fun HomeScreen(
                         onNotificationClick = onNavigateToNotifications,
                         onProfileClick = onNavigateToProfile
                     )
-                    SearchBar(
-                        searchText = uiState.searchQuery,
-                        onSearchTextChanged = { homeViewModel.setSearchQuery(it) }
-                    )
+                    // Search and Filter Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        SearchBar(
+                            modifier = Modifier.weight(1f),
+                            searchText = uiState.searchQuery,
+                            onSearchTextChanged = { homeViewModel.setSearchQuery(it) }
+                        )
+                        
+                        // Filter Button
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = PrimaryColor,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clickable { showFilterDialog = true }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = "Filter",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
                     BookingBanner(onClick = onNavigateToBooking)
                     Row(
                         modifier = Modifier.fillMaxWidth(),

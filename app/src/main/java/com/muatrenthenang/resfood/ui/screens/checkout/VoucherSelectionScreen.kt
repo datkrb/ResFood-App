@@ -19,6 +19,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,7 @@ fun VoucherSelectionScreen(
     currentProductVoucher: Promotion?,
     currentShippingVoucher: Promotion?,
     promotions: List<Promotion>,
+    orderTotal: Long,
     onApplyVouchers: (Promotion?, Promotion?) -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -175,15 +177,20 @@ fun VoucherSelectionScreen(
                             tempShippingVoucher?.id == promo.id
                         }
 
+                        val isEligible = orderTotal >= promo.minOrderValue
+
                         VoucherSelectionCard(
                             promotion = promo,
                             isSelected = isSelected,
+                            isEligible = isEligible,
                             onSelect = {
-                                if (selectedTab == 0) {
-                                    // Toggle selection
-                                    tempProductVoucher = if (isSelected) null else promo
-                                } else {
-                                    tempShippingVoucher = if (isSelected) null else promo
+                                if (isEligible) {
+                                    if (selectedTab == 0) {
+                                        // Toggle selection
+                                        tempProductVoucher = if (isSelected) null else promo
+                                    } else {
+                                        tempShippingVoucher = if (isSelected) null else promo
+                                    }
                                 }
                             }
                         )
@@ -198,10 +205,11 @@ fun VoucherSelectionScreen(
 fun VoucherSelectionCard(
     promotion: Promotion,
     isSelected: Boolean,
+    isEligible: Boolean,
     onSelect: () -> Unit
 ) {
     val isShip = promotion.applyFor == "SHIP"
-    val cardColor = MaterialTheme.colorScheme.surface
+    val cardColor = if (isEligible) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.5f)
     val contentColor = MaterialTheme.colorScheme.onSurface
     
     // Theme-aware colors
@@ -218,13 +226,13 @@ fun VoucherSelectionCard(
     // Logic hiển thị badge số lượng
     val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
     val isPrivate = !promotion.isPublic()
-    val quantity = if (isPrivate) promotion.getRemainingQuantity(userId) else 0
+    var quantity = if (isPrivate) promotion.getRemainingQuantity(userId) else 0
 
     Box(modifier = Modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onSelect() },
+                .clickable(enabled = isEligible) { onSelect() },
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = cardColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
@@ -281,6 +289,23 @@ fun VoucherSelectionCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                if (promotion.discountType == 0 && promotion.maxDiscountValue > 0) {
+                     Text(
+                        text = stringResource(R.string.voucher_max_discount, formatK(promotion.maxDiscountValue)),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                if (!isEligible) {
+                    Text(
+                        text = stringResource(R.string.voucher_not_eligible),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
                 
                 Spacer(modifier = Modifier.weight(1f))
                 
@@ -307,21 +332,24 @@ fun VoucherSelectionCard(
             }
         }
 
-        // Badge số lượng (chỉ hiện cho voucher cá nhân từ 1 trở lên)
+        // Badge số lượng
+        var q = 1
         if (isPrivate && quantity > 0) {
-            Surface(
-                color = MaterialTheme.colorScheme.error,
-                shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Text(
-                    text = "x$quantity",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                )
-            }
+            q = quantity
+        }
+
+        Surface(
+            color = MaterialTheme.colorScheme.error,
+            shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Text(
+                text = "x$q",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            )
         }
     }
 }

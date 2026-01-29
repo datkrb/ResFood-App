@@ -64,7 +64,7 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, ADMIN_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with app icon
+            .setSmallIcon(R.mipmap.ic_launcher) // Replace with app icon
             .setContentTitle("New Order Received!")
             .setContentText("Order #$orderId - Total: ${CurrencyHelper.format(total)}")
             .setPriority(NotificationCompat.PRIORITY_HIGH)

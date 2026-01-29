@@ -58,7 +58,7 @@ fun OrderListScreen(
         stringResource(R.string.food_review),
         stringResource(R.string.status_display_completed),
         stringResource(R.string.status_display_cancelled),
-        stringResource(R.string.status_display_rejected),
+        stringResource(R.string.admin_order_tab_rejected),
         stringResource(R.string.common_all)
     )
     
@@ -371,7 +371,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.order_date_label) + dateFormat.format(order.createdAt.toDate()),
+                        text = stringResource(R.string.order_date_label) + " " + dateFormat.format(order.createdAt.toDate()),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                     )

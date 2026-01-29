@@ -220,7 +220,7 @@ fun OrderStatusCard(order: Order) {
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "#${order.id}",
+                        text = "#${order.id.take(6).uppercase()}",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -351,6 +351,15 @@ fun DeliveryInfoCard(order: Order) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
                     )
+                    if (order.distanceText != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.order_distance_label, order.distanceText),
+                            fontSize = 13.sp,
+                            color = PrimaryColor,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
 
@@ -497,7 +506,7 @@ fun PaymentDetailsCard(order: Order) {
             Spacer(modifier = Modifier.height(12.dp))
             
             PaymentRow(stringResource(R.string.order_items_total, order.items.size), order.subtotal)
-            PaymentRow(stringResource(R.string.order_shipping), order.deliveryFee)
+            PaymentRow(stringResource(R.string.order_shipping) + if (order.distanceText != null) " (${order.distanceText})" else "", order.deliveryFee)
             
             if (order.productDiscount > 0) {
                 Row(
@@ -709,7 +718,7 @@ fun RejectionReasonCard(order: Order) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Đơn hàng bị từ chối",
+                    text = stringResource(R.string.order_rejected_card_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFDC2626)
@@ -719,7 +728,7 @@ fun RejectionReasonCard(order: Order) {
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = "Lý do:",
+                text = stringResource(R.string.order_rejection_reason_label),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -738,7 +747,7 @@ fun RejectionReasonCard(order: Order) {
                 Spacer(modifier = Modifier.height(8.dp))
                 val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
                 Text(
-                    text = "Thời gian: ${dateFormat.format(order.rejectedAt.toDate())}",
+                    text = stringResource(R.string.order_rejection_time_label, dateFormat.format(order.rejectedAt.toDate())),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic

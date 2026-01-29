@@ -55,13 +55,5 @@ fun TagRanking(
                 fontSize = 12.sp
             )
         }
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = stringResource(R.string.home_points, point ?: 0),
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            fontStyle = FontStyle.Italic
-        )
     }
 }

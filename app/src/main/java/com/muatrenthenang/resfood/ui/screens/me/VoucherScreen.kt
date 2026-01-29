@@ -246,15 +246,19 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
         }
     }
 
-    // Badge số lượng (chỉ hiện cho voucher cá nhân từ 1 trở lên)
-    if (isPrivate && quantity > 0) {
+        // Badge số lượng
+        var q = 1
+        if (isPrivate && quantity > 0) {
+            q = quantity
+        }
+
         Surface(
             color = MaterialTheme.colorScheme.error,
             shape = RoundedCornerShape(bottomStart = 8.dp, topEnd = 8.dp),
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Text(
-                text = "x$quantity",
+                text = "x$q",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -262,7 +266,6 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
             )
         }
     }
-}
 }
 
 @Composable

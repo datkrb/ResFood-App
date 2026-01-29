@@ -243,6 +243,11 @@
     <string name="admin_order_status_short_completed">Xong</string>
     <string name="admin_order_status_short_cancelled">Hủy</string>
     <string name="admin_order_status_short_rejected">Từ chối</string>
+
+    <string name="order_rejected_card_title">Đơn hàng bị từ chối</string>
+    <string name="order_rejection_reason_label">Lý do:</string>
+    <string name="order_rejection_time_label">Thời gian: %1$s</string>
+    <string name="order_distance_label">Khoảng cách: %1$s</string>
     
     <!-- Auth Forgot Password -->
     <string name="auth_forgot_password_title">Quên mật khẩu?</string>
@@ -346,6 +351,8 @@
     <string name="branch_label_capacity">Sức chứa tối đa</string>
     <string name="branch_label_tables">Số bàn</string>
     <string name="branch_label_shipping">Phí vận chuyển (VNĐ)</string>
+    <string name="branch_label_min_shipping">Phí tối thiểu (VNĐ)</string>
+    <string name="branch_label_shipping_per_km">Phí mỗi KM (VNĐ)</string>
     <string name="branch_info_address">ĐỊA CHỈ</string>
     <string name="branch_label_address_line">Địa chỉ (số nhà, đường)</string>
     <string name="branch_label_ward">Phường/Xã</string>
@@ -492,6 +499,10 @@
     <string name="voucher_input_hint">Nhập mã Voucher</string>
     <string name="voucher_freeship">FREESHIP</string>
     <string name="voucher_resfood">RESFOOD</string>
+    <string name="voucher_max_discount">Giảm tối đa %1$s</string>
+    <string name="voucher_not_eligible">Chưa đủ điều kiện sử dụng</string>
+    <string name="voucher_not_eligible_min_order">Mã %1$s: Chưa đủ điều kiện (Min %2$s)</string>
+    <string name="voucher_shipping_not_eligible">Mã vận chuyển: Chưa đủ điều kiện</string>
 
     <!-- Food Detail -->
     <string name="food_detail_loading">Đang tải...</string>
