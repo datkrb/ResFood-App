@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.data.model.Order
@@ -279,7 +280,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                 }
 
                 // Price
-                val formattedPrice = stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(order.total))
+                val formattedPrice = CurrencyHelper.format(order.total)
                 Text(
                     text = formattedPrice,
                     fontWeight = FontWeight.Bold,
@@ -333,7 +334,7 @@ fun OrderCard(order: Order, viewModel: OrderListViewModel, onClick: () -> Unit, 
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "x${item.quantity}       ${stringResource(R.string.price_format_vnd, NumberFormat.getInstance(Locale("vi", "VN")).format(item.price))}",
+                                text = "x${item.quantity}       ${CurrencyHelper.format(item.price)}",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

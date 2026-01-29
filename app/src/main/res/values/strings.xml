@@ -691,7 +691,7 @@
     <string name="referral_step2_title">Bạn bè nhập mã</string>
     <string name="referral_step2_desc">Người được mời nhập mã trong vòng 24h sau khi đăng ký.</string>
     <string name="referral_step3_title">Cả hai cùng nhận Voucher</string>
-    <string name="referral_step3_desc">Bạn và bạn bè đều nhận voucher giảm 50.000đ!</string>
+    <string name="referral_step3_desc">Bạn và bạn bè đều nhận voucher giảm %s!</string>
 
     <!-- Referral History -->
     <string name="ref_hist_title">Lịch sử nhận quà</string>
@@ -770,8 +770,9 @@
     <string name="label_address">Địa chỉ mặc định</string>
     <string name="stats_revenue">Tổng chi tiêu</string>
     <string name="common_unknown">Chưa cập nhật</string>
-    <string name="username_hint">Tên đăng nhập</string>
+    <string name="username_hint">Email</string>
     <string name="address_empty">Chưa có địa chỉ</string>
+    <string name="admin_customer_locked_msg">Tài khoản đã bị khóa</string>
     <string name="checkout_method_sepay">Thanh toán với QR Sepay</string>
     <string name="waiting_payment">Chờ thanh toán</string>
     <string name="prepare_payment">Tiến hành thanh toán</string>

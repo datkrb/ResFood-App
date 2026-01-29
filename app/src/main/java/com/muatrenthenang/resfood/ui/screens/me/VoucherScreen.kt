@@ -28,6 +28,7 @@ import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.ui.viewmodel.VoucherViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 @Composable
 fun VoucherScreen(
@@ -367,5 +368,5 @@ fun VoucherTopBar(onBack: () -> Unit) {
 }
 
 private fun formatK(value: Int): String {
-    return if (value >= 1000) "${value/1000}k" else "${value}đ"
+    return CurrencyHelper.format(value)
 }

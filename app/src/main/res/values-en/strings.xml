@@ -601,7 +601,7 @@
     <string name="referral_step2_title">Friends enter code</string>
     <string name="referral_step2_desc">Invited friends enter code within 24h of registration.</string>
     <string name="referral_step3_title">Both receive Vouchers</string>
-    <string name="referral_step3_desc">You and your friend both receive a 50,000đ discount voucher!</string>
+    <string name="referral_step3_desc">You and your friend both receive a %s discount voucher!</string>
 
     <!-- Referral History -->
     <string name="ref_hist_title">Reward History</string>

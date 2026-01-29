@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import android.widget.Toast
 import coil.compose.AsyncImage
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
@@ -531,7 +532,7 @@ fun OrderItem(
             ) {
                 Column {
                     Text(stringResource(R.string.admin_order_total), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                    val formattedTotal = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("vi", "VN")).format(order.total)
+                    val formattedTotal = CurrencyHelper.format(order.total)
                     Text(formattedTotal, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 

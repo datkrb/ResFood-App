@@ -33,6 +33,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -274,7 +275,7 @@ fun PromotionItem(
                  Column {
                      Text(stringResource(R.string.label_discount), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                      Text(
-                         text = if(promo.discountType == 0) "${promo.discountValue}%" else "${promo.discountValue}đ",
+                         text = if(promo.discountType == 0) "${promo.discountValue}%" else CurrencyHelper.format(promo.discountValue),
                          style = MaterialTheme.typography.bodyMedium,
                          fontWeight = FontWeight.SemiBold,
                          color = MaterialTheme.colorScheme.onSurface

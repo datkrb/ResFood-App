@@ -18,6 +18,7 @@ import com.muatrenthenang.resfood.data.repository.UserRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import com.muatrenthenang.resfood.data.repository.BranchRepository
 import com.muatrenthenang.resfood.data.model.Promotion
 import kotlinx.coroutines.flow.StateFlow
@@ -461,7 +462,6 @@ class CheckoutViewModel(
 
     // Helper
     fun formatCurrency(value: Long): String {
-        val grouped = java.text.DecimalFormat("###,###").format(value)
-        return "${grouped}đ"
+        return CurrencyHelper.format(value)
     }
 }

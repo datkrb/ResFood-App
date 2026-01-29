@@ -595,7 +595,7 @@
     <string name="referral_step2_title">Bạn bè nhập mã</string>
     <string name="referral_step2_desc">Người được mời nhập mã trong vòng 24h sau khi đăng ký.</string>
     <string name="referral_step3_title">Cả hai cùng nhận Voucher</string>
-    <string name="referral_step3_desc">Bạn và bạn bè đều nhận voucher giảm 50.000đ!</string>
+    <string name="referral_step3_desc">Bạn và bạn bè đều nhận voucher giảm %s!</string>
 
     <!-- Referral History -->
     <string name="ref_hist_title">Lịch sử nhận quà</string>

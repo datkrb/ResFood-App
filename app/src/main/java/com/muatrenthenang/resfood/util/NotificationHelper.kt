@@ -66,7 +66,7 @@ object NotificationHelper {
         val builder = NotificationCompat.Builder(context, ADMIN_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // Replace with app icon
             .setContentTitle("New Order Received!")
-            .setContentText("Order #$orderId - Total: ${total}đ")
+            .setContentText("Order #$orderId - Total: ${CurrencyHelper.format(total)}")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_ALL) // Sound + Vibrate
             .setVibrate(longArrayOf(0, 500)) // Explicit vibration

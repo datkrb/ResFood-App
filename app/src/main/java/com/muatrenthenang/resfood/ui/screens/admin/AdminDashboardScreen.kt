@@ -3,6 +3,7 @@ package com.muatrenthenang.resfood.ui.screens.admin
 import androidx.compose.foundation.background
 import java.text.NumberFormat
 import java.util.Locale
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -324,9 +325,8 @@ fun StatsHeroSection(
                 }
                 Column {
                     Text(text = stringResource(R.string.dashboard_stats_total_revenue), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-                    val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
                     Text(
-                        text = "${formatter.format(state.totalRevenue)}đ",
+                        text = CurrencyHelper.format(state.totalRevenue),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )

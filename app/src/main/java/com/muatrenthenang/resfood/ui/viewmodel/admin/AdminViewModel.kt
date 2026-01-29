@@ -17,6 +17,7 @@ import com.muatrenthenang.resfood.data.repository.ReservationRepository
 import com.muatrenthenang.resfood.data.repository.NotificationRepository
 import com.muatrenthenang.resfood.data.model.Notification
 import com.google.firebase.Timestamp
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,7 +66,7 @@ enum class FoodStatus(val displayName: String) {
 }
 
 data class AnalyticsUiState(
-    val filterType: AnalyticsFilterType = AnalyticsFilterType.TODAY,
+    val filterType: AnalyticsFilterType = AnalyticsFilterType.MONTH,
     val startDate: Long = System.currentTimeMillis(),
     val endDate: Long = System.currentTimeMillis(),
     val totalRevenue: Double = 0.0,
@@ -122,7 +123,7 @@ class AdminViewModel(
         viewModelScope.launch {
             loadOrders()
             // Initialize analytics with TODAY filter
-            setAnalyticsFilter(AnalyticsFilterType.TODAY)
+            setAnalyticsFilter(AnalyticsFilterType.MONTH)
             loadData()
         }
     }
@@ -378,7 +379,7 @@ class AdminViewModel(
                 ActivityItem(
                     title = "Order #${order.id.takeLast(5)}",
                     subtitle = order.status,
-                    value = "${order.total}đ",
+                    value = CurrencyHelper.format(order.total),
                     type = when(order.status) {
                         "COMPLETED" -> ActivityType.SUCCESS
                         "PENDING" -> ActivityType.WARNING

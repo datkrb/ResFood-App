@@ -7,9 +7,9 @@ import com.muatrenthenang.resfood.data.repository.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.text.DecimalFormat
 
 import com.muatrenthenang.resfood.data.repository.BranchRepository
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 class CartViewModel(
     private val _repository: CartRepository = CartRepository(),
@@ -143,8 +143,7 @@ class CartViewModel(
     }
 
     fun formatCurrency(value: Long): String {
-        val pattern = DecimalFormat("###,###")
-        return pattern.format(value) + "đ"
+        return CurrencyHelper.format(value)
     }
 
     fun canCheckout(): Boolean {

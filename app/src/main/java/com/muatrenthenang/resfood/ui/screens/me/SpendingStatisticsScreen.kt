@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -228,7 +229,6 @@ private fun TotalSpendingCard(
     totalSpending: Long,
     period: SpendingPeriod
 ) {
-    val formatter = remember { NumberFormat.getNumberInstance(Locale.getDefault()) }
 
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -270,7 +270,7 @@ private fun TotalSpendingCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = stringResource(R.string.price_format_vnd, formatter.format(totalSpending)),
+                    text = CurrencyHelper.format(totalSpending),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -378,7 +378,6 @@ private fun CategoryPieChart(
 
 @Composable
 private fun CategoryLegend(categorySpending: List<CategorySpending>) {
-    val formatter = remember { NumberFormat.getNumberInstance(Locale.getDefault()) }
 
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -401,7 +400,7 @@ private fun CategoryLegend(categorySpending: List<CategorySpending>) {
                 categorySpending.forEachIndexed { index, category ->
                     CategoryLegendItem(
                         category = category,
-                        formattedAmount = stringResource(R.string.price_format_vnd, formatter.format(category.amount))
+                        formattedAmount = CurrencyHelper.format(category.amount)
                     )
                     if (index < categorySpending.size - 1) {
                         HorizontalDivider(

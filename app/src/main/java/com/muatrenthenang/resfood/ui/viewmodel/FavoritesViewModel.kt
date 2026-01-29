@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import com.muatrenthenang.resfood.data.repository.CartRepository
 import com.muatrenthenang.resfood.ui.screens.favorites.FavoritesUIState
 import kotlinx.coroutines.flow.update
+import com.muatrenthenang.resfood.util.CurrencyHelper
 
 class FavoritesViewModel(
     private val _repository: FavoritesRepository = FavoritesRepository(),
@@ -106,7 +107,7 @@ class FavoritesViewModel(
     }
 
     fun formatCurrency(value: Int): String {
-        return java.text.DecimalFormat("###,###").format(value) + "đ"
+        return CurrencyHelper.format(value)
     }
 
     fun clearResult() { _actionResult.value = null }

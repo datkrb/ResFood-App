@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -369,7 +370,7 @@ fun CustomerItem(
 
     // Background color for locked state
     val cardColor = if (customer.isLocked) {
-        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f) 
+        MaterialTheme.colorScheme.errorContainer 
     } else {
         MaterialTheme.colorScheme.surface
     }
@@ -450,19 +451,13 @@ fun CustomerItem(
                     )
                     
                     if (customer.isLocked) {
-                        Surface(
+                        Text(
+                            text = stringResource(R.string.admin_customer_locked_msg),
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError,
-                            shape = RoundedCornerShape(6.dp),
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 8.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.customer_status_locked).uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
+                        )
                     } else {
                         // Rank Badge
                         val (rankText, rankColor) = when {
@@ -624,7 +619,7 @@ fun CustomerDetailDialog(
                      InfoRow(
                         icon = Icons.Default.AttachMoney, 
                         label = stringResource(R.string.stats_revenue), 
-                        value = "${String.format("%,.0f", customer.totalSpending ?: 0.0)} đ"
+                        value = CurrencyHelper.format(customer.totalSpending ?: 0.0)
                     )
                 }
             }

@@ -28,6 +28,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import com.muatrenthenang.resfood.util.CurrencyHelper
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -438,7 +439,7 @@ fun FoodItemCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "${food.price}đ",
+                text = CurrencyHelper.format(food.price),
                 color = primaryColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
