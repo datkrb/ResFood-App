@@ -359,7 +359,7 @@ class MainActivity : AppCompatActivity() {
                         composable("me") {
                             MeScreen(
                                 onNavigateToSettings = { navController.navigate("settings") },
-                                onNavigateToNotifications = { /* TODO: Notification Screen */ },
+                                onNavigateToNotifications = { navController.navigate("notification_list") },
                                 onNavigateToEditProfile = { navController.navigate("profile_details") },
                                 onNavigateToOrders = { status ->
                                     navController.navigate("orders/$status")
