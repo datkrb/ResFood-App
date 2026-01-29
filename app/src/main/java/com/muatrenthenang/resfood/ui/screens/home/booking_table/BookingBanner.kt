@@ -31,6 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun BookingBanner(
@@ -63,7 +65,7 @@ fun BookingBanner(
             ) {
                 Icon(
                     imageVector = Icons.Default.TableRestaurant,
-                    contentDescription = "Booking",
+                    contentDescription = stringResource(R.string.home_booking_title),
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
@@ -73,7 +75,7 @@ fun BookingBanner(
 
             Column {
                 Text(
-                    "Đặt bàn ngay",
+                    stringResource(R.string.home_booking_title),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -82,7 +84,7 @@ fun BookingBanner(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    "Giữ chỗ trước, không lo đợi lâu",
+                    stringResource(R.string.home_booking_subtitle),
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 12.sp
                 )
@@ -92,7 +94,7 @@ fun BookingBanner(
 
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = "test",
+                contentDescription = null,
                 tint = Color.White
             )
         }

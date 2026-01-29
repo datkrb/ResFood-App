@@ -36,12 +36,18 @@ import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.OrderListViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UserOrderDetailScreen(
     orderId: String,
     onNavigateBack: () -> Unit,
     onNavigateToReview: (String) -> Unit,
+    onNavigateToChat: () -> Unit, // New callback
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Ensure mock data is loaded (simulating loading from shared ViewModel/Repository)
@@ -54,7 +60,6 @@ fun UserOrderDetailScreen(
     val orders by viewModel.orders.collectAsState()
     val order = orders.find { it.id == orderId }
     var showCancelDialog by remember { mutableStateOf(false) }
-    var showReviewSelection by remember { mutableStateOf(false) }
 
     if (order == null) {
         // Loading or not found state
@@ -67,8 +72,8 @@ fun UserOrderDetailScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Xác nhận hủy đơn") },
-            text = { Text("Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.") },
+            title = { Text(stringResource(R.string.order_cancel_confirm_title)) },
+            text = { Text(stringResource(R.string.order_cancel_confirm_msg)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -76,27 +81,16 @@ fun UserOrderDetailScreen(
                         showCancelDialog = false
                     }
                 ) {
-                    Text("Đồng ý", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.common_confirm), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Hủy bỏ", color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.common_cancel), color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp
-        )
-    }
-    
-    if (showReviewSelection) {
-        ReviewSelectionDialog(
-            order = order,
-            onDismiss = { showReviewSelection = false },
-            onItemSelect = { foodId ->
-                showReviewSelection = false
-                onNavigateToReview(foodId)
-            }
         )
     }
 
@@ -109,7 +103,7 @@ fun UserOrderDetailScreen(
             OrderDetailBottomBar(
                 order = order, 
                 viewModel = viewModel,
-                onReviewClick = { showReviewSelection = true }
+                onChatClick = onNavigateToChat
             )
         }
     ) { paddingValues ->
@@ -124,6 +118,11 @@ fun UserOrderDetailScreen(
             // Status Card
             OrderStatusCard(order = order)
 
+            // Rejection Reason Card (if rejected)
+            if (order.status == "REJECTED" && !order.rejectionReason.isNullOrBlank()) {
+                RejectionReasonCard(order = order)
+            }
+
             // Delivery Info
             DeliveryInfoCard(order = order)
 
@@ -135,6 +134,19 @@ fun UserOrderDetailScreen(
 
             // Payment Method
             PaymentMethodCard(order = order)
+
+            // Review Button (if completed and not reviewed)
+            if (order.status == "COMPLETED" && !order.isReviewed) {
+                 Button(
+                    onClick = { onNavigateToReview(order.id) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.food_review), fontWeight = FontWeight.Bold)
+                }
+            }
             
             if (order.status == "PENDING") {
                  OutlinedButton(
@@ -145,7 +157,7 @@ fun UserOrderDetailScreen(
                     ),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Hủy đơn hàng", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.order_btn_cancel), fontWeight = FontWeight.Bold)
                 }
             }
             
@@ -171,7 +183,7 @@ fun OrderDetailTopBar(onBack: () -> Unit) {
             )
         }
         Text(
-            text = "Chi tiết đơn hàng",
+            text = stringResource(R.string.order_detail_header),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -245,7 +257,12 @@ fun OrderStatusCard(order: Order) {
             
             // Progress Indicator (Mock)
             if (order.status == "DELIVERING" || order.status == "PROCESSING" || order.status == "PENDING") {
-                val steps = listOf("Chờ xác nhận", "Đang chế biến", "Đang giao", "Hoàn tất")
+                val steps = listOf(
+                    stringResource(R.string.status_display_pending),
+                    stringResource(R.string.status_display_processing),
+                    stringResource(R.string.status_display_delivering),
+                    stringResource(R.string.status_display_completed)
+                )
                 val currentStep = when(order.status) {
                     "PENDING" -> 0
                     "PROCESSING" -> 1
@@ -298,7 +315,7 @@ fun DeliveryInfoCard(order: Order) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Địa chỉ nhận hàng",
+                stringResource(R.string.order_address_label),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -322,7 +339,7 @@ fun DeliveryInfoCard(order: Order) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (order.address.label.isNotEmpty()) order.address.label else "Nhà riêng",
+                        text = if (order.address.label.isNotEmpty()) order.address.label else stringResource(R.string.address_label_home),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -478,8 +495,8 @@ fun PaymentDetailsCard(order: Order) {
             Text("Chi tiết thanh toán", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
             
-            PaymentRow("Tổng tiền món (${order.items.size} món)", order.subtotal)
-            PaymentRow("Phí giao hàng", order.deliveryFee)
+            PaymentRow(stringResource(R.string.order_items_total, order.items.size), order.subtotal)
+            PaymentRow(stringResource(R.string.order_shipping), order.deliveryFee)
             
             if (order.productDiscount > 0) {
                 Row(
@@ -488,7 +505,7 @@ fun PaymentDetailsCard(order: Order) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm giá món", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.checkout_discount_product), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(imageVector = Icons.Default.Verified, contentDescription = null, tint = SuccessGreen, modifier = Modifier.size(14.dp))
                      }
@@ -503,7 +520,7 @@ fun PaymentDetailsCard(order: Order) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm phí ship", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.checkout_discount_shipping), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(4.dp))
                         Icon(imageVector = Icons.Default.LocalShipping, contentDescription = null, tint = Color(0xFF0097A7), modifier = Modifier.size(14.dp))
                      }
@@ -518,10 +535,10 @@ fun PaymentDetailsCard(order: Order) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                      Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Giảm giá", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.order_discount), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(color = PrimaryColor.copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
-                            Text("VOUCHER", fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
+                            Text(stringResource(R.string.voucher_resfood), fontSize = 10.sp, color = PrimaryColor, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
                         }
                      }
                      Text("-${String.format("%,dđ", order.discount).replace(',', '.')}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = PrimaryColor)
@@ -535,7 +552,7 @@ fun PaymentDetailsCard(order: Order) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Thành tiền", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.order_total), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         String.format("%,dđ", order.total).replace(',', '.'),
@@ -543,7 +560,7 @@ fun PaymentDetailsCard(order: Order) {
                         fontWeight = FontWeight.ExtraBold,
                         color = PrimaryColor
                     )
-                    Text("Đã bao gồm VAT", fontSize = 10.sp, color = Color.Gray)
+                    Text(stringResource(R.string.order_vat_included), fontSize = 10.sp, color = Color.Gray)
                 }
             }
         }
@@ -628,12 +645,10 @@ fun PaymentMethodCard(order: Order) {
                 Spacer(modifier = Modifier.width(12.dp))
                 
                 Column {
-                    Text("Phương thức thanh toán", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.checkout_payment_method), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     val methodName = when(order.paymentMethod) {
-                        "ZALOPAY" -> "Ví ZaloPay"
-                        "MOMO" -> "Ví MoMo"
-                        "SEPAY" -> "Chuyển khoản SEPay"
-                        else -> "Tiền mặt khi nhận hàng"
+                        "SEPAY" -> stringResource(R.string.checkout_method_sepay)
+                        else -> stringResource(R.string.checkout_method_cod)
                     }
                     Text(methodName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -644,54 +659,46 @@ fun PaymentMethodCard(order: Order) {
 }
 
 @Composable
-fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewClick: () -> Unit) {
+fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onChatClick: () -> Unit) {
+    val context = LocalContext.current
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
          shadowElevation = 16.dp // Top shadow
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Action Buttons
-            if (order.status == "COMPLETED") {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedButton(
-                        onClick = onReviewClick,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                    ) {
-                        Text("Đánh giá")
-                    }
-                    Button(
-                        onClick = { viewModel.reOrder(order.id) },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
-                    ) {
-                        Text("Mua lại lần nữa", fontWeight = FontWeight.Bold)
-                    }
-                }
-                 Spacer(modifier = Modifier.height(12.dp))
-            }
-            
             // Support Buttons
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
-                    onClick = { /* Chat logic */ },
+                    onClick = onChatClick, // Use callback for in-app chat
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(20.dp), tint = PrimaryColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Chat")
+                    Text(stringResource(R.string.action_chat), color = PrimaryColor)
                 }
                 
                 Button(
-                    onClick = { viewModel.callRestaurant(order.id) },
+                    onClick = { 
+                        val phone = viewModel.getBranchPhone()
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:$phone")
+                        }
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                             android.widget.Toast.makeText(context, "Không thể thực hiện cuộc gọi", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier.weight(2f).height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                     shape = CircleShape
                 ) {
                     Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(20.dp), tint = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Gọi nhà hàng", color = Color.White)
+                    Text(stringResource(R.string.action_call), color = Color.White)
                 }
             }
         }
@@ -699,48 +706,61 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewCl
 }
 
 @Composable
-fun ReviewSelectionDialog(
-    order: Order,
-    onDismiss: () -> Unit,
-    onItemSelect: (String) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Đánh giá sản phẩm") },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+fun RejectionReasonCard(order: Order) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFDC2626).copy(alpha = 0.1f), // Light red background
+        modifier = Modifier.fillMaxWidth(),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDC2626).copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Chọn sản phẩm bạn muốn đánh giá:")
-                order.items.forEach { item ->
-                    Surface(
-                        onClick = { onItemSelect(item.foodId) },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            AsyncImage(
-                                model = item.foodImage,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(item.foodName, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.rotate(180f))
-                        }
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = null,
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Đơn hàng bị từ chối",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFDC2626)
+                )
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Đóng") }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "Lý do:",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = order.rejectionReason ?: "",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 20.sp
+            )
+            
+            if (order.rejectedAt != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
+                Text(
+                    text = "Thời gian: ${dateFormat.format(order.rejectedAt.toDate())}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
+            }
         }
-    )
+    }
 }

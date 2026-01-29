@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.ResFoodTheme
@@ -58,7 +60,7 @@ fun SpendingStatisticsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Thống kê chi tiêu",
+                        text = stringResource(R.string.stats_title),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -66,7 +68,7 @@ fun SpendingStatisticsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Quay lại"
+                            contentDescription = stringResource(R.string.common_back)
                         )
                     }
                 },
@@ -99,7 +101,7 @@ fun SpendingStatisticsScreen(
 
                 // Category Breakdown Section
                 Text(
-                    text = "Chi tiêu theo danh mục",
+                    text = stringResource(R.string.stats_by_category),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -122,7 +124,7 @@ fun SpendingStatisticsScreen(
 
                 // Time-based Bar Chart
                 Text(
-                    text = if (selectedPeriod == SpendingPeriod.WEEK) "Chi tiêu 7 ngày qua" else "Chi tiêu 30 ngày qua",
+                    text = if (selectedPeriod == SpendingPeriod.WEEK) stringResource(R.string.stats_last_7_days) else stringResource(R.string.stats_last_30_days),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -171,13 +173,13 @@ private fun PeriodSelector(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             PeriodTab(
-                text = "Tuần",
+                text = stringResource(R.string.stats_week),
                 isSelected = selectedPeriod == SpendingPeriod.WEEK,
                 onClick = { onPeriodSelected(SpendingPeriod.WEEK) },
                 modifier = Modifier.weight(1f)
             )
             PeriodTab(
-                text = "Tháng",
+                text = stringResource(R.string.stats_month),
                 isSelected = selectedPeriod == SpendingPeriod.MONTH,
                 onClick = { onPeriodSelected(SpendingPeriod.MONTH) },
                 modifier = Modifier.weight(1f)
@@ -226,7 +228,7 @@ private fun TotalSpendingCard(
     totalSpending: Long,
     period: SpendingPeriod
 ) {
-    val formatter = remember { NumberFormat.getNumberInstance(Locale("vi", "VN")) }
+    val formatter = remember { NumberFormat.getNumberInstance(Locale.getDefault()) }
 
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -260,7 +262,7 @@ private fun TotalSpendingCard(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Tổng chi tiêu ${if (period == SpendingPeriod.WEEK) "tuần này" else "tháng này"}",
+                    text = if (period == SpendingPeriod.WEEK) stringResource(R.string.stats_total_week) else stringResource(R.string.stats_total_month),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.9f)
                 )
@@ -268,7 +270,7 @@ private fun TotalSpendingCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "${formatter.format(totalSpending)}đ",
+                    text = stringResource(R.string.price_format_vnd, formatter.format(totalSpending)),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -346,7 +348,7 @@ private fun CategoryPieChart(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Danh mục",
+                        text = stringResource(R.string.stats_category_label),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -364,7 +366,7 @@ private fun CategoryPieChart(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Chưa có dữ liệu chi tiêu",
+                        text = stringResource(R.string.stats_no_data),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
@@ -376,7 +378,7 @@ private fun CategoryPieChart(
 
 @Composable
 private fun CategoryLegend(categorySpending: List<CategorySpending>) {
-    val formatter = remember { NumberFormat.getNumberInstance(Locale("vi", "VN")) }
+    val formatter = remember { NumberFormat.getNumberInstance(Locale.getDefault()) }
 
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -387,7 +389,7 @@ private fun CategoryLegend(categorySpending: List<CategorySpending>) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (categorySpending.isEmpty()) {
                 Text(
-                    text = "Chưa có dữ liệu chi tiêu theo danh mục",
+                    text = stringResource(R.string.stats_no_category_data),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -399,7 +401,7 @@ private fun CategoryLegend(categorySpending: List<CategorySpending>) {
                 categorySpending.forEachIndexed { index, category ->
                     CategoryLegendItem(
                         category = category,
-                        formattedAmount = "${formatter.format(category.amount)}đ"
+                        formattedAmount = stringResource(R.string.price_format_vnd, formatter.format(category.amount))
                     )
                     if (index < categorySpending.size - 1) {
                         HorizontalDivider(
@@ -450,7 +452,7 @@ private fun CategoryLegendItem(
                 fontSize = 15.sp
             )
             Text(
-                text = "${category.orderCount} món",
+                text = stringResource(R.string.stats_item_count_suffix, category.orderCount),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -478,7 +480,7 @@ private fun SpendingBarChart(
     data: List<Pair<String, Long>>,
     period: SpendingPeriod
 ) {
-    val formatter = remember { NumberFormat.getNumberInstance(Locale("vi", "VN")) }
+    val formatter = remember { NumberFormat.getNumberInstance(Locale.getDefault()) }
     val maxValue = data.maxOfOrNull { it.second } ?: 1L
 
     val animatedProgress = remember { Animatable(0f) }
@@ -513,7 +515,7 @@ private fun SpendingBarChart(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Chưa có dữ liệu",
+                        text = stringResource(R.string.stats_no_data),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )

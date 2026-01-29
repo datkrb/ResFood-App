@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.TableReservation
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
@@ -42,7 +44,13 @@ fun ReservationListScreen(
     
     // Tabs: PENDING, CONFIRMED, COMPLETED, CANCELLED, ALL
     val tabs = listOf("PENDING", "CONFIRMED", "COMPLETED", "CANCELLED", "ALL")
-    val tabTitles = listOf("Chờ xác nhận", "Đã xác nhận", "Hoàn thành", "Đã hủy", "Tất cả") // Vietnamese titles
+    val tabTitles = listOf(
+        stringResource(R.string.me_status_pending),
+        stringResource(R.string.me_status_confirmed),
+        stringResource(R.string.me_status_completed),
+        stringResource(R.string.order_status_cancelled), // Assuming this exists or using common_cancel if not, but checkout uses it.
+        stringResource(R.string.common_all)
+    )
     
     // Determine initial index
     var selectedTabIndex by remember { 
@@ -70,13 +78,13 @@ fun ReservationListScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.common_back),
                         modifier = Modifier
                             .clickable { onNavigateBack() }
                             .padding(8.dp)
                     )
                     Text(
-                        text = "Đặt bàn của tôi",
+                        text = stringResource(R.string.res_my_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 8.dp)
@@ -161,7 +169,7 @@ fun ReservationListScreen(
                 }
                 is ReservationUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Lỗi: ${state.message}", color = Color.Red)
+                        Text(stringResource(R.string.common_error_with_msg, state.message), color = Color.Red)
                     }
                 }
                 is ReservationUiState.Success -> {
@@ -169,7 +177,7 @@ fun ReservationListScreen(
                     
                     if (filteredList.isEmpty()) {
                          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Chưa có đơn đặt bàn nào", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                            Text(stringResource(R.string.res_empty), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                         }
                     } else {
                         LazyColumn(
@@ -195,7 +203,7 @@ fun ReservationItem(
     reservation: TableReservation,
     onClick: () -> Unit
 ) {
-    val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("vi", "VN"))
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val statusColor = when (reservation.status) {
         "PENDING" -> Color(0xFFF59E0B) // Orange
         "CONFIRMED" -> Color(0xFF3B82F6) // Blue
@@ -205,10 +213,10 @@ fun ReservationItem(
     }
     
     val statusText = when (reservation.status) {
-        "PENDING" -> "Chờ xác nhận"
-        "CONFIRMED" -> "Đã xác nhận"
-        "COMPLETED" -> "Hoàn thành"
-        "CANCELLED" -> "Đã hủy"
+        "PENDING" -> stringResource(R.string.me_status_pending)
+        "CONFIRMED" -> stringResource(R.string.me_status_confirmed)
+        "COMPLETED" -> stringResource(R.string.me_status_completed)
+        "CANCELLED" -> stringResource(R.string.order_status_cancelled)
         else -> reservation.status
     }
 
@@ -265,11 +273,11 @@ fun ReservationItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${reservation.guestCountAdult} Người lớn, ${reservation.guestCountChild} Trẻ em",
+                    text = stringResource(R.string.res_guests_label, reservation.guestCountAdult, reservation.guestCountChild),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Xem chi tiết >",
+                    text = stringResource(R.string.res_detail_btn),
                     style = MaterialTheme.typography.bodySmall,
                     color = PrimaryColor
                 )

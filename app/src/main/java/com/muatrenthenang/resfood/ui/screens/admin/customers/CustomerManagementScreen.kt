@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.data.model.User
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -46,7 +48,12 @@ fun CustomerManagementScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("Tất cả") }
+    val allFilterLabel = stringResource(R.string.filter_all)
+    val vipGoldLabel = stringResource(R.string.rank_gold)
+    val vipSilverLabel = stringResource(R.string.rank_silver)
+    
+    val filterOptions = listOf(allFilterLabel, vipGoldLabel, vipSilverLabel)
+    var selectedFilter by remember { mutableStateOf(allFilterLabel) }
     
     // Dialog States
     var showEditDialog by remember { mutableStateOf(false) }
@@ -58,9 +65,9 @@ fun CustomerManagementScreen(
         val matchesSearch = user.fullName.lowercase().contains(query) || (user.phone?.contains(query) == true)
         
         val matchesFilter = when(selectedFilter) {
-            "Tất cả" -> true
-            "VIP Gold" -> user.rank == "VIP GOLD"
-            "VIP Silver" -> user.rank == "SILVER"
+            allFilterLabel -> true
+            vipGoldLabel -> user.rank == "VIP GOLD"
+            vipSilverLabel -> user.rank == "SILVER"
             else -> true
         }
         
@@ -77,7 +84,7 @@ fun CustomerManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Quản lý khách hàng", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.admin_customer_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -105,17 +112,17 @@ fun CustomerManagementScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 StatCard(
-                    title = "Tổng khách",
+                    title = stringResource(R.string.admin_customer_total),
                     value = "$totalCustomers",
-                    badge = "Thành viên",
+                    badge = stringResource(R.string.admin_customer_member),
                     icon = Icons.Default.Person,
                     color = Color(0xFF2196F3),
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    title = "Tháng này",
+                    title = stringResource(R.string.admin_customer_this_month),
                     value = "+$newCustomers",
-                    badge = "Mới",
+                    badge = stringResource(R.string.admin_customer_new),
                     icon = Icons.Default.Add,
                     color = Color(0xFF9C27B0),
                     modifier = Modifier.weight(1f)
@@ -146,7 +153,7 @@ fun CustomerManagementScreen(
                             modifier = Modifier.fillMaxWidth(),
                             decorationBox = { innerTextField ->
                                 if (searchQuery.isEmpty()) {
-                                    Text("Tìm tên hoặc số điện thoại...", color = Color.Gray)
+                                    Text(stringResource(R.string.admin_customer_search_hint), color = Color.Gray)
                                 }
                                 innerTextField()
                             }
@@ -159,7 +166,7 @@ fun CustomerManagementScreen(
 
             // Filter Chips
             Row(modifier = Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Tất cả", "VIP Gold", "VIP Silver").forEach { filter ->
+                filterOptions.forEach { filter ->
                     Chip(
                         text = filter, 
                         isSelected = selectedFilter == filter,
@@ -170,14 +177,13 @@ fun CustomerManagementScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             
-            // List Header
             Row(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Danh sách ($totalCustomers)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("Sắp xếp", color = Color(0xFF2196F3))
+                Text("${stringResource(R.string.admin_customer_list)} ($totalCustomers)", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.admin_customer_sort), color = Color(0xFF2196F3))
             }
 
             // List
@@ -271,9 +277,9 @@ fun CustomerItem(
             Column(modifier = Modifier.weight(1f)) {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                      Text(customer.fullName, color = Color.White, fontWeight = FontWeight.Bold)
-                     Text("${customer.points} Điểm", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold) 
+                     Text("${customer.points} ${stringResource(R.string.label_points)}", color = Color(0xFF2196F3), fontWeight = FontWeight.Bold) 
                 }
-                Text(customer.phone ?: "Chưa có SĐT", color = Color.Gray, fontSize = 12.sp)
+                Text(customer.phone ?: stringResource(R.string.phone_empty), color = Color.Gray, fontSize = 12.sp)
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     val badgeColor = when(customer.rank) {
                         "VIP GOLD" -> Color(0xFFFFC107)
@@ -281,9 +287,15 @@ fun CustomerItem(
                         "THÀNH VIÊN" -> Color(0xFF607D8B)
                         else -> Color(0xFF4CAF50)
                     }
-                    Text(customer.rank, color = badgeColor, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.background(badgeColor.copy(alpha=0.2f), RoundedCornerShape(4.dp)).padding(horizontal=4.dp))
+                    val rankLabel = when(customer.rank) {
+                        "VIP GOLD" -> stringResource(R.string.rank_gold)
+                        "SILVER" -> stringResource(R.string.rank_silver)
+                        "THÀNH VIÊN" -> stringResource(R.string.rank_member)
+                        else -> customer.rank
+                    }
+                    Text(rankLabel, color = badgeColor, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.background(badgeColor.copy(alpha=0.2f), RoundedCornerShape(4.dp)).padding(horizontal=4.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("• Tham gia: ${java.text.SimpleDateFormat("MM/yyyy").format(java.util.Date(customer.createdAt))}", color = Color.Gray, fontSize = 12.sp)
+                    Text("• ${stringResource(R.string.admin_customer_joined)}: ${java.text.SimpleDateFormat("MM/yyyy").format(java.util.Date(customer.createdAt))}", color = Color.Gray, fontSize = 12.sp)
                 }
             }
             
@@ -293,17 +305,17 @@ fun CustomerItem(
                 }
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                     DropdownMenuItem(
-                        text = { Text("Chat") },
+                        text = { Text(stringResource(R.string.action_chat)) },
                         onClick = { showMenu = false; onChat() },
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Chỉnh sửa") },
+                        text = { Text(stringResource(R.string.action_edit)) },
                         onClick = { showMenu = false; onEdit() },
                         leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
                     )
                     DropdownMenuItem(
-                        text = { Text("Xóa", color = Color.Red) },
+                        text = { Text(stringResource(R.string.action_delete), color = Color.Red) },
                         onClick = { showMenu = false; onDelete() },
                         leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red) }
                     )
@@ -321,12 +333,12 @@ fun CustomerEditDialog(user: User, onDismiss: () -> Unit, onSave: (Map<String, A
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Chỉnh sửa khách hàng") },
+        title = { Text(stringResource(R.string.admin_customer_edit_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text("Tên") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = points, onValueChange = { points = it }, label = { Text("Điểm tích lũy") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = rank, onValueChange = { rank = it }, label = { Text("Hạng (VIP GOLD, SILVER, THÀNH VIÊN)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = fullName, onValueChange = { fullName = it }, label = { Text(stringResource(R.string.label_name)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = points, onValueChange = { points = it }, label = { Text(stringResource(R.string.label_points)) }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = rank, onValueChange = { rank = it }, label = { Text(stringResource(R.string.label_rank_hint)) }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
@@ -337,12 +349,12 @@ fun CustomerEditDialog(user: User, onDismiss: () -> Unit, onSave: (Map<String, A
                     "rank" to rank
                 ))
             }) {
-                Text("Lưu")
+                Text(stringResource(R.string.common_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

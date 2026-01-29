@@ -23,12 +23,11 @@ data class Address(
      * Trả về địa chỉ đầy đủ dạng chuỗi
      */
     fun getFullAddress(): String {
-        val parts = listOfNotNull(
-            addressLine.ifBlank { null },
-            ward.ifBlank { null },
-            district.ifBlank { null },
-            city.ifBlank { null }
-        )
+        val parts = mutableListOf<String>()
+        if (addressLine.isNotBlank()) parts.add(addressLine)
+        if (ward.isNotBlank()) parts.add("Phường $ward")
+        if (district.isNotBlank()) parts.add("Quận $district")
+        if (city.isNotBlank()) parts.add(city)
         return parts.joinToString(", ")
     }
 

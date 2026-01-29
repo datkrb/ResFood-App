@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
@@ -46,14 +48,14 @@ fun ReservationDetailScreen(
             if (uiState is ReservationUiState.Loading) {
                 CircularProgressIndicator(color = PrimaryColor)
             } else {
-                Text("Không tìm thấy đơn đặt bàn")
+                Text(stringResource(R.string.res_not_found))
             }
         }
         return
     }
 
-    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale("vi", "VN"))
-    val timeFormatter = SimpleDateFormat("HH:mm", Locale("vi", "VN"))
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     
     val statusColor = when (reservation.status) {
         "PENDING" -> Color(0xFFF59E0B)
@@ -64,10 +66,10 @@ fun ReservationDetailScreen(
     }
 
     val statusText = when (reservation.status) {
-        "PENDING" -> "Chờ xác nhận"
-        "CONFIRMED" -> "Đã xác nhận"
-        "COMPLETED" -> "Hoàn thành"
-        "CANCELLED" -> "Đã hủy"
+        "PENDING" -> stringResource(R.string.me_status_pending)
+        "CONFIRMED" -> stringResource(R.string.me_status_confirmed)
+        "COMPLETED" -> stringResource(R.string.me_status_completed)
+        "CANCELLED" -> stringResource(R.string.order_status_cancelled)
         else -> reservation.status
     }
     
@@ -77,8 +79,8 @@ fun ReservationDetailScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Hủy đặt bàn?") },
-            text = { Text("Bạn có chắc chắn muốn hủy đơn đặt bàn này không?") },
+            title = { Text(stringResource(R.string.res_cancel_title)) },
+            text = { Text(stringResource(R.string.res_cancel_msg)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -89,12 +91,12 @@ fun ReservationDetailScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = LightRed)
                 ) {
-                    Text("Hủy đơn")
+                    Text(stringResource(R.string.res_cancel_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Quay lại")
+                    Text(stringResource(R.string.common_back))
                 }
             }
         )
@@ -110,13 +112,13 @@ fun ReservationDetailScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.common_back),
                     modifier = Modifier
                         .clickable { onNavigateBack() }
                         .padding(8.dp)
                 )
                 Text(
-                    text = "Chi tiết đặt bàn",
+                    text = stringResource(R.string.res_title_detail),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp)
@@ -137,7 +139,7 @@ fun ReservationDetailScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Hủy đặt bàn", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.res_cancel_btn), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -168,7 +170,7 @@ fun ReservationDetailScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Trạng thái",
+                            text = stringResource(R.string.common_status),
                             style = MaterialTheme.typography.labelMedium,
                             color = statusColor
                         )
@@ -186,18 +188,18 @@ fun ReservationDetailScreen(
             
             // Info Section
             Text(
-                text = "Thông tin đặt bàn",
+                text = stringResource(R.string.res_info_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            InfoRow(Icons.Default.Store, "Chi nhánh", reservation.branchName)
-            InfoRow(Icons.Default.CalendarToday, "Ngày", dateFormatter.format(reservation.timeSlot.toDate()))
-            InfoRow(Icons.Default.AccessTime, "Giờ", timeFormatter.format(reservation.timeSlot.toDate()))
-            InfoRow(Icons.Default.People, "Số khách", "${reservation.guestCountAdult} Người lớn, ${reservation.guestCountChild} Trẻ em")
+            InfoRow(Icons.Default.Store, stringResource(R.string.res_branch), reservation.branchName)
+            InfoRow(Icons.Default.CalendarToday, stringResource(R.string.res_date), dateFormatter.format(reservation.timeSlot.toDate()))
+            InfoRow(Icons.Default.AccessTime, stringResource(R.string.res_time), timeFormatter.format(reservation.timeSlot.toDate()))
+            InfoRow(Icons.Default.People, stringResource(R.string.res_guests), stringResource(R.string.res_guests_label, reservation.guestCountAdult, reservation.guestCountChild))
             if (reservation.note.isNotEmpty()) {
-                InfoRow(Icons.Default.Note, "Ghi chú", reservation.note)
+                InfoRow(Icons.Default.Note, stringResource(R.string.res_note), reservation.note)
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -207,7 +209,7 @@ fun ReservationDetailScreen(
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(
-                text = "Mã đơn: #${reservation.id}",
+                text = stringResource(R.string.res_order_id, reservation.id),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )

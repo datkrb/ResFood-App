@@ -15,12 +15,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Review
 import com.muatrenthenang.resfood.ui.viewmodel.FoodDetailViewModel
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +45,7 @@ fun ReviewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Đánh giá & Nhận xét", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.review_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -58,7 +60,7 @@ fun ReviewScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 ) {
-                    Text("Thêm đánh giá", modifier = Modifier.padding(horizontal = 16.dp))
+                    Text(stringResource(R.string.review_add_btn), modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
         }
@@ -80,7 +82,7 @@ fun ReviewScreen(
                         modifier = Modifier.fillMaxWidth().padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Chưa có đánh giá nào", color = Color.Gray)
+                        Text(stringResource(R.string.review_empty), color = Color.Gray)
                     }
                 }
             }
@@ -94,14 +96,16 @@ fun ReviewScreen(
 
     val reviewSubmissionState by viewModel.reviewSubmissionState.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val successMsg = stringResource(R.string.review_success)
+    val errorMsg = stringResource(R.string.review_error)
 
     LaunchedEffect(reviewSubmissionState) {
         reviewSubmissionState?.let { result ->
             if (result.isSuccess) {
-                android.widget.Toast.makeText(context, "Thêm đánh giá thành công", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, successMsg, android.widget.Toast.LENGTH_SHORT).show()
                 showReviewDialog = false
             } else {
-                android.widget.Toast.makeText(context, result.exceptionOrNull()?.message ?: "Lỗi khi gửi đánh giá", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, result.exceptionOrNull()?.message ?: errorMsg, android.widget.Toast.LENGTH_LONG).show()
             }
             viewModel.resetReviewSubmissionState()
         }
@@ -134,7 +138,7 @@ fun RatingStatistics(reviews: List<Review>, histogram: Map<Int, Int>) {
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "trên 5",
+                text = stringResource(R.string.review_out_of_5),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
@@ -199,7 +203,7 @@ fun ReviewItem(review: Review) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = review.userName.ifEmpty { "Người dùng ẩn danh" },
+                text = review.userName.ifEmpty { stringResource(R.string.review_anonymous) },
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -238,7 +242,7 @@ fun WriteReviewDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Thêm đánh giá của bạn") },
+        title = { Text(stringResource(R.string.review_dialog_title)) },
         text = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -260,7 +264,7 @@ fun WriteReviewDialog(
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
-                    label = { Text("Nhập nội dung đánh giá...") },
+                    label = { Text(stringResource(R.string.review_hint_comment)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3
                 )
@@ -268,12 +272,12 @@ fun WriteReviewDialog(
         },
         confirmButton = {
             Button(onClick = { onSubmit(rating, comment) }) {
-                Text("Gửi")
+                Text(stringResource(R.string.common_send))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Hủy")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

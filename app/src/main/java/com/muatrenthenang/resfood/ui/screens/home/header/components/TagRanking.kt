@@ -14,6 +14,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
+import com.muatrenthenang.resfood.data.model.Rank
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,14 +50,14 @@ fun TagRanking(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "Thành viên $rank",
+                text = stringResource(R.string.profile_member_rank, stringResource(Rank.fromName(rank).nameResId)),
                 color = rankColor,
                 fontSize = 12.sp
             )
         }
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "${point ?: 0} điểm",
+            text = stringResource(R.string.home_points, point ?: 0),
             color = MaterialTheme.colorScheme.onBackground,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,

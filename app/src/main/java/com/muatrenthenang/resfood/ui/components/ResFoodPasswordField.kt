@@ -19,7 +19,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-// ĐÃ XÓA DÒNG IMPORT SAI Ở ĐÂY
 
 @Composable
 fun ResFoodPasswordField(

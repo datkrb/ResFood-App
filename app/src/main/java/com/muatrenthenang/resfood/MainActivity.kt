@@ -1,7 +1,6 @@
 package com.muatrenthenang.resfood
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +66,9 @@ import com.muatrenthenang.resfood.ui.viewmodel.auth.LoginViewModel
 import com.muatrenthenang.resfood.ui.screens.review.ReviewScreen
 import com.muatrenthenang.resfood.ui.screens.settings.profile.AccountCenterScreen
 
-class MainActivity : ComponentActivity() {
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Initialize Notification Channels
@@ -367,7 +368,12 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToReferral = { navController.navigate("referral") },
                                 onNavigateToVouchers = { navController.navigate("vouchers") },
                                 onNavigateToAddresses = { navController.navigate("profile_addresses") },
-                                onNavigateToHelpCenter = { /* TODO: Help Center */ },
+                                onNavigateToHelpCenter = {
+                                    val userId = userViewModel.userState.value?.id
+                                    if (userId != null) {
+                                        navController.navigate("chat_detail/$userId")
+                                    }
+                                },
                                 onNavigateToPaymentMethods = { /* TODO: Payment Methods */ },
                                 onLogout = {
                                     navController.navigate("login") {
@@ -432,7 +438,7 @@ class MainActivity : ComponentActivity() {
                                 status = status,
                                 onNavigateBack = { navController.popBackStack() },
                                 onNavigateToDetail = { orderId -> navController.navigate("order_detail/$orderId") },
-                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
+                                onNavigateToReview = { orderId -> navController.navigate("order_review/$orderId") }
                             )
                         }
 
@@ -440,11 +446,29 @@ class MainActivity : ComponentActivity() {
                             route = "order_detail/{orderId}",
                             arguments = listOf(navArgument("orderId") { defaultValue = "" })
                         ) { backStackEntry ->
+                            
                             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
                             UserOrderDetailScreen(
                                 orderId = orderId,
                                 onNavigateBack = { navController.popBackStack() },
-                                onNavigateToReview = { foodId -> navController.navigate("review/$foodId/false") }
+                                onNavigateToReview = { oid -> navController.navigate("order_review/$oid") },
+                                onNavigateToChat = {
+                                    val userId = userViewModel.userState.value?.id
+                                    if (userId != null) {
+                                        navController.navigate("chat_detail/$userId")
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "order_review/{orderId}",
+                            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+                            com.muatrenthenang.resfood.ui.screens.order.OrderReviewScreen(
+                                orderId = orderId,
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
 

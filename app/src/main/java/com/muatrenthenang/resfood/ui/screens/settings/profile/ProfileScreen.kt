@@ -13,6 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
@@ -85,19 +87,19 @@ fun ProfileScreen(
     fun validateForm(): Boolean {
         return when {
             fullName.isBlank() -> {
-                errorMessage = "Vui lòng nhập họ và tên"
+                errorMessage = context.getString(R.string.err_empty_name)
                 false
             }
             email.isBlank() -> {
-                errorMessage = "Vui lòng nhập email"
+                errorMessage = context.getString(R.string.err_empty_email)
                 false
             }
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                errorMessage = "Email không hợp lệ"
+                errorMessage = context.getString(R.string.err_invalid_email)
                 false
             }
             phone.isNotBlank() && phone.length < 10 -> {
-                errorMessage = "Số điện thoại không hợp lệ"
+                errorMessage = context.getString(R.string.err_invalid_phone)
                 false
             }
             else -> true
@@ -121,7 +123,7 @@ fun ProfileScreen(
                     if (uploadResult.isSuccess) {
                         avatarUrl = uploadResult.getOrNull()
                     } else {
-                        throw Exception("Không thể lưu ảnh đại diện")
+                        throw Exception(context.getString(R.string.err_upload_avatar))
                     }
                 }
                 
@@ -131,13 +133,13 @@ fun ProfileScreen(
                     email = email.trim()
                 )
                 if (result.isFailure) {
-                    throw result.exceptionOrNull() ?: Exception("Không thể cập nhật thông tin")
+                    throw result.exceptionOrNull() ?: Exception(context.getString(R.string.err_update_info))
                 }
                 
                 showSuccessDialog = true
                 avatarUri = null // Reset avatar URI after successful upload
             } catch (e: Exception) {
-                errorMessage = e.message ?: "Đã xảy ra lỗi khi lưu thông tin"
+                errorMessage = e.message ?: context.getString(R.string.err_save_info)
                 showErrorDialog = true
             } finally {
                 isLoading = false
@@ -164,7 +166,7 @@ fun ProfileScreen(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    "Chỉnh sửa hồ sơ",
+                    stringResource(R.string.profile_edit_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
@@ -180,7 +182,7 @@ fun ProfileScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Lưu", color = MaterialTheme.colorScheme.primary)
+                        Text(stringResource(R.string.common_save), color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -249,7 +251,7 @@ fun ProfileScreen(
             
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Nhấn để thay đổi ảnh đại diện",
+                stringResource(R.string.profile_change_avatar_hint),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
@@ -264,7 +266,7 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    "Thành viên ${user.rank}",
+                    stringResource(R.string.profile_member_rank, user.rank),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
@@ -273,38 +275,38 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Thông tin cá nhân
-            SectionTitle("Thông tin cá nhân")
+            SectionTitle(stringResource(R.string.profile_info_section))
             
             EditableProfileTextField(
-                label = "Họ và tên",
+                label = stringResource(R.string.auth_full_name),
                 value = fullName,
                 onValueChange = { fullName = it },
                 icon = Icons.Default.Person,
-                placeholder = "Nhập họ và tên"
+                placeholder = stringResource(R.string.auth_full_name_placeholder)
             )
             
             EditableProfileTextField(
-                label = "Số điện thoại",
+                label = stringResource(R.string.profile_phone),
                 value = phone,
                 onValueChange = { phone = it },
                 icon = Icons.Default.Phone,
-                placeholder = "Nhập số điện thoại",
+                placeholder = stringResource(R.string.profile_phone_placeholder),
                 keyboardType = KeyboardType.Phone
             )
             
             EditableProfileTextField(
-                label = "Email",
+                label = stringResource(R.string.auth_email),
                 value = email,
                 onValueChange = { email = it },
                 icon = Icons.Default.Email,
-                placeholder = "Nhập email",
+                placeholder = stringResource(R.string.profile_enter_email_placeholder),
                 keyboardType = KeyboardType.Email
             )
             
             // Address (read-only, navigate to address management)
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Text(
-                    "Địa chỉ giao hàng",
+                    stringResource(R.string.profile_address_label),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 4.dp)
@@ -316,7 +318,6 @@ fun ProfileScreen(
                             MaterialTheme.colorScheme.surface,
                             RoundedCornerShape(12.dp)
                         )
-                        .clickable { onNavigateToAddresses() }
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -328,15 +329,10 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        defaultAddress?.getFullAddress() ?: "Chưa cập nhật",
+                        defaultAddress?.getFullAddress() ?: stringResource(R.string.profile_address_not_updated),
                         color = if (defaultAddress != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         modifier = Modifier.weight(1f)
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -344,18 +340,18 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Cài đặt tài khoản
-            SectionTitle("Cài đặt tài khoản")
+            SectionTitle(stringResource(R.string.profile_account_settings))
             Column(
                 modifier = Modifier.background(
                     MaterialTheme.colorScheme.surface,
                     RoundedCornerShape(12.dp)
                 )
             ) {
-                SettingRow(icon = Icons.Default.Lock, title = "Đổi mật khẩu", onClick = { showChangePasswordDialog = true })
+                SettingRow(icon = Icons.Default.Lock, title = stringResource(R.string.profile_change_password), onClick = { showChangePasswordDialog = true })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(icon = Icons.Default.ShoppingCart, title = "Ví Voucher", onClick = { })
+                SettingRow(icon = Icons.Default.ShoppingCart, title = stringResource(R.string.profile_voucher_wallet), onClick = { })
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
-                SettingRow(icon = Icons.Default.LocationOn, title = "Quản lý địa chỉ", onClick = onNavigateToAddresses)
+                SettingRow(icon = Icons.Default.LocationOn, title = stringResource(R.string.profile_manage_address), onClick = onNavigateToAddresses)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -374,7 +370,7 @@ fun ProfileScreen(
             ) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Đăng xuất")
+                Text(stringResource(R.string.profile_logout))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -390,7 +386,7 @@ fun ProfileScreen(
             ) {
                 Icon(Icons.Default.Clear, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Xóa tài khoản")
+                Text(stringResource(R.string.profile_delete_account))
             }
             Spacer(modifier = Modifier.height(30.dp))
         }
@@ -408,11 +404,11 @@ fun ProfileScreen(
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Thành công") },
-            text = { Text("Thông tin cá nhân đã được cập nhật") },
+            title = { Text(stringResource(R.string.common_success)) },
+            text = { Text(stringResource(R.string.profile_update_success)) },
             confirmButton = {
                 TextButton(onClick = { showSuccessDialog = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.common_ok))
                 }
             }
         )
@@ -430,11 +426,11 @@ fun ProfileScreen(
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Lỗi") },
+            title = { Text(stringResource(R.string.common_error)) },
             text = { Text(errorMessage) },
             confirmButton = {
                 TextButton(onClick = { showErrorDialog = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.common_ok))
                 }
             }
         )
@@ -457,7 +453,7 @@ fun ProfileScreen(
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Đổi mật khẩu") },
+            title = { Text(stringResource(R.string.profile_change_password)) },
             text = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -466,7 +462,7 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = currentPassword,
                         onValueChange = { currentPassword = it },
-                        label = { Text("Mật khẩu hiện tại") },
+                        label = { Text(stringResource(R.string.profile_current_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -475,7 +471,7 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
-                        label = { Text("Mật khẩu mới") },
+                        label = { Text(stringResource(R.string.profile_new_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -484,7 +480,7 @@ fun ProfileScreen(
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Xác nhận mật khẩu mới") },
+                        label = { Text(stringResource(R.string.profile_confirm_new_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -498,19 +494,19 @@ fun ProfileScreen(
                         // Validation
                         when {
                             currentPassword.isBlank() -> {
-                                errorMessage = "Vui lòng nhập mật khẩu hiện tại"
+                                errorMessage = context.getString(R.string.err_empty_current_pass)
                                 showErrorDialog = true
                             }
                             newPassword.isBlank() -> {
-                                errorMessage = "Vui lòng nhập mật khẩu mới"
+                                errorMessage = context.getString(R.string.err_empty_new_pass)
                                 showErrorDialog = true
                             }
                             newPassword.length < 6 -> {
-                                errorMessage = "Mật khẩu mới phải có ít nhất 6 ký tự"
+                                errorMessage = context.getString(R.string.err_short_new_pass)
                                 showErrorDialog = true
                             }
                             newPassword != confirmPassword -> {
-                                errorMessage = "Mật khẩu xác nhận không khớp"
+                                errorMessage = context.getString(R.string.err_password_mismatch)
                                 showErrorDialog = true
                             }
                             else -> {
@@ -525,13 +521,13 @@ fun ProfileScreen(
                                         currentPassword = ""
                                         newPassword = ""
                                         confirmPassword = ""
-                                        errorMessage = "Đổi mật khẩu thành công"
+                                        errorMessage = context.getString(R.string.err_pass_change_success)
                                         showSuccessDialog = true
                                     } else {
                                         errorMessage = when {
                                             result.exceptionOrNull()?.message?.contains("password") == true -> 
-                                                "Mật khẩu hiện tại không đúng"
-                                            else -> result.exceptionOrNull()?.message ?: "Có lỗi xảy ra"
+                                                context.getString(R.string.err_incorrect_current_pass)
+                                            else -> result.exceptionOrNull()?.message ?: context.getString(R.string.err_generic)
                                         }
                                         showErrorDialog = true
                                     }
@@ -544,7 +540,7 @@ fun ProfileScreen(
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
-                        Text("Xác nhận")
+                        Text(stringResource(R.string.common_ok)) // Or "Xác nhận"
                     }
                 }
             },
@@ -557,7 +553,7 @@ fun ProfileScreen(
                         confirmPassword = ""
                     }
                 ) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -574,10 +570,10 @@ fun ProfileScreen(
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Xóa tài khoản?") },
+            title = { Text(stringResource(R.string.profile_delete_confirm_title)) },
             text = { 
                 Text(
-                    "Hành động này không thể hoàn tác. Mọi dữ liệu của bạn sẽ bị xóa vĩnh viễn.",
+                    stringResource(R.string.profile_delete_confirm_msg),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 ) 
             },
@@ -597,12 +593,12 @@ fun ProfileScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Xóa vĩnh viễn", color = MaterialTheme.colorScheme.onError)
+                    Text(stringResource(R.string.profile_delete_confirm_btn), color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Hủy")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )

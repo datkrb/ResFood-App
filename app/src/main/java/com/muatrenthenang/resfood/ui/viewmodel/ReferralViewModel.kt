@@ -9,6 +9,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.muatrenthenang.resfood.data.model.User
 import com.muatrenthenang.resfood.data.repository.ReferralRepository
 import com.muatrenthenang.resfood.data.repository.UserRepository
+import com.muatrenthenang.resfood.R
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,8 +36,8 @@ data class ReferredUserInfo(
 
 data class ReferralStep(
     val step: String,
-    val title: String,
-    val description: String
+    val titleResId: Int,
+    val descriptionResId: Int
 )
 
 data class ReferralHistoryItem(
@@ -44,7 +47,7 @@ data class ReferralHistoryItem(
     val reward: String
 )
 
-class ReferralViewModel : ViewModel() {
+class ReferralViewModel(application: Application) : AndroidViewModel(application) {
     
     private val referralRepository = ReferralRepository()
     private val userRepository = UserRepository()
@@ -76,9 +79,9 @@ class ReferralViewModel : ViewModel() {
     
     private fun loadReferralSteps() {
         _referralSteps.value = listOf(
-            ReferralStep("1", "Mời bạn bè", "Gửi mã giới thiệu của bạn cho người thân qua mạng xã hội."),
-            ReferralStep("2", "Bạn bè nhập mã", "Người được mời nhập mã trong vòng 24h sau khi đăng ký."),
-            ReferralStep("3", "Cả hai cùng nhận Voucher", "Bạn và bạn bè đều nhận voucher giảm 50.000đ!")
+            ReferralStep("1", R.string.referral_step1_title, R.string.referral_step1_desc),
+            ReferralStep("2", R.string.referral_step2_title, R.string.referral_step2_desc),
+            ReferralStep("3", R.string.referral_step3_title, R.string.referral_step3_desc)
         )
     }
     
@@ -125,8 +128,8 @@ class ReferralViewModel : ViewModel() {
                     _referralHistory.value = referredUsers.map { 
                         ReferralHistoryItem(
                             name = it.name,
-                            date = "Đã hoàn thành",
-                            status = "Hoàn thành",
+                            date = getApplication<Application>().getString(R.string.me_status_completed),
+                            status = getApplication<Application>().getString(R.string.me_status_completed),
                             reward = "+50.000đ"
                         )
                     }
@@ -191,7 +194,7 @@ class ReferralViewModel : ViewModel() {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     canEnterCode = false,
-                    successMessage = "Chúc mừng! Bạn và ${referrer.fullName} đều nhận được voucher 50k!"
+                    successMessage = getApplication<Application>().getString(R.string.referral_msg_apply_success, referrer.fullName)
                 )
                 _inputCode.value = ""
             } else {
@@ -207,7 +210,7 @@ class ReferralViewModel : ViewModel() {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("Referral Code", _uiState.value.referralCode)
         clipboard.setPrimaryClip(clip)
-        _uiState.value = _uiState.value.copy(successMessage = "Đã sao chép mã")
+        _uiState.value = _uiState.value.copy(successMessage = getApplication<Application>().getString(R.string.referral_msg_copy_success))
     }
     
     fun clearError() {

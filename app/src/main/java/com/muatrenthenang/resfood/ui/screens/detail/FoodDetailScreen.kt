@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -123,9 +125,11 @@ fun FoodDetailScreen(
 
                         NameAndPriceFood(food)  // ten mon an + gia tien
                         FoodStats(food)         // thong so mon an
+                        val context = LocalContext.current
+                        val defaultFoodName = stringResource(R.string.food_detail_default_name)
                         ShareAndReview(
                             onShareClick = {
-                                val foodName = food?.name ?: "Món ngon"
+                                val foodName = food?.name ?: defaultFoodName
                                 val imageUrl = food?.imageUrl ?: "https://via.placeholder.com/600x400.png?text=ResFood"
                                 val foodId = food?.id ?: ""
                                 shareFood(context, foodName, imageUrl, foodId)
@@ -142,10 +146,7 @@ fun FoodDetailScreen(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Text(
-                                text ="Topping them",
-                                color = MaterialTheme.colorScheme.onBackground,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
+                                text = stringResource(R.string.food_detail_topping_title),
                             )
 
                             Spacer(modifier = Modifier.height(10.dp))
@@ -181,7 +182,7 @@ fun FoodDetailScreen(
                 onClick = onNavigateBack,
                 modifier = Modifier.background(Color.Black.copy(alpha = 0.4f), CircleShape)
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = MaterialTheme.colorScheme.onSurface)
             }
 
             // favorite
@@ -192,7 +193,7 @@ fun FoodDetailScreen(
             ) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorite",
+                    contentDescription = stringResource(R.string.common_favorite),
                     tint = if (isFavorite) LightRed else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -245,20 +246,20 @@ fun shareFood(context: Context, foodName: String, imageUrl: String, foodId: Stri
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     setDataAndType(contentUri, context.contentResolver.getType(contentUri))
                     putExtra(Intent.EXTRA_STREAM, contentUri)
-                    putExtra(Intent.EXTRA_TEXT, "Hãy thử món $foodName tại ResFood! \nNgon tuyệt cú mèo!\n\nXem chi tiết tại: resfood://food/$foodId")
+                    putExtra(Intent.EXTRA_TEXT, context.getString(R.string.food_detail_share_text, foodName, foodId))
                     type = "image/png"
                 }
-                val chooser = Intent.createChooser(shareIntent, "Chia sẻ món ăn qua")
+                val chooser = Intent.createChooser(shareIntent, context.getString(R.string.food_detail_share_chooser))
                 chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(context, chooser, null)
             }
         } else {
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, "Hãy thử món $foodName tại ResFood! Ngon tuyệt cú mèo!\n\nXem chi tiết tại: resfood://food/$foodId")
+                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.food_detail_share_text, foodName, foodId))
                 type = "text/plain"
             }
-            val shareIntent = Intent.createChooser(sendIntent, "Chia sẻ món ăn qua")
+            val shareIntent = Intent.createChooser(sendIntent, context.getString(R.string.food_detail_share_chooser))
             startActivity(context, shareIntent, null)
         }
     }

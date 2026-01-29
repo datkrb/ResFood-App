@@ -11,6 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,7 +46,7 @@ fun ChatListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tin nhắn", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.chat_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -55,7 +57,7 @@ fun ChatListScreen(
     ) { padding ->
         if (chats.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("Chưa có tin nhắn nào", color = Color.Gray)
+                Text(stringResource(R.string.chat_empty), color = Color.Gray)
             }
         } else {
             LazyColumn(
@@ -157,7 +159,7 @@ fun ChatItem(
                 onDismissRequest = { showMenu = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text("Xóa trò chuyện", color = Color.Red) },
+                    text = { Text(stringResource(R.string.chat_delete), color = Color.Red) },
                     onClick = {
                         showMenu = false
                         onDelete()

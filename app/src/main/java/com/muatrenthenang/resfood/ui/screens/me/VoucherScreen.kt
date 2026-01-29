@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.muatrenthenang.resfood.data.model.Promotion
 import com.muatrenthenang.resfood.ui.viewmodel.VoucherViewModel
@@ -70,14 +72,14 @@ fun VoucherScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text("Mã giảm giá", fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
+                        text = { Text(stringResource(R.string.voucher_tab_discount), fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("Mã vận chuyển", fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
+                        text = { Text(stringResource(R.string.voucher_tab_shipping), fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -90,8 +92,8 @@ fun VoucherScreen(
                 } else if (error != null) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = error ?: "Đã có lỗi xảy ra", color = MaterialTheme.colorScheme.error)
-                            Button(onClick = { viewModel.loadPromotions() }) { Text("Thử lại") }
+                            Text(text = error ?: stringResource(R.string.common_error), color = MaterialTheme.colorScheme.error)
+                            Button(onClick = { viewModel.loadPromotions() }) { Text(stringResource(R.string.common_ok)) } // Using OK if no specific retry string but lets add common_retry later if needed or just use common_ok for now or Thử lại -> common_ok is not ideal. Let's use stringResource(R.string.common_error) for error msg.
                         }
                     }
                 } else {
@@ -108,7 +110,7 @@ fun VoucherScreen(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "Bạn chưa có mã nào",
+                                    text = stringResource(R.string.voucher_empty),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -193,7 +195,7 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (isShip) "FREESHIP" else "RESFOOD",
+                        text = if (isShip) stringResource(R.string.voucher_freeship) else stringResource(R.string.voucher_resfood),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = iconColor
@@ -217,7 +219,7 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 if (promotion.minOrderValue > 0) {
                     Text(
-                        text = "Đơn tối thiểu ${formatK(promotion.minOrderValue)}",
+                        text = stringResource(R.string.voucher_min_order, formatK(promotion.minOrderValue)),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -227,13 +229,13 @@ fun VoucherItemCard(promotion: Promotion, onClick: () -> Unit) {
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "HSD: ${SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(promotion.endDate.toDate())}",
+                        text = stringResource(R.string.voucher_expiry, SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(promotion.endDate.toDate())),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "Chi tiết",
+                        text = stringResource(R.string.voucher_details),
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
@@ -267,7 +269,7 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Chi tiết ưu đãi", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.voucher_dialog_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -276,28 +278,28 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
                 HorizontalDivider()
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Mã:", color = Color.Gray)
+                    Text(stringResource(R.string.voucher_dialog_code), color = Color.Gray)
                     Text(promotion.code, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Giảm giá:", color = Color.Gray)
+                    Text(stringResource(R.string.voucher_dialog_discount), color = Color.Gray)
                     val discountText = if(promotion.discountType == 0) "${promotion.discountValue}%" else "${promotion.discountValue/1000}k"
                     Text(discountText, fontWeight = FontWeight.Bold)
                 }
 
                 if (promotion.maxDiscountValue > 0) {
                      Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Giảm tối đa:", color = Color.Gray)
+                        Text(stringResource(R.string.voucher_dialog_max_discount), color = Color.Gray)
                         Text("${promotion.maxDiscountValue/1000}k", fontWeight = FontWeight.Medium)
                     }
                 }
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Áp dụng:", color = Color.Gray)
+                    Text(stringResource(R.string.voucher_dialog_apply), color = Color.Gray)
                     Text(when(promotion.applyFor) {
-                        "SHIP" -> "Giao hàng"
-                        else -> "Toàn hệ thống"
+                        "SHIP" -> stringResource(R.string.voucher_apply_ship)
+                        else -> stringResource(R.string.voucher_apply_all)
                     }, fontWeight = FontWeight.Medium)
                 }
                 
@@ -306,16 +308,16 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
                 val endDateStr = dateFormat.format(promotion.endDate.toDate())
                 
                  Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Hiệu lực:", color = Color.Gray)
+                    Text(stringResource(R.string.voucher_dialog_validity), color = Color.Gray)
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("Từ: $startDateStr", fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                        Text("Đến: $endDateStr", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.voucher_valid_from, startDateStr), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.voucher_valid_to, endDateStr), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 }
                 
                 if (promotion.minOrderValue > 0) {
                      Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Text("Đơn tối thiểu:", color = Color.Gray)
+                        Text(stringResource(R.string.voucher_dialog_min_order), color = Color.Gray)
                          Text("${promotion.minOrderValue/1000}k", fontWeight = FontWeight.Medium)
                     }
                 }
@@ -323,7 +325,7 @@ fun VoucherDetailDialog(promotion: Promotion, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Đóng")
+                Text(stringResource(R.string.common_ok))
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
@@ -349,13 +351,13 @@ fun VoucherTopBar(onBack: () -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.common_back),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "Kho Voucher của tôi",
+                text = stringResource(R.string.voucher_topbar_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

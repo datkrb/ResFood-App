@@ -11,28 +11,30 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 
 import com.google.firebase.auth.FirebaseAuth
-import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.data.repository.OrderRepository
 import com.muatrenthenang.resfood.data.repository.PromotionRepository
+import com.muatrenthenang.resfood.data.repository.SettingsRepository
+import com.muatrenthenang.resfood.R
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = AuthRepository()
     private val promotionRepository = PromotionRepository()
     private val orderRepository = OrderRepository()
+    private val settingsRepository = SettingsRepository(application)
     
     private val _userState = MutableStateFlow<User?>(null)
     val userState: StateFlow<User?> = _userState.asStateFlow()
 
-    private val sharedPreferences = application.getSharedPreferences("resfood_prefs", Context.MODE_PRIVATE)
-
-    private val _isDarkTheme = MutableStateFlow(sharedPreferences.getBoolean("is_dark_theme", false))
+    private val _isDarkTheme = MutableStateFlow(settingsRepository.isDarkModeEnabled())
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
     // Push notification state
-    private val _isPushNotificationEnabled = MutableStateFlow(sharedPreferences.getBoolean("push_notification_enabled", true))
+    private val _isPushNotificationEnabled = MutableStateFlow(settingsRepository.isNotificationsEnabled())
     val isPushNotificationEnabled: StateFlow<Boolean> = _isPushNotificationEnabled.asStateFlow()
 
     // === MeViewModel States ===
@@ -47,9 +49,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     // Referral Promo content
     private val _referralPromo = MutableStateFlow(
         ReferralPromoData(
-            title = "Mời bạn bè, nhận quà!",
-            subtitle = "Tặng voucher 50k cho mỗi lời mời thành công",
-            buttonText = "Mời ngay"
+            titleResId = R.string.me_referral_title,
+            subtitleResId = R.string.me_referral_subtitle,
+            buttonTextResId = R.string.me_referral_btn
         )
     )
     val referralPromo: StateFlow<ReferralPromoData> = _referralPromo.asStateFlow()
@@ -58,12 +60,21 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _utilityMenu = MutableStateFlow<List<UtilityMenuOption>>(emptyList())
     val utilityMenu: StateFlow<List<UtilityMenuOption>> = _utilityMenu.asStateFlow()
 
+    // Language State
+    private val _currentLanguage = MutableStateFlow("vi") // Default
+    val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
         fetchUserProfile()
+        fetchUserProfile()
         updateUtilityMenu(voucherCount = 0)
+        // Initialize language state
+        val currentLocales = AppCompatDelegate.getApplicationLocales()
+        val tag = if (!currentLocales.isEmpty) currentLocales.get(0)?.language ?: "vi" else "vi"
+        _currentLanguage.value = tag
     }
 
     fun fetchUserProfile() {
@@ -104,7 +115,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                         pending = orders.count { it.status == "PENDING" },
                         processing = orders.count { it.status == "PROCESSING" },
                         delivering = orders.count { it.status == "DELIVERING" },
-                        toReview = orders.count { it.status == "COMPLETED" }
+                        toReview = orders.count { it.status == "COMPLETED" && !it.isReviewed }
                     )
                 }
             } catch (e: Exception) {
@@ -129,38 +140,39 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         _utilityMenu.value = listOf(
             UtilityMenuOption(
                 id = "membership",
-                title = "Hạng thành viên",
-                subtitle = "Xem ưu đãi & tích điểm",
+                titleResId = R.string.me_util_membership,
+                subtitleResId = R.string.me_util_membership_sub,
                 iconType = UtilityIconType.RANK
             ),
             UtilityMenuOption(
                 id = "spending_statistics",
-                title = "Thống kê chi tiêu",
-                subtitle = "Xem chi tiêu theo danh mục",
+                titleResId = R.string.me_util_stats,
+                subtitleResId = R.string.me_util_stats_sub,
                 iconType = UtilityIconType.STATISTICS
             ),
             UtilityMenuOption(
                 id = "vouchers",
-                title = "Mã giảm giá của tôi",
-                subtitle = if (voucherCount > 0) "Bạn có $voucherCount mã khả dụng" else "Chưa có mã nào",
+                titleResId = R.string.me_util_vouchers,
+                subtitleResId = if (voucherCount > 0) R.string.me_util_vouchers_sub_count else R.string.me_util_vouchers_sub_empty,
+                subtitleArgs = if (voucherCount > 0) listOf(voucherCount) else null,
                 iconType = UtilityIconType.VOUCHER
             ),
             UtilityMenuOption(
                 id = "addresses",
-                title = "Địa chỉ đã lưu",
-                subtitle = "Nhà riêng, Văn phòng...",
+                titleResId = R.string.me_util_addresses,
+                subtitleResId = R.string.me_util_addresses_sub,
                 iconType = UtilityIconType.ADDRESS
             ),
             UtilityMenuOption(
                 id = "help",
-                title = "Trung tâm trợ giúp",
-                subtitle = "Giải đáp thắc mắc 24/7",
+                titleResId = R.string.me_util_help,
+                subtitleResId = R.string.me_util_help_sub,
                 iconType = UtilityIconType.HELP
             ),
             UtilityMenuOption(
                 id = "payment",
-                title = "Phương thức thanh toán",
-                subtitle = "Visa, MoMo, ZaloPay",
+                titleResId = R.string.me_util_payment,
+                subtitleResId = R.string.me_util_payment_sub,
                 iconType = UtilityIconType.PAYMENT
             )
         )
@@ -208,12 +220,18 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     
     fun toggleTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
-        sharedPreferences.edit().putBoolean("is_dark_theme", isDark).apply()
+        settingsRepository.setDarkModeEnabled(isDark)
     }
 
     fun togglePushNotification(enabled: Boolean) {
         _isPushNotificationEnabled.value = enabled
-        sharedPreferences.edit().putBoolean("push_notification_enabled", enabled).apply()
+        settingsRepository.setNotificationsEnabled(enabled)
+    }
+
+    fun setLanguage(code: String) {
+        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(code)
+        AppCompatDelegate.setApplicationLocales(appLocale)
+        _currentLanguage.value = code
     }
 
     fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit) {
@@ -251,15 +269,16 @@ data class MeOrderCounts(
 )
 
 data class ReferralPromoData(
-    val title: String,
-    val subtitle: String,
-    val buttonText: String
+    val titleResId: Int,
+    val subtitleResId: Int,
+    val buttonTextResId: Int
 )
 
 data class UtilityMenuOption(
     val id: String,
-    val title: String,
-    val subtitle: String,
+    val titleResId: Int,
+    val subtitleResId: Int,
+    val subtitleArgs: List<Any>? = null,
     val iconType: UtilityIconType
 )
 

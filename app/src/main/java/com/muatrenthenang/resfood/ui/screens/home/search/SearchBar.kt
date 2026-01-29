@@ -18,6 +18,8 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun SearchBar(
@@ -36,7 +38,7 @@ fun SearchBar(
             .clip(RoundedCornerShape(50)),
         placeholder = {
             Text(
-                text = "Tìm món ăn, nhà hàng...",
+                text = stringResource(R.string.home_search_hint),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = TextStyle(
                     fontSize = 14.sp,

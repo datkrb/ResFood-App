@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +35,7 @@ import com.muatrenthenang.resfood.ui.theme.LightRed
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
 import com.muatrenthenang.resfood.ui.theme.SuccessGreen
 import com.muatrenthenang.resfood.ui.viewmodel.AddressViewModel
+import com.muatrenthenang.resfood.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,13 +81,13 @@ fun AddressListScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Quay lại",
+                            contentDescription = stringResource(R.string.common_back),
                             modifier = Modifier.size(28.dp)
                         )
                     }
 
                     Text(
-                        text = "Địa chỉ của tôi",
+                        text = stringResource(R.string.address_my_addresses),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Center)
@@ -108,7 +110,7 @@ fun AddressListScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Thêm địa chỉ",
+                    text = stringResource(R.string.address_add_title),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
                 )
@@ -156,14 +158,14 @@ fun AddressListScreen(
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "Chưa có địa chỉ nào",
+                        text = stringResource(R.string.address_empty_list),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Thêm địa chỉ để giao hàng nhanh hơn",
+                        text = stringResource(R.string.address_empty_desc),
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         fontSize = 14.sp
                     )
@@ -225,18 +227,19 @@ fun AddressListScreen(
                 },
                 title = {
                     Text(
-                        text = "Xóa địa chỉ?",
+                        text = stringResource(R.string.address_delete_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                 },
                 text = {
                     Text(
-                        text = "Bạn có chắc muốn xóa địa chỉ \"${addressToDelete?.label}\"? Hành động này không thể hoàn tác.",
+                        text = stringResource(R.string.address_delete_confirm, addressToDelete?.label ?: ""),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         fontSize = 14.sp
                     )
                 },
+
                 confirmButton = {
                     Button(
                         onClick = {
@@ -247,7 +250,7 @@ fun AddressListScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = LightRed),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Xóa", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.action_delete), fontWeight = FontWeight.SemiBold)
                     }
                 },
                 dismissButton = {
@@ -258,7 +261,7 @@ fun AddressListScreen(
                         }
                     ) {
                         Text(
-                            "Hủy",
+                            stringResource(R.string.common_cancel),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Medium
                         )
@@ -285,7 +288,7 @@ fun AddressCard(
         shadowElevation = 2.dp,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onSelect() }
+            .clickable { onEdit() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -325,7 +328,11 @@ fun AddressCard(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = address.label,
+                                text = when(address.label) {
+                                    "Nhà riêng" -> stringResource(R.string.address_label_home)
+                                    "Công ty" -> stringResource(R.string.address_label_work)
+                                    else -> address.label
+                                },
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -337,7 +344,7 @@ fun AddressCard(
                                     color = SuccessGreen.copy(alpha = 0.15f)
                                 ) {
                                     Text(
-                                        text = "Mặc định",
+                                        text = stringResource(R.string.address_default_badge),
                                         color = SuccessGreen,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.SemiBold,
@@ -352,23 +359,12 @@ fun AddressCard(
                 // Action buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "Sửa",
-                            tint = PrimaryColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    IconButton(
                         onClick = onDelete,
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Xóa",
+                            contentDescription = stringResource(R.string.action_delete),
                             tint = LightRed,
                             modifier = Modifier.size(20.dp)
                         )

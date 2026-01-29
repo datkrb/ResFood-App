@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 
 @Composable
 fun AddToCart(
@@ -109,7 +111,7 @@ fun AddToCart(
                     contentDescription = "add to cart"
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Thêm vào giỏ", fontSize = 18.sp)
+                Text(stringResource(R.string.food_button_add_to_cart), fontSize = 18.sp)
             }
         }
     }

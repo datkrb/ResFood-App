@@ -18,12 +18,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.muatrenthenang.resfood.ui.theme.PrimaryColor
+import com.muatrenthenang.resfood.R
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -79,24 +81,24 @@ fun MapPickerScreen(
                 // Should not happen if permission granted
             }
         } else {
-             Toast.makeText(context, "Cần quyền truy cập vị trí để sử dụng tính năng này", Toast.LENGTH_SHORT).show()
+             Toast.makeText(context, R.string.address_permission_required, Toast.LENGTH_SHORT).show()
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chọn vị trí", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.address_map_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     TextButton(onClick = {
                         onLocationPicked(currentGeoPoint.latitude, currentGeoPoint.longitude)
                     }) {
-                        Text("Xong", fontWeight = FontWeight.Bold, color = PrimaryColor, fontSize = 16.sp)
+                        Text(stringResource(R.string.address_map_done), fontWeight = FontWeight.Bold, color = PrimaryColor, fontSize = 16.sp)
                     }
                 }
             )
@@ -159,7 +161,7 @@ fun MapPickerScreen(
                 containerColor = Color.White,
                 contentColor = PrimaryColor
             ) {
-                Icon(Icons.Default.MyLocation, contentDescription = "My Location")
+                Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.common_gps_action))
             }
             
             // Coordinate Display

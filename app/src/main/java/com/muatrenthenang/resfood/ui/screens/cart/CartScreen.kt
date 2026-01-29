@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.res.stringResource
+import com.muatrenthenang.resfood.R
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,8 +100,8 @@ fun CartScreen(
                 }
 
                 Text(
-                    text = "Giỏ hàng",
-                    fontSize = 18.sp,
+                    text = stringResource(R.string.cart_title),
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -131,17 +133,17 @@ fun CartScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Tạm tính", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = stringResource(R.string.cart_subtotal), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong()), fontWeight = FontWeight.Medium)
                             }
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text(text = "Phí giao hàng", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
+                                Text(text = stringResource(R.string.cart_shipping_fee), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f))
                                 Text(text = viewModel.formatCurrency(currentShippingFee), fontWeight = FontWeight.Medium)
                             }
                             Divider()
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                                 Column {
-                                    Text(text = "Tổng cộng", fontWeight = FontWeight.Bold)
+                                    Text(text = stringResource(R.string.cart_total), fontWeight = FontWeight.Bold)
                                 }
                                 Text(text = viewModel.formatCurrency(viewModel.subTotal().toLong() + currentShippingFee), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = PrimaryColor)
                             }
@@ -168,7 +170,7 @@ fun CartScreen(
                                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
                                 ) {
                                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(text = "Tiến hành thanh toán", color = Color.White, fontWeight = FontWeight.Bold)
+                                        Text(text = stringResource(R.string.prepare_payment), color = Color.White, fontWeight = FontWeight.Bold)
                                         Surface(
                                             shape = CircleShape,
                                             color = Color.White.copy(alpha = 0.15f)
@@ -196,10 +198,10 @@ fun CartScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Bạn cần đăng nhập để xem giỏ hàng.", fontSize = 16.sp, color = Color.Gray)
+                    Text(stringResource(R.string.cart_require_login), fontSize = 16.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { /* TODO: Chuyển hướng đăng nhập */ }, shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)) {
-                        Text("Đăng nhập", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.cart_login_btn), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -227,7 +229,7 @@ fun CartScreen(
                     }
                 } else if (items.isEmpty()) {
                     Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                        Text("Giỏ hàng của bạn đang trống!", color = Color.Gray, fontSize = 16.sp)
+                        Text(stringResource(R.string.cart_empty), color = Color.Gray, fontSize = 16.sp)
                     }
                 } else {
                     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -381,15 +383,15 @@ fun CartScreen(
                         showDeleteDialog = false
                         deletingItemId = null
                     },
-                    title = { Text(text = "Xóa món") },
-                    text = { Text(text = "Bạn có chắc chắn muốn xóa \"${deletingItem?.food?.name ?: ""}\" khỏi giỏ hàng?") },
+                    title = { Text(text = stringResource(R.string.cart_delete_title)) },
+                    text = { Text(text = stringResource(R.string.cart_delete_confirm, deletingItem?.food?.name ?: "")) },
                     confirmButton = {
                         TextButton(onClick = {
                             deletingItemId?.let { viewModel.removeItem(it) }
                             showDeleteDialog = false
                             deletingItemId = null
                         }) {
-                            Text("Xóa", color = LightRed)
+                            Text(stringResource(R.string.common_delete), color = LightRed)
                         }
                     },
                     dismissButton = {
@@ -397,7 +399,7 @@ fun CartScreen(
                             showDeleteDialog = false
                             deletingItemId = null
                         }) {
-                            Text("Hủy")
+                            Text(stringResource(R.string.common_cancel))
                         }
                     }
                 )
@@ -406,19 +408,19 @@ fun CartScreen(
             if (showClearAllDialog) {
                 AlertDialog(
                     onDismissRequest = { showClearAllDialog = false },
-                    title = { Text(text = "Xóa toàn bộ giỏ hàng") },
-                    text = { Text(text = "Bạn có chắc chắn muốn xóa toàn bộ giỏ hàng?") },
+                    title = { Text(text = stringResource(R.string.cart_clear_title)) },
+                    text = { Text(text = stringResource(R.string.cart_clear_confirm)) },
                     confirmButton = {
                         TextButton(onClick = {
                             viewModel.clearCart()
                             showClearAllDialog = false
                         }) {
-                            Text("Xóa", color = LightRed)
+                            Text(stringResource(R.string.common_delete), color = LightRed)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showClearAllDialog = false }) {
-                            Text("Hủy")
+                            Text(stringResource(R.string.common_cancel))
                         }
                     }
                 )

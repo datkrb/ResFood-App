@@ -72,6 +72,8 @@ import com.muatrenthenang.resfood.ui.viewmodel.admin.ActivityItem
 import com.muatrenthenang.resfood.ui.viewmodel.admin.ActivityType
 import com.muatrenthenang.resfood.ui.viewmodel.admin.AdminViewModel
 import com.muatrenthenang.resfood.ui.viewmodel.admin.DashboardUiState
+import com.muatrenthenang.resfood.R
+import androidx.compose.ui.res.stringResource
 
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -169,7 +171,7 @@ fun TopAppBarSection(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "CHÀO MỪNG TRỞ LẠI",
+                        text = stringResource(R.string.dashboard_welcome_back),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -204,7 +206,7 @@ fun TopAppBarSection(
             }
         }
         Text(
-            text = "Bảng điều khiển",
+            text = stringResource(R.string.dashboard_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 8.dp)
@@ -223,9 +225,9 @@ fun TimeFilterSection(selectedRange: String, onRangeSelected: (String) -> Unit) 
             .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TimeFilterButton(text = "Hôm nay", isSelected = selectedRange == "Today", modifier = Modifier.weight(1f), onClick = { onRangeSelected("Today") })
-        TimeFilterButton(text = "Tháng này", isSelected = selectedRange == "This Month", modifier = Modifier.weight(1f), onClick = { onRangeSelected("This Month") })
-        TimeFilterButton(text = "Tất cả", isSelected = selectedRange == "All", modifier = Modifier.weight(1f), onClick = { onRangeSelected("All") })
+        TimeFilterButton(text = stringResource(R.string.admin_order_filter_date_today), isSelected = selectedRange == "Today", modifier = Modifier.weight(1f), onClick = { onRangeSelected("Today") })
+        TimeFilterButton(text = stringResource(R.string.admin_customer_this_month), isSelected = selectedRange == "This Month", modifier = Modifier.weight(1f), onClick = { onRangeSelected("This Month") })
+        TimeFilterButton(text = stringResource(R.string.filter_all), isSelected = selectedRange == "All", modifier = Modifier.weight(1f), onClick = { onRangeSelected("All") })
     }
 }
 
@@ -319,7 +321,7 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "Tổng doanh thu", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(text = stringResource(R.string.dashboard_stats_total_revenue), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     Text(
                         text = "$${state.totalRevenue}",
                         fontWeight = FontWeight.Bold,
@@ -374,7 +376,7 @@ fun StatsHeroSection(
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = "${state.newOrdersCount} Mới",
+                                text = "${state.newOrdersCount} ${stringResource(R.string.dashboard_stats_new_badge)}",
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
@@ -383,7 +385,7 @@ fun StatsHeroSection(
                     }
                 }
                 Column {
-                    Text(text = "Đơn hàng mới", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
+                    Text(text = stringResource(R.string.dashboard_stats_new_orders), color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
                     Text(
                         text = "${state.newOrders}",
                         fontWeight = FontWeight.Bold,
@@ -405,7 +407,7 @@ fun QuickActionsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Tác vụ nhanh",
+            text = stringResource(R.string.dashboard_quick_actions),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -418,7 +420,7 @@ fun QuickActionsSection(
                 // "Add Item" -> Food Management
                 QuickActionButton(
                     icon = Icons.Default.AddCircle,
-                    label = "Thêm món",
+                    label = stringResource(R.string.dashboard_action_add_food),
                     color = Color(0xFF2196F3), // Blue
                     onClick = onNavigateToFoodManagement
                 )
@@ -426,7 +428,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.Campaign,
-                    label = "Khuyến mãi",
+                    label = stringResource(R.string.dashboard_action_promo),
                     color = Color(0xFF9C27B0), // Purple
                     onClick = onNavigateToPromo
                 )
@@ -434,7 +436,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.Badge,
-                    label = "Khách hàng", // Changed label slightly or keep generic
+                    label = stringResource(R.string.dashboard_action_customer), // Changed label slightly or keep generic
                     color = Color(0xFFFF9800), // Orange
                     onClick = onNavigateToCustomers
                 )
@@ -442,7 +444,7 @@ fun QuickActionsSection(
             item {
                 QuickActionButton(
                     icon = Icons.Default.TableBar,
-                    label = "Bàn",
+                    label = stringResource(R.string.dashboard_action_table),
                     color = Color(0xFF009688), // Teal
                     onClick = onNavigateToTables
                 )
@@ -484,7 +486,7 @@ fun OperationsStatusSection(
 ) {
     Column(modifier = Modifier.padding(top = 16.dp)) {
         Text(
-            text = "Hoạt động vận hành",
+            text = stringResource(R.string.dashboard_operations_title),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -498,15 +500,15 @@ fun OperationsStatusSection(
                     modifier = Modifier.weight(1f).clickable { onNavigateToOrders() },
                     icon = Icons.Default.HourglassTop,
                     color = Color(0xFFFFC107), // Yellow
-                    title = "Chờ duyệt",
-                    subtitle = "${state.pendingOrders} Đơn"
+                    title = stringResource(R.string.dashboard_op_pending),
+                    subtitle = "${state.pendingOrders} ${stringResource(R.string.unit_orders)}"
                 )
                 OperationCard(
                     modifier = Modifier.weight(1f).clickable { onNavigateToOrders() },
                     icon = Icons.Default.Kitchen, // Skillet替代
                     color = Color(0xFF2196F3), // Blue
-                    title = "Đang làm",
-                    subtitle = "${state.processingOrders} Đơn"
+                    title = stringResource(R.string.dashboard_op_processing),
+                    subtitle = "${state.processingOrders} ${stringResource(R.string.unit_orders)}"
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -514,15 +516,15 @@ fun OperationsStatusSection(
                     modifier = Modifier.weight(1f).clickable { onNavigateToTables() },
                     icon = Icons.Default.EventSeat,
                     color = Color(0xFF9C27B0), // Purple
-                    title = "Đặt bàn",
-                    subtitle = "${state.reservations} bàn"
+                    title = stringResource(R.string.dashboard_op_reservation),
+                    subtitle = "${state.reservations} ${stringResource(R.string.unit_tables)}"
                 )
                 OperationCard(
                     modifier = Modifier.weight(1f).clickable { onNavigateToFoodManagement() },
                     icon = Icons.Default.ProductionQuantityLimits,
                     color = Color(0xFFF44336), // Red
-                    title = "Hết hàng",
-                    subtitle = "${state.outOfStockItems} món"
+                    title = stringResource(R.string.dashboard_op_out_of_stock),
+                    subtitle = "${state.outOfStockItems} ${stringResource(R.string.unit_items)}"
                 )
             }
         }
@@ -572,9 +574,9 @@ fun RecentActivitySection(activities: List<ActivityItem>) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Hoạt động gần đây", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(text = stringResource(R.string.dashboard_recent_activity), fontWeight = FontWeight.Bold, fontSize = 18.sp)
             TextButton(onClick = { }) {
-                Text(text = "Xem tất cả")
+                Text(text = stringResource(R.string.dashboard_view_all))
             }
         }
         Column(

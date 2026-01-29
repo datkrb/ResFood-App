@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.muatrenthenang.resfood.data.model.Order
 import com.muatrenthenang.resfood.data.repository.AuthRepository
 import com.muatrenthenang.resfood.data.repository.OrderRepository
+import com.muatrenthenang.resfood.data.repository.BranchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,8 @@ import com.muatrenthenang.resfood.data.repository.PromotionRepository
 class OrderListViewModel(
     private val orderRepository: OrderRepository = OrderRepository(),
     private val authRepository: AuthRepository = AuthRepository(),
-    private val promotionRepository: PromotionRepository = PromotionRepository()
+    private val promotionRepository: PromotionRepository = PromotionRepository(),
+    private val branchRepository: BranchRepository = BranchRepository()
 ) : ViewModel() {
 
     private val _orders = MutableStateFlow<List<Order>>(emptyList())
@@ -22,6 +24,21 @@ class OrderListViewModel(
 
     private val _allOrders = MutableStateFlow<List<Order>>(emptyList())
     val allOrders: StateFlow<List<Order>> = _allOrders.asStateFlow()
+
+    private val _branchPhone = MutableStateFlow<String?>(null)
+    val branchPhone: StateFlow<String?> = _branchPhone.asStateFlow()
+
+    init {
+        loadBranchPhone()
+    }
+
+    private fun loadBranchPhone() {
+        viewModelScope.launch {
+            branchRepository.getPrimaryBranch().onSuccess { branch ->
+                _branchPhone.value = branch.phone
+            }
+        }
+    }
 
     fun loadOrders(status: String) {
 
@@ -62,8 +79,8 @@ class OrderListViewModel(
         return _allOrders.value.find { it.id == orderId }
     }
 
-    fun callRestaurant(orderId: String) {
-        // Logic to make a call
+    fun getBranchPhone(): String {
+        return _branchPhone.value ?: "0123456789"
     }
 
     fun cancelOrder(orderId: String) {
@@ -99,12 +116,14 @@ class OrderListViewModel(
         }
     }
 
-    fun reviewOrder(orderId: String) {
-        // Logic to review
-    }
-    
-    fun reOrder(orderId: String) {
-        // Logic to reorder
+    fun markOrderAsReviewed(orderId: String) {
+        viewModelScope.launch {
+            try {
+                orderRepository.markOrderAsReviewed(orderId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
 
