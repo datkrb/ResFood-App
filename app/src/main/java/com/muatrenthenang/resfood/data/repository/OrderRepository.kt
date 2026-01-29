@@ -139,4 +139,16 @@ class OrderRepository {
             Result.failure(e)
         }
     }
+
+    /**
+     * Mark order as reviewed
+     */
+    suspend fun markOrderAsReviewed(orderId: String): Result<Boolean> {
+        return try {
+            ordersRef.document(orderId).update("isReviewed", true).await()
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

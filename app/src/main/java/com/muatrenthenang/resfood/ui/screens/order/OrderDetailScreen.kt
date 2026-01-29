@@ -38,12 +38,16 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.muatrenthenang.resfood.R
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun UserOrderDetailScreen(
     orderId: String,
     onNavigateBack: () -> Unit,
     onNavigateToReview: (String) -> Unit,
+    onNavigateToChat: () -> Unit, // New callback
     viewModel: OrderListViewModel = viewModel()
 ) {
     // Ensure mock data is loaded (simulating loading from shared ViewModel/Repository)
@@ -56,7 +60,6 @@ fun UserOrderDetailScreen(
     val orders by viewModel.orders.collectAsState()
     val order = orders.find { it.id == orderId }
     var showCancelDialog by remember { mutableStateOf(false) }
-    var showReviewSelection by remember { mutableStateOf(false) }
 
     if (order == null) {
         // Loading or not found state
@@ -90,17 +93,6 @@ fun UserOrderDetailScreen(
             tonalElevation = 6.dp
         )
     }
-    
-    if (showReviewSelection) {
-        ReviewSelectionDialog(
-            order = order,
-            onDismiss = { showReviewSelection = false },
-            onItemSelect = { foodId ->
-                showReviewSelection = false
-                onNavigateToReview(foodId)
-            }
-        )
-    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -111,7 +103,7 @@ fun UserOrderDetailScreen(
             OrderDetailBottomBar(
                 order = order, 
                 viewModel = viewModel,
-                onReviewClick = { showReviewSelection = true }
+                onChatClick = onNavigateToChat
             )
         }
     ) { paddingValues ->
@@ -142,6 +134,19 @@ fun UserOrderDetailScreen(
 
             // Payment Method
             PaymentMethodCard(order = order)
+
+            // Review Button (if completed and not reviewed)
+            if (order.status == "COMPLETED" && !order.isReviewed) {
+                 Button(
+                    onClick = { onNavigateToReview(order.id) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.food_review), fontWeight = FontWeight.Bold)
+                }
+            }
             
             if (order.status == "PENDING") {
                  OutlinedButton(
@@ -642,47 +647,39 @@ fun PaymentMethodCard(order: Order) {
 }
 
 @Composable
-fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewClick: () -> Unit) {
+fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onChatClick: () -> Unit) {
+    val context = LocalContext.current
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
          shadowElevation = 16.dp // Top shadow
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Action Buttons
-            if (order.status == "COMPLETED") {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedButton(
-                        onClick = onReviewClick,
-                        modifier = Modifier.weight(1f).height(48.dp),
-                    ) {
-                        Text(stringResource(R.string.food_review))
-                    }
-                    Button(
-                        onClick = { viewModel.reOrder(order.id) },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
-                    ) {
-                        Text(stringResource(R.string.order_btn_reorder), fontWeight = FontWeight.Bold)
-                    }
-                }
-                 Spacer(modifier = Modifier.height(12.dp))
-            }
-            
             // Support Buttons
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
-                    onClick = { /* Chat logic */ },
+                    onClick = onChatClick, // Use callback for in-app chat
                     modifier = Modifier.weight(1f).height(48.dp),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(20.dp), tint = PrimaryColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.action_chat))
+                    Text(stringResource(R.string.action_chat), color = PrimaryColor)
                 }
                 
                 Button(
-                    onClick = { viewModel.callRestaurant(order.id) },
+                    onClick = { 
+                        val phone = viewModel.getBranchPhone()
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:$phone")
+                        }
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                             android.widget.Toast.makeText(context, "Không thể thực hiện cuộc gọi", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier.weight(2f).height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
                     shape = CircleShape
@@ -694,53 +691,6 @@ fun OrderDetailBottomBar(order: Order, viewModel: OrderListViewModel, onReviewCl
             }
         }
     }
-}
-
-@Composable
-fun ReviewSelectionDialog(
-    order: Order,
-    onDismiss: () -> Unit,
-    onItemSelect: (String) -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.review_dialog_title)) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(stringResource(R.string.review_select_product))
-                order.items.forEach { item ->
-                    Surface(
-                        onClick = { onItemSelect(item.foodId) },
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            AsyncImage(
-                                model = item.foodImage,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(item.foodName, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.rotate(180f))
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
-        }
-    )
 }
 
 @Composable

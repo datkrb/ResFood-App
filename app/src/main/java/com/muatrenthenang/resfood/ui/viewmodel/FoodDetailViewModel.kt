@@ -255,5 +255,7 @@ class FoodDetailViewModel(
          }
     }
 
-
+    suspend fun submitReviewForFood(foodId: String, review: com.muatrenthenang.resfood.data.model.Review): Result<Boolean> {
+        return _foodRepository.addReview(foodId, review)
+    }
 }

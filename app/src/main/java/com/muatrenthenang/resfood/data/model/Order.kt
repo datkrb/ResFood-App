@@ -1,7 +1,7 @@
 package com.muatrenthenang.resfood.data.model
 
 import com.google.firebase.Timestamp
-import com.muatrenthenang.resfood.data.model.Address
+import com.google.firebase.firestore.PropertyName
 
 data class Order(
     val id: String = "",
@@ -27,7 +27,9 @@ data class Order(
     val shippingDiscount: Int = 0,            // Tiền giảm từ voucher ship
     
     // === REVIEW ===
-    val isReviewed: Boolean = false,
+    @get:PropertyName("isReviewed")
+    @set:PropertyName("isReviewed")
+    var isReviewed: Boolean = false,
     
     // === REJECTION ===
     val rejectionReason: String? = null,      // Lý do từ chối từ admin
