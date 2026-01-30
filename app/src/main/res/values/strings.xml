@@ -793,5 +793,6 @@
     <string name="main_dish">Món chính</string>
     <string name="side_dish">Món phụ</string>
     <string name="beverage">Nước uống</string>
-    <string name="dessert">Tráng miệng</string>
+    <string name="dessert">Món tráng miệng</string>
+    <string name="address_err_no_location">Vui lòng chọn vị trí trên bản đồ</string>
 </resources>

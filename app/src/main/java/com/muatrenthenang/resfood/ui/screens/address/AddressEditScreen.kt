@@ -87,6 +87,7 @@ fun AddressEditScreen(
     val errEmptyPhone = stringResource(R.string.address_err_empty_phone)
     val errInvalidPhone = stringResource(R.string.address_err_invalid_phone)
     val errEmptyCity = stringResource(R.string.address_err_empty_city)
+    val errNoLocation = stringResource(R.string.address_err_no_location)
 
     // Permission launcher for GPS
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -133,6 +134,7 @@ fun AddressEditScreen(
     var contactNameError by remember { mutableStateOf<String?>(null) }
     var phoneError by remember { mutableStateOf<String?>(null) }
     var cityError by remember { mutableStateOf<String?>(null) }
+    var locationError by remember { mutableStateOf<String?>(null) }
 
     // Initialize form on first composition
     LaunchedEffect(addressId) {
@@ -177,6 +179,7 @@ fun AddressEditScreen(
         contactNameError = null
         phoneError = null
         cityError = null
+        locationError = null
 
         // Validate using formState
         var hasError = false
@@ -198,6 +201,12 @@ fun AddressEditScreen(
         }
         if (formState.city.isBlank()) {
             cityError = errEmptyCity
+            hasError = true
+        }
+
+        // Check for coordinates
+        if (formState.latitude == null || formState.longitude == null || formState.latitude == 0.0 || formState.longitude == 0.0) {
+            locationError = errNoLocation
             hasError = true
         }
 
@@ -601,6 +610,15 @@ fun AddressEditScreen(
                             }
                         }
                     }
+                }
+
+                if (locationError != null) {
+                    Text(
+                        text = locationError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
                 }
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))

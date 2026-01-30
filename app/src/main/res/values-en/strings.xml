@@ -264,7 +264,7 @@
     <string name="address_label_receiver">Receiver Info</string>
     <string name="address_label_info">Address Info</string>
     <string name="address_detail">Detailed Address *</string>
-    <string name="address_ward">Ward/Commune</string>
+    <string name="address_ward">Ward</string>
     <string name="address_district">District</string>
     <string name="address_city">City/Province *</string>
     <string name="address_gps_success">GPS location acquired</string>
@@ -792,6 +792,7 @@
     <string name="side_dish">Side dish</string>
     <string name="beverage">Beverage</string>
     <string name="dessert">Dessert</string>
+    <string name="address_err_no_location">Please pick location on map</string>
 </resources>
 
 
