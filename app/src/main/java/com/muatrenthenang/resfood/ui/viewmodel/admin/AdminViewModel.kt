@@ -307,23 +307,82 @@ class AdminViewModel(
         val totalOrders = completedOrders.size
         
         // 2. Chart Data 
+        val duration = state.endDate - state.startDate
+        val isLongDuration = duration > 30L * 24 * 60 * 60 * 1000L // 30 days
+
         val chartData = if (state.filterType == AnalyticsFilterType.TODAY) {
-            // Group by Hour
-            completedOrders.groupBy { 
+            // Group by Hour for Today (00:00 to 23:00)
+            val grouped = completedOrders.groupBy { 
                 val cal = java.util.Calendar.getInstance()
                 cal.time = it.createdAt!!.toDate() 
                 cal.get(java.util.Calendar.HOUR_OF_DAY)
-            }.map { (hour, orders) ->
-                "${hour}:00" to orders.sumOf { it.total.toDouble() }
-            }.sortedBy { it.first }
+            }
+            
+            (0..23).map { hour ->
+                "${hour}:00" to (grouped[hour]?.sumOf { it.total.toDouble() } ?: 0.0)
+            }.sortedBy { it.first.substringBefore(":").toInt() }
+        } else if (isLongDuration) {
+            // Group by Month (MM/yyyy)
+            val dateFormat = java.text.SimpleDateFormat("MM/yyyy", java.util.Locale.getDefault())
+            val grouped = completedOrders.groupBy { 
+                dateFormat.format(it.createdAt!!.toDate())
+            }
+            
+            val chartPoints = mutableListOf<Pair<String, Double>>()
+            val cal = java.util.Calendar.getInstance()
+            cal.timeInMillis = state.startDate
+            cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+            cal.set(java.util.Calendar.MINUTE, 0)
+            cal.set(java.util.Calendar.SECOND, 0)
+            cal.set(java.util.Calendar.MILLISECOND, 0)
+            
+            val endCal = java.util.Calendar.getInstance()
+            endCal.timeInMillis = state.endDate
+            endCal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+            endCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+            endCal.set(java.util.Calendar.MINUTE, 0)
+            endCal.set(java.util.Calendar.SECOND, 0)
+            endCal.set(java.util.Calendar.MILLISECOND, 0)
+            
+            while (!cal.after(endCal)) {
+                val key = dateFormat.format(cal.time)
+                chartPoints.add(key to (grouped[key]?.sumOf { it.total.toDouble() } ?: 0.0))
+                cal.add(java.util.Calendar.MONTH, 1)
+                if (chartPoints.size > 60) break
+            }
+            chartPoints
         } else {
             // Group by Date (dd/MM)
             val dateFormat = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault())
-            completedOrders.groupBy { 
+            val grouped = completedOrders.groupBy { 
                 dateFormat.format(it.createdAt!!.toDate())
-            }.map { (date, orders) ->
-                date to orders.sumOf { it.total.toDouble() }
-            }.sortedBy { it.first } 
+            }
+            
+            val chartPoints = mutableListOf<Pair<String, Double>>()
+            val cal = java.util.Calendar.getInstance()
+            cal.timeInMillis = state.startDate
+            // Align start to midnight
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+            cal.set(java.util.Calendar.MINUTE, 0)
+            cal.set(java.util.Calendar.SECOND, 0)
+            cal.set(java.util.Calendar.MILLISECOND, 0)
+            
+            val endCal = java.util.Calendar.getInstance()
+            endCal.timeInMillis = state.endDate
+            // Align end to midnight
+            endCal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+            endCal.set(java.util.Calendar.MINUTE, 0)
+            endCal.set(java.util.Calendar.SECOND, 0)
+            endCal.set(java.util.Calendar.MILLISECOND, 0)
+            
+            while (!cal.after(endCal)) {
+                 val key = dateFormat.format(cal.time)
+                 chartPoints.add(key to (grouped[key]?.sumOf { it.total.toDouble() } ?: 0.0))
+                 cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                 if (chartPoints.size > 365) break
+            }
+            chartPoints
         }
 
         // 3. Order Status Distribution (All filtered)

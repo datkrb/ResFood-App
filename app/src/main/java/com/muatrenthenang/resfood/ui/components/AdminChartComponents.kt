@@ -39,8 +39,8 @@ fun DateRangeSelector(
     onTypeSelected: (AnalyticsFilterType) -> Unit,
     onDateRangeSelected: (Long, Long) -> Unit
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
+    var showStartPicker by remember { mutableStateOf(false) }
+    var showEndPicker by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(16.dp)) {
         // Segmented Control (3 Parts as requested)
@@ -55,52 +55,123 @@ fun DateRangeSelector(
             FilterTab(stringResource(R.string.label_this_month), selectedType == AnalyticsFilterType.MONTH, Modifier.weight(1f)) { onTypeSelected(AnalyticsFilterType.MONTH) }
             FilterTab(stringResource(R.string.label_custom), selectedType == AnalyticsFilterType.CUSTOM, Modifier.weight(1f)) { 
                 onTypeSelected(AnalyticsFilterType.CUSTOM)
-                showDatePicker = true
             }
         }
         
-        // Date Display for Custom
+        // Date Display for Custom: TWO BUTTONS
         if (selectedType == AnalyticsFilterType.CUSTOM) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDatePicker = true }
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-                    .padding(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(8.dp))
-                val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                Text(
-                    text = "${formatter.format(Date(startDate))} - ${formatter.format(Date(endDate))}",
-                    fontWeight = FontWeight.Medium
+                // START DATE
+                DateInputBox(
+                    label = "Từ ngày",
+                    date = startDate,
+                    onClick = { showStartPicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // END DATE
+                DateInputBox(
+                    label = "Đến ngày",
+                    date = endDate,
+                    onClick = { showEndPicker = true },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
     }
     
-    if (showDatePicker) {
+    // START DATE PICKER
+    if (showStartPicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = startDate)
         DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
+            onDismissRequest = { showStartPicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    val selectedDate = datePickerState.selectedDateMillis
-                    // Simplified: picking single date for demo, ideal is DateRangePicker
-                    if (selectedDate != null) {
-                         // Mocking range selection with single date for simplicity in this demo wrapper
-                         // In real app, use rememberDateRangePickerState
-                         onDateRangeSelected(selectedDate, selectedDate + 86400000)
+                    val newStart = datePickerState.selectedDateMillis
+                    if (newStart != null) {
+                         var newEnd = endDate
+                         if (newStart > endDate) {
+                              newEnd = newStart + 86399999
+                         }
+                         onDateRangeSelected(newStart, newEnd)
                     }
-                    showDatePicker = false
+                    showStartPicker = false
                 }) { Text(stringResource(R.string.common_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.common_cancel)) }
+                TextButton(onClick = { showStartPicker = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(state = datePickerState, title = { Text("Ngày bắt đầu", modifier = Modifier.padding(16.dp)) })
+        }
+    }
+
+    // END DATE PICKER
+    if (showEndPicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = endDate)
+        DatePickerDialog(
+            onDismissRequest = { showEndPicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val newEndRaw = datePickerState.selectedDateMillis
+                    if (newEndRaw != null) {
+                         val newEnd = newEndRaw + 86399999 // Add nearly 24h
+                         var newStart = startDate
+                         if (newEnd < newStart) {
+                             newStart = newEndRaw // Set start to beginning of that day
+                         }
+                         onDateRangeSelected(newStart, newEnd)
+                    }
+                    showEndPicker = false
+                }) { Text(stringResource(R.string.common_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndPicker = false }) { Text(stringResource(R.string.common_cancel)) }
+            }
+        ) {
+            DatePicker(state = datePickerState, title = { Text("Ngày kết thúc", modifier = Modifier.padding(16.dp)) })
+        }
+    }
+}
+
+@Composable
+fun DateInputBox(label: String, date: Long, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            text = label, 
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp, start = 4.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.5f), RoundedCornerShape(8.dp))
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.CalendarMonth, 
+                contentDescription = null, 
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            Text(
+                text = formatter.format(Date(date)),
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
