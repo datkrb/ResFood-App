@@ -27,22 +27,11 @@ class CartViewModel(
     private val _needLogin = MutableStateFlow(false)
     val needLogin = _needLogin.asStateFlow()
 
-    // Dynamic shipping fee loaded from Branch
-    private val _shippingFee = MutableStateFlow(15000L)
-    val shippingFee = _shippingFee.asStateFlow()
+
 
     init {
         _isLoading.value = true
         loadCart()
-        loadShippingFee()
-    }
-
-    private fun loadShippingFee() {
-        viewModelScope.launch {
-            _branchRepository.getPrimaryBranch().onSuccess { branch ->
-                _shippingFee.value = branch.shippingFee
-            }
-        }
     }
 
     fun loadCart() {
@@ -138,8 +127,7 @@ class CartViewModel(
     }
 
     fun total(): Long {
-        val subtotal = subTotal()
-        return if (subtotal > 0) subtotal + _shippingFee.value else 0L
+        return subTotal().toLong()
     }
 
     fun formatCurrency(value: Long): String {
